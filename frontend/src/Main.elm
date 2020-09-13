@@ -5,6 +5,7 @@ import Decoder exposing (DecodedData(..))
 import Html exposing (..)
 import Html.Events exposing (onClick)
 import Json.Decode as JD
+import Json.Encode as JE
 import Table exposing (torrentTable)
 import Torrent exposing (Torrent)
 
@@ -51,9 +52,20 @@ init flags =
     )
 
 
+getTorrents2 : Cmd Msg
+getTorrents2 =
+    sendMessage "test"
+
+
 getTorrents : Cmd Msg
 getTorrents =
-    sendMessage "test"
+    sendMessage (JE.encode 0 getTorrentsRequest)
+
+
+getTorrentsRequest : JE.Value
+getTorrentsRequest =
+    JE.object
+        [ ( "command", JE.list JE.string [ "d.multicall2", "", "main", "d.hash=", "d.name=", "d.size_bytes=" ] ) ]
 
 
 

@@ -15,17 +15,22 @@ class Dribble < Sinatra::Base
     register Sinatra::Reloader
   end
 
-  def get_hashes
-    Rtorrent.new(settings.rtorrent_host, 5000)
-            .call('d.multicall2', '', 'main', 'd.hash=', 'd.name=')
-            .map do |arr|
-              { hash: arr[0], name: arr[1], test: 1 }
-            end
-  end
-
   # Given some input from our WebSocket, parse it and work out what to do
-  def parse_ws(input)
-    json = JSON.parse(input)
+  #
+  # This is just a simple mapping from JSON to an RPC call:
+  #
+  # {
+  #   command: [
+  #     'd.multicall2', '', 'main', 'd.hash=', 'd.name='
+  #   ]
+  # }
+  #
+  def rtorrent_cmd(input)
+    data = JSON.parse(input)
+    r = Rtorrent.new(settings.rtorrent_host, 5000).call(*data['command'])
+    JSON.generate(data: r)
+  rescue StandardError => err
+    JSON.generate(error: err.message)
   end
 
   get '/' do
@@ -35,15 +40,12 @@ class Dribble < Sinatra::Base
   get '/ws' do
     request.websocket do |ws|
       ws.onopen do
-        # to send torrent list immediately on open..
-        # probably not going this way, want elm to request it explictly
-        # ws.send(JSON.generate(data: { torrents: get_hashes }))
         settings.sockets << ws
       end
 
       ws.onmessage do |msg|
         # EM.next_tick { settings.sockets.each { |s| s.send(msg) } }
-        ws.send(JSON.generate(data: { torrents: get_hashes }))
+        ws.send(rtorrent_cmd(msg))
       end
 
       ws.onclose do

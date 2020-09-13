@@ -1,6 +1,6 @@
 module Decoder exposing (..)
 
-import Json.Decode as JD exposing (Decoder, field, int, string)
+import Json.Decode as JD exposing (Decoder, field, index, int, string)
 import Torrent exposing (..)
 
 
@@ -32,13 +32,13 @@ torrentListDecoder : Decoder DecodedData
 torrentListDecoder =
     JD.map Torrents <|
         field "data" <|
-            field "torrents" <|
-                JD.list torrentDecoder
+            JD.list torrentDecoder
 
 
 torrentDecoder : Decoder Torrent
 torrentDecoder =
+    -- [hash, name, size]
     JD.map3 Torrent
-        (field "hash" string)
-        (field "name" string)
-        (field "test" int)
+        (index 0 string)
+        (index 1 string)
+        (index 2 int)

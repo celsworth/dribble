@@ -22,7 +22,12 @@ torrentTable torrents =
 
 torrentTableHeader : Html msg
 torrentTableHeader =
-    thead [] [ th [] [ text "Name" ] ]
+    thead []
+        [ tr []
+            [ th [] [ text "Name" ]
+            , th [] [ text "Size" ]
+            ]
+        ]
 
 
 keyedTorrentTableRow : Torrent -> ( String, Html msg )
@@ -33,4 +38,6 @@ keyedTorrentTableRow torrent =
 torrentTableRow : Torrent -> Html msg
 torrentTableRow torrent =
     tr []
-        [ text torrent.name ]
+        [ td [] [ text torrent.name ]
+        , td [] [ text (String.fromInt torrent.size) ]
+        ]
