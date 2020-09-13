@@ -1,9 +1,9 @@
 port module Main exposing (..)
 
 import Browser
-import Decoder exposing (DecodedData(..))
 import Html exposing (..)
 import Html.Events exposing (onClick)
+import JSON exposing (DecodedData(..))
 import Json.Decode as JD
 import Json.Encode as JE
 import Table exposing (torrentTable)
@@ -41,31 +41,19 @@ port messageReceiver : (String -> msg) -> Sub msg
 type alias Model =
     { torrents : List Torrent
     , error : Maybe String
-    , count : Int
     }
 
 
 init : () -> ( Model, Cmd Msg )
 init flags =
-    ( { torrents = [], error = Nothing, count = 0 }
+    ( { torrents = [], error = Nothing }
     , getTorrents
     )
 
 
-getTorrents2 : Cmd Msg
-getTorrents2 =
-    sendMessage "test"
-
-
 getTorrents : Cmd Msg
 getTorrents =
-    sendMessage (JE.encode 0 getTorrentsRequest)
-
-
-getTorrentsRequest : JE.Value
-getTorrentsRequest =
-    JE.object
-        [ ( "command", JE.list JE.string [ "d.multicall2", "", "main", "d.hash=", "d.name=", "d.size_bytes=" ] ) ]
+    sendMessage JSON.getTorrentsRequest
 
 
 
@@ -93,9 +81,9 @@ parseWebsocketData model response =
         Ok data ->
             case data of
                 Torrents newTorrents ->
-                    ( { model | count = model.count + 1, torrents = newTorrents }, Cmd.none )
+                    ( { model | torrents = newTorrents }, Cmd.none )
 
-                Decoder.Err errStr ->
+                JSON.Err errStr ->
                     ( { model | error = Just errStr }, Cmd.none )
 
         Result.Err errStr ->
@@ -109,7 +97,7 @@ parseWebsocketData model response =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    messageReceiver (WebsocketData << Decoder.decodeString)
+    messageReceiver (WebsocketData << JSON.decodeString)
 
 
 
