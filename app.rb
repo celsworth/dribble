@@ -2,16 +2,13 @@
 
 require 'sinatra/reloader'
 
-$LOAD_PATH.unshift 'lib'
 require 'rtorrent'
 
-class Dribble < Sinatra::Base
-  set :server, 'thin'
-  set :sockets, []
-
-  set :rtorrent_host, ENV['DOCKER'] ? 'docker-host' : 'localhost'
-
+class Dribble < Sinatra::Application
   configure do
+    set :sockets, []
+    set :rtorrent_host, ENV['DOCKER'] ? 'docker-host' : 'localhost'
+
     register Sinatra::Reloader
   end
 
@@ -29,8 +26,8 @@ class Dribble < Sinatra::Base
     data = JSON.parse(input)
     r = Rtorrent.new(settings.rtorrent_host, 5000).call(*data['command'])
     JSON.generate(data: r)
-  rescue StandardError => err
-    JSON.generate(error: err.message)
+  rescue StandardError => e
+    JSON.generate(error: e.message)
   end
 
   get '/' do

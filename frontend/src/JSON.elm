@@ -2,7 +2,7 @@ module JSON exposing (..)
 
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E
-import Torrent exposing (..)
+import Torrent exposing (Torrent)
 
 
 type DecodedData
