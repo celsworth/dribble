@@ -3,6 +3,7 @@ port module Main exposing (..)
 import Browser
 import Decoder exposing (DecodedData(..))
 import Html exposing (..)
+import Html.Events exposing (onClick)
 import Json.Decode as JD
 import Table exposing (torrentTable)
 import Torrent exposing (Torrent)
@@ -39,14 +40,20 @@ port messageReceiver : (String -> msg) -> Sub msg
 type alias Model =
     { torrents : List Torrent
     , error : Maybe String
+    , count : Int
     }
 
 
 init : () -> ( Model, Cmd Msg )
 init flags =
-    ( { torrents = [], error = Nothing }
-    , Cmd.none
+    ( { torrents = [], error = Nothing, count = 0 }
+    , getTorrents
     )
+
+
+getTorrents : Cmd Msg
+getTorrents =
+    sendMessage "test"
 
 
 
@@ -54,17 +61,15 @@ init flags =
 
 
 type Msg
-    = Send
+    = RefreshClicked
     | WebsocketData (Result JD.Error DecodedData)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Send ->
-            ( model
-            , sendMessage "msg"
-            )
+        RefreshClicked ->
+            ( model, getTorrents )
 
         WebsocketData response ->
             parseWebsocketData model response
@@ -76,7 +81,7 @@ parseWebsocketData model response =
         Ok data ->
             case data of
                 Torrents newTorrents ->
-                    ( { model | torrents = newTorrents }, Cmd.none )
+                    ( { model | count = model.count + 1, torrents = newTorrents }, Cmd.none )
 
                 Decoder.Err errStr ->
                     ( { model | error = Just errStr }, Cmd.none )
@@ -102,9 +107,14 @@ subscriptions _ =
 view : Model -> Html Msg
 view model =
     div []
-        [ p []
-            [ errorString model.error ]
-        , torrentTable model.torrents
+        [ button [ onClick RefreshClicked ]
+            [ text "Refresh" ]
+        , div
+            []
+            [ p []
+                [ errorString model.error ]
+            , torrentTable model.torrents
+            ]
         ]
 
 

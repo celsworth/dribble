@@ -10,6 +10,8 @@ services:
       - 3000:3000
     volumes:
       - .:/var/app
+    environment:
+      DOCKER: 'true'
   elm:
     build:
       context: .
@@ -18,4 +20,9 @@ services:
     tty: true
     volumes:
       - .:/var/app
-
+  docker-host:
+    image: qoomon/docker-host
+    cap_add: [ 'NET_ADMIN', 'NET_RAW' ]
+    restart: on-failure
+    environment:
+      PORTS: 5000
