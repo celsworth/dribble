@@ -1,0 +1,21 @@
+version: '3.7'
+services:
+  web:
+    build:
+      context: .
+    command: thin start
+    stdin_open: true
+    tty: true
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/var/app
+  elm:
+    build:
+      context: .
+    command: rake elm:watch
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/var/app
+

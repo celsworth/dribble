@@ -1,0 +1,55 @@
+<!-- TODO: slim? -->
+
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Dribble GUI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="/elm.js"></script>
+  </head>
+
+  <body>
+    <div id="app"></div>
+  </body>
+
+  <script type="text/javascript">
+    var app = Elm.Main.init({
+      node: document.getElementById('app'),
+      initialPath: window.location.pathname,
+      currentTime: Date.now()
+    });
+
+    function connect() {
+      var ws = new WebSocket('ws://localhost:3000/ws');
+
+      // When a command goes to the `sendMessage` port, we pass the message
+      // along to the WebSocket.
+      app.ports.sendMessage.subscribe(function(message) {
+        ws.send(message);
+      });
+
+      // When a message comes into our WebSocket, we pass the message along
+      // to the `messageReceiver` port.
+      ws.onmessage = function(e) {
+        console.log('Message:', e.data);
+        app.ports.messageReceiver.send(e.data);
+      };
+
+      ws.onclose = function(e) {
+        console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+        setTimeout(function() {
+          connect();
+        }, 1000);
+      };
+
+      ws.onerror = function(err) {
+        console.error('Socket encountered error: ', err.message, 'Closing socket');
+        ws.close();
+      };
+    }
+
+    connect();
+
+  </script>
+</html>
