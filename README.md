@@ -27,3 +27,6 @@ Start the webserver on port 3000:
 ```
 thin start
 ```
+
+> **SECURITY NOTICE** The thin server opens an endpoint (at `/ws`) that is a WebSocket proxy to your rtorrent SCGI interface. This endpoint must *never* be exposed to the Internet or you *will* get pwned via remote execution.
+
