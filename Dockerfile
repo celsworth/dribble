@@ -1,10 +1,7 @@
 FROM ruby:2.7-alpine
 
-RUN apk add --no-cache g++ gcc make musl-dev bash nodejs npm
-RUN npm install elm
-
-# wouldn't be necessary if npm install -g elm worked?
-ENV PATH /node_modules/elm/bin:$PATH
+RUN apk add --no-cache g++ gcc make musl-dev bash nodejs-npm
+RUN npm install -g elm --unsafe-perm=true --allow-root
 
 WORKDIR /var/app
 
