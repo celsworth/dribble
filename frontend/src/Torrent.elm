@@ -1,8 +1,9 @@
-module Torrent exposing (Torrent)
+module Torrent exposing (sort)
+
+import List
+import Model exposing (..)
 
 
-type alias Torrent =
-    { hash : String
-    , name : String
-    , size : Int
-    }
+sort : Model -> List Torrent
+sort model =
+    List.sortBy .size model.torrents

@@ -4,7 +4,7 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Dribble GUI</title>
+    <title>Dribble</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script type="text/javascript" src="/elm.js"></script>
   </head>
@@ -14,8 +14,7 @@
   </body>
 
   <script type="text/javascript">
-    var ws;
-    var app;
+    var app, ws;
 
     function connect() {
       ws = new WebSocket('ws://localhost:3000/ws');

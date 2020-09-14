@@ -2,12 +2,8 @@ module JSON exposing (..)
 
 import Json.Decode as D
 import Json.Encode as E
-import Torrent exposing (Torrent)
-
-
-type DecodedData
-    = Torrents (List Torrent)
-    | Error String
+import Model exposing (..)
+import Model.TorrentDecoder as TorrentDecoder
 
 
 decodeString : String -> Result D.Error DecodedData
@@ -19,7 +15,7 @@ websocketMessageDecoder : D.Decoder DecodedData
 websocketMessageDecoder =
     D.oneOf
         [ errorDecoder
-        , torrentListDecoder
+        , TorrentDecoder.listDecoder
         ]
 
 
@@ -48,18 +44,3 @@ getTorrentsRequest =
                     ]
               )
             ]
-
-
-torrentListDecoder : D.Decoder DecodedData
-torrentListDecoder =
-    D.map Torrents <|
-        D.field "data" <|
-            D.list torrentDecoder
-
-
-torrentDecoder : D.Decoder Torrent
-torrentDecoder =
-    D.map3 Torrent
-        (D.index 0 D.string)
-        (D.index 1 D.string)
-        (D.index 2 D.int)
