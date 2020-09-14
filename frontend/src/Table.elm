@@ -4,7 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy)
-import Torrent exposing (..)
+import Torrent exposing (Torrent)
 
 
 torrentTable : List Torrent -> Html msg

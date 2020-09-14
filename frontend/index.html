@@ -44,8 +44,13 @@
 
     ws.onopen = function(event) {
       if (app == undefined) {
+        var storedConfig = localStorage.getItem('app-config');
+        console.log("Retrieved config: ", storedConfig);
+        var startingConfig = storedConfig ? JSON.parse(storedConfig) : null;
+
         app = Elm.Main.init({
           node: document.getElementById('app'),
+          flags: startingConfig,
           initialPath: window.location.pathname,
           currentTime: Date.now()
         });
@@ -55,6 +60,12 @@
         app.ports.sendMessage.subscribe(function(message) {
           ws.send(message);
         });
+
+        app.ports.storeConfig.subscribe(function(config) {
+            console.log("Saved config: ", config);
+            localStorage.setItem('app-config', JSON.stringify(config));
+        });
+
       }
     }
   </script>

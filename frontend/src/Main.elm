@@ -1,11 +1,13 @@
-port module Main exposing (..)
+module Main exposing (..)
 
 import Browser
+import Config exposing (Config, decodeConfigOrDefault, saveConfig)
 import Html exposing (..)
 import Html.Events exposing (onClick)
 import JSON exposing (DecodedData(..))
 import Json.Decode as JD
 import Json.Encode as JE
+import Ports exposing (messageReceiver, sendMessage)
 import Table exposing (torrentTable)
 import Torrent exposing (Torrent)
 
@@ -14,7 +16,7 @@ import Torrent exposing (Torrent)
 -- MAIN
 
 
-main : Program () Model Msg
+main : Program JD.Value Model Msg
 main =
     Browser.element
         { init = init
@@ -25,28 +27,22 @@ main =
 
 
 
--- PORTS
-
-
-port sendMessage : String -> Cmd msg
-
-
-port messageReceiver : (String -> msg) -> Sub msg
-
-
-
 -- MODEL
 
 
 type alias Model =
-    { torrents : List Torrent
+    { config : Config
+    , torrents : List Torrent
     , error : Maybe String
     }
 
 
-init : () -> ( Model, Cmd Msg )
+init : JD.Value -> ( Model, Cmd Msg )
 init flags =
-    ( { torrents = [], error = Nothing }
+    ( { config = Config.decodeConfigOrDefault flags
+      , torrents = []
+      , error = Nothing
+      }
     , getTorrents
     )
 
@@ -62,6 +58,7 @@ getTorrents =
 
 type Msg
     = RefreshClicked
+    | SaveConfigClicked
     | WebsocketData (Result JD.Error DecodedData)
 
 
@@ -71,24 +68,27 @@ update msg model =
         RefreshClicked ->
             ( model, getTorrents )
 
+        SaveConfigClicked ->
+            ( model, Config.saveConfig model.config )
+
         WebsocketData response ->
-            parseWebsocketData model response
+            ( processWebsocketData model response, Cmd.none )
 
 
-parseWebsocketData : Model -> Result JD.Error DecodedData -> ( Model, Cmd Msg )
-parseWebsocketData model response =
+processWebsocketData : Model -> Result JD.Error DecodedData -> Model
+processWebsocketData model response =
     case response of
         Ok data ->
             case data of
                 Torrents newTorrents ->
-                    ( { model | torrents = newTorrents }, Cmd.none )
+                    { model | torrents = newTorrents }
 
-                JSON.Err errStr ->
-                    ( { model | error = Just errStr }, Cmd.none )
+                JSON.Error errStr ->
+                    { model | error = Just errStr }
 
         Result.Err errStr ->
             -- meh it'll do for now. this is used when we get invalid JSON
-            ( { model | error = Just (JD.errorToString errStr) }, Cmd.none )
+            { model | error = Just (JD.errorToString errStr) }
 
 
 
@@ -109,6 +109,8 @@ view model =
     div []
         [ button [ onClick RefreshClicked ]
             [ text "Refresh" ]
+        , button [ onClick SaveConfigClicked ]
+            [ text "Save Config" ]
         , div
             []
             [ p []
