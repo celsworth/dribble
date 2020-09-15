@@ -49,9 +49,7 @@
 
         app = Elm.Main.init({
           node: document.getElementById('app'),
-          flags: startingConfig,
-          initialPath: window.location.pathname,
-          currentTime: Date.now()
+          flags: startingConfig
         });
 
         // When a command goes to the `sendMessage` port, we pass the message

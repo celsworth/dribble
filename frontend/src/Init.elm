@@ -10,8 +10,7 @@ init : JD.Value -> ( Model, Cmd Msg )
 init flags =
     ( { config = ConfigCoder.decodeOrDefault flags
       , torrents = []
-      , error = Nothing
-      , sort = Name Asc
+      , messages = []
       }
     , Subscriptions.getTorrents
     )

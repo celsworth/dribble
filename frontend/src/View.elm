@@ -19,20 +19,32 @@ header model =
     div []
         [ button [ onClick RefreshClicked ] [ text "Refresh" ]
         , button [ onClick SaveConfigClicked ] [ text "Save Config" ]
-        , div [] [ p [] [ errorString model.error ] ]
+        , div [] [ p [] [ messages model ] ]
         ]
+
+
+messages : Model -> Html Msg
+messages model =
+    div [] (List.map message model.messages)
+
+
+message : Message -> Html Msg
+message msg =
+    let
+        severity =
+            case msg.severity of
+                InfoSeverity ->
+                    Nothing
+
+                WarningSeverity ->
+                    Just "WARNING: "
+
+                ErrorSeverity ->
+                    Just "ERROR: "
+    in
+    p [] [ text <| Maybe.withDefault "" severity ++ msg.message ]
 
 
 body : Model -> Html Msg
 body model =
     div [] [ View.TorrentTable.view model ]
-
-
-errorString : Maybe String -> Html Msg
-errorString error =
-    case error of
-        Just str ->
-            text str
-
-        Nothing ->
-            text "no error, yay!"
