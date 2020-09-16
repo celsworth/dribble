@@ -1,5 +1,7 @@
 module Model exposing (..)
 
+import Dict exposing (Dict)
+import Filesize
 import Json.Decode as JD
 
 
@@ -12,7 +14,7 @@ type Msg
 type
     DecodedData
     -- TODO: add lists of labels, trackers, peers, etc?
-    = Torrents (List Torrent)
+    = TorrentsReceived (List Torrent)
     | Error String
 
 
@@ -28,10 +30,17 @@ type alias Message =
     }
 
 
+type alias Torrents =
+    { sorted : List Torrent
+    , byHash : Dict String Torrent
+    }
+
+
 type alias Model =
     { config : Config
-    , torrents : List Torrent
+    , torrents : Torrents
     , messages : List Message
+    , filesizeSettings : Filesize.Settings
     }
 
 
@@ -48,12 +57,33 @@ type alias Torrent =
     { hash : String
     , name : String
     , size : Int
+    , creationTime : Int
+    , startedTime : Int
+    , finishedTime : Int
+    , uploadedBytes : Int
+    , uploadRate : Int
+    , downloadedBytes : Int
+    , downloadRate : Int
+    , label : String
+    }
+
+
+type alias TorrentAttributeStuff =
+    { tableAlign : String
     }
 
 
 type TorrentAttribute
     = Name
     | Size
+    | CreationTime
+    | StartedTime
+    | FinishedTime
+    | UploadedBytes
+    | UploadRate
+    | DownloadedBytes
+    | DownloadRate
+    | Label
 
 
 type SortDirection

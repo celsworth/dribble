@@ -1,6 +1,8 @@
 module Update exposing (update)
 
+import Dict exposing (Dict)
 import Json.Decode as JD
+import List
 import Model exposing (..)
 import Model.ConfigCoder as ConfigCoder
 import Ports
@@ -40,7 +42,21 @@ processWebsocketResponse model response =
 processWebsocketData : Model -> DecodedData -> Model
 processWebsocketData model data =
     case data of
-        Torrents newTorrents ->
+        TorrentsReceived torrentList ->
+            -- entire new list of torrents received
+            -- TODO: incremental updates
+            let
+                torrentsByHash =
+                    Dict.fromList <| List.map (\t -> ( t.hash, t )) torrentList
+
+                -- could also sort Dict.values torrentsByHash
+                -- when we do incremental updates
+                sortedTorrents =
+                    sortTorrents model.config.sortBy torrentList
+
+                newTorrents =
+                    { sorted = sortedTorrents, byHash = torrentsByHash }
+            in
             { model | torrents = newTorrents }
 
         Error errStr ->
@@ -56,3 +72,79 @@ processWebsocketData model data =
 saveConfig : Config -> Cmd msg
 saveConfig config =
     ConfigCoder.encode config |> Ports.storeConfig
+
+
+sortTorrents : Sort -> List Torrent -> List Torrent
+sortTorrents sortBy torrents =
+    List.sortWith (sortComparator <| sortBy) torrents
+
+
+sortComparator : Sort -> Torrent -> Torrent -> Order
+sortComparator sortBy a b =
+    case sortBy of
+        SortBy Name direction ->
+            maybeReverse direction <| torrentCmp a b .name
+
+        SortBy Size direction ->
+            maybeReverse direction <| torrentCmp a b .size
+
+        SortBy CreationTime direction ->
+            maybeReverse direction <| torrentCmp a b .creationTime
+
+        SortBy StartedTime direction ->
+            maybeReverse direction <| torrentCmp a b .startedTime
+
+        SortBy FinishedTime direction ->
+            maybeReverse direction <| torrentCmp a b .finishedTime
+
+        SortBy UploadedBytes direction ->
+            maybeReverse direction <| torrentCmp a b .uploadedBytes
+
+        SortBy UploadRate direction ->
+            maybeReverse direction <| torrentCmp a b .uploadRate
+
+        SortBy DownloadedBytes direction ->
+            maybeReverse direction <| torrentCmp a b .downloadedBytes
+
+        SortBy DownloadRate direction ->
+            maybeReverse direction <| torrentCmp a b .downloadRate
+
+        SortBy Label direction ->
+            maybeReverse direction <| torrentCmp a b .label
+
+
+torrentCmp : Torrent -> Torrent -> (Torrent -> comparable) -> Order
+torrentCmp a b method =
+    let
+        a1 =
+            method a
+
+        b1 =
+            method b
+    in
+    if a1 == b1 then
+        EQ
+
+    else if a1 > b1 then
+        GT
+
+    else
+        LT
+
+
+maybeReverse : SortDirection -> Order -> Order
+maybeReverse direction order =
+    case direction of
+        Asc ->
+            order
+
+        Desc ->
+            case order of
+                LT ->
+                    GT
+
+                EQ ->
+                    EQ
+
+                GT ->
+                    LT

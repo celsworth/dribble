@@ -1,43 +1,52 @@
 module View.TorrentTable exposing (..)
 
+import Filesize
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Keyed as Keyed
-import Html.Lazy exposing (lazy, lazy2)
+import Html.Lazy exposing (lazy3)
 import Model exposing (..)
 import Torrent
+import View.Utils.TorrentAttributeMethods
 
 
 view : Model -> Html msg
 view model =
     table []
         (List.concat
-            [ [ torrentTableHeader ]
-            , [ torrentTableBody model ]
+            [ [ tableHeader ]
+            , [ tableBody model ]
             ]
         )
 
 
-torrentTableHeader : Html msg
-torrentTableHeader =
+tableHeader : Html msg
+tableHeader =
     thead []
         [ tr []
             [ th [] [ text "Name" ]
             , th [] [ text "Size" ]
+            , th [] [ text "Created" ]
+            , th [] [ text "Started" ]
+            , th [] [ text "Finished" ]
+            , th [] [ text "Uploaded" ]
+            , th [] [ text "Up B/s" ]
+            , th [] [ text "Downloaded" ]
+            , th [] [ text "Down B/s" ]
             ]
         ]
 
 
-torrentTableBody : Model -> Html msg
-torrentTableBody model =
+tableBody : Model -> Html msg
+tableBody model =
     Keyed.node
         "tbody"
         []
-        (List.map (keyedTorrentTableRow model) <| sortedTorrents model)
+        (List.map (keyedtableRow model) model.torrents.sorted)
 
 
-torrentTableBody2 : Model -> Html msg
-torrentTableBody2 model =
+tableBody2 : Model -> Html msg
+tableBody2 model =
     let
         visible =
             model.config.visibleTorrentAttributes
@@ -45,89 +54,49 @@ torrentTableBody2 model =
     p [] []
 
 
-sortedTorrents : Model -> List Torrent
-sortedTorrents model =
-    List.sortWith (sortComparator <| model.config.sortBy) model.torrents
+keyedtableRow : Model -> Torrent -> ( String, Html msg )
+keyedtableRow model torrent =
+    ( torrent.hash, lazy3 tableRow model.config model.filesizeSettings torrent )
 
 
-sortComparator : Sort -> Torrent -> Torrent -> Order
-sortComparator sortBy a b =
-    case sortBy of
-        SortBy Name direction ->
-            maybeReverse direction <| nameCmp a b
-
-        SortBy Size direction ->
-            maybeReverse direction <| sizeCmp a b
-
-
-nameCmp : Torrent -> Torrent -> Order
-nameCmp a b =
-    if a.name == b.name then
-        EQ
-
-    else if a.name > b.name then
-        GT
-
-    else
-        LT
-
-
-sizeCmp : Torrent -> Torrent -> Order
-sizeCmp a b =
-    if a.size == b.size then
-        EQ
-
-    else if a.size > b.size then
-        GT
-
-    else
-        LT
-
-
-maybeReverse : SortDirection -> Order -> Order
-maybeReverse direction order =
-    case direction of
-        Asc ->
-            order
-
-        Desc ->
-            case order of
-                LT ->
-                    GT
-
-                EQ ->
-                    EQ
-
-                GT ->
-                    LT
-
-
-keyedTorrentTableRow : Model -> Torrent -> ( String, Html msg )
-keyedTorrentTableRow model torrent =
-    ( torrent.hash, lazy2 torrentTableRow model torrent )
-
-
-torrentTableRow : Model -> Torrent -> Html msg
-torrentTableRow model torrent =
+tableRow : Config -> Filesize.Settings -> Torrent -> Html msg
+tableRow config filesizeSettings torrent =
     let
         x =
             Debug.log "rendering:" torrent
 
-        cellMethod =
-            torrentTableCell torrent
+        cell =
+            tableCell filesizeSettings torrent
     in
     -- TODO: this should use torrentAttributeOrder and filter by visible?
     tr
         []
-        (List.map cellMethod model.config.visibleTorrentAttributes)
+        (List.map cell config.visibleTorrentAttributes)
 
 
-torrentTableCell : Torrent -> TorrentAttribute -> Html msg
-torrentTableCell torrent attribute =
+tableCell : Filesize.Settings -> Torrent -> TorrentAttribute -> Html msg
+tableCell filesizeSettings torrent attribute =
     let
         content =
-            Torrent.torrentAttributeAccessor torrent attribute
+            Torrent.attributeAccessor filesizeSettings torrent attribute
     in
-    td []
+    td (tableCellAttributes attribute)
         [ text content
         ]
+
+
+tableCellAttributes : TorrentAttribute -> List (Attribute msg)
+tableCellAttributes attribute =
+    List.filterMap identity <|
+        [ tableCellTextAlign attribute
+        ]
+
+
+tableCellTextAlign : TorrentAttribute -> Maybe (Attribute msg)
+tableCellTextAlign attribute =
+    case View.Utils.TorrentAttributeMethods.textAlignment attribute of
+        Just str ->
+            Just <| style "text-align" str
+
+        Nothing ->
+            Nothing

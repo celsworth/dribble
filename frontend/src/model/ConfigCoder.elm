@@ -1,7 +1,7 @@
 module Model.ConfigCoder exposing (..)
 
 import Json.Decode as D
-import Json.Decode.Pipeline as Pipeline
+import Json.Decode.Pipeline as Pipeline exposing (optional, required)
 import Json.Encode as E
 import Model exposing (..)
 
@@ -9,8 +9,19 @@ import Model exposing (..)
 default : Config
 default =
     { refreshDelay = 10
-    , sortBy = SortBy Name Asc
-    , visibleTorrentAttributes = [ Name, Size ]
+    , sortBy = SortBy StartedTime Desc
+    , visibleTorrentAttributes =
+        [ Name
+        , Size
+        , CreationTime
+        , StartedTime
+        , FinishedTime
+        , UploadedBytes
+        , UploadRate
+        , DownloadedBytes
+        , DownloadRate
+        , Label
+        ]
     }
 
 
@@ -51,6 +62,30 @@ encodeTorrentAttribute attribute =
         Size ->
             E.string "size"
 
+        CreationTime ->
+            E.string "creationTime"
+
+        StartedTime ->
+            E.string "startedTime"
+
+        FinishedTime ->
+            E.string "finishedTime"
+
+        UploadedBytes ->
+            E.string "uploadedBytes"
+
+        UploadRate ->
+            E.string "uploadRate"
+
+        DownloadedBytes ->
+            E.string "downloadedBytes"
+
+        DownloadRate ->
+            E.string "downloadRate"
+
+        Label ->
+            E.string "label"
+
 
 encodeSortDirection : SortDirection -> E.Value
 encodeSortDirection direction =
@@ -68,26 +103,27 @@ encodeSortDirection direction =
 
 decodeOrDefault : D.Value -> Config
 decodeOrDefault flags =
-    -- TODO: return a warning message when we use default?
     case D.decodeValue decoder flags of
         Ok config ->
             config
 
-        -- no config stored, or localStorage has invalid JSON?
-        _ ->
+        -- not sure if this can actually be reached?
+        Err err ->
+            let
+                _ =
+                    Debug.log "JSON Config Decoding Error:" err
+            in
             default
-
-
-
--- { refreshDelay: 5, sortBy: { column: 'a', direction: 'asc' } }
 
 
 decoder : D.Decoder Config
 decoder =
-    D.map3 Config
-        (D.field "refreshDelay" D.int)
-        (D.field "sortBy" sortByDecoder)
-        (D.field "visibleTorrentAttributes" torrentAttributeListDecoder)
+    D.succeed Config
+        |> optional "refreshDelay" D.int default.refreshDelay
+        |> optional "sortBy" sortByDecoder default.sortBy
+        |> optional "visibleTorrentAttributes"
+            torrentAttributeListDecoder
+            default.visibleTorrentAttributes
 
 
 torrentAttributeListDecoder : D.Decoder (List TorrentAttribute)
@@ -97,9 +133,9 @@ torrentAttributeListDecoder =
 
 sortByDecoder : D.Decoder Sort
 sortByDecoder =
-    D.map2 SortBy
-        (D.field "column" torrentAttributeDecoder)
-        (D.field "direction" D.string |> D.andThen sortDirectionDecoder)
+    D.succeed SortBy
+        |> required "column" torrentAttributeDecoder
+        |> required "direction" sortDirectionDecoder
 
 
 torrentAttributeDecoder : D.Decoder TorrentAttribute
@@ -114,19 +150,47 @@ torrentAttributeDecoder =
                     "size" ->
                         D.succeed Size
 
+                    "creationTime" ->
+                        D.succeed CreationTime
+
+                    "startedTime" ->
+                        D.succeed StartedTime
+
+                    "finishedTime" ->
+                        D.succeed FinishedTime
+
+                    "uploadedBytes" ->
+                        D.succeed UploadedBytes
+
+                    "uploadRate" ->
+                        D.succeed UploadRate
+
+                    "downloadedBytes" ->
+                        D.succeed DownloadedBytes
+
+                    "downloadRate" ->
+                        D.succeed DownloadRate
+
+                    "label" ->
+                        D.succeed Label
+
                     _ ->
                         D.fail <| "unknown attribute" ++ input
             )
 
 
-sortDirectionDecoder : String -> D.Decoder SortDirection
-sortDirectionDecoder input =
-    case input of
-        "asc" ->
-            D.succeed Asc
+sortDirectionDecoder : D.Decoder SortDirection
+sortDirectionDecoder =
+    D.string
+        |> D.andThen
+            (\input ->
+                case input of
+                    "asc" ->
+                        D.succeed Asc
 
-        "desc" ->
-            D.succeed Desc
+                    "desc" ->
+                        D.succeed Desc
 
-        _ ->
-            D.fail <| "unknown direction" ++ input
+                    _ ->
+                        D.fail <| "unknown direction" ++ input
+            )
