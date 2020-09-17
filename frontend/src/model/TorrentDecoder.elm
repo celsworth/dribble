@@ -14,6 +14,8 @@ listDecoder =
 
 decoder : D.Decoder Torrent
 decoder =
+    -- this order MUST match Subscriptions.elm#getTorrentsRequest
+    -- and Torrent model definition!
     D.succeed Torrent
         -- hash
         |> custom (D.index 0 D.string)
@@ -27,13 +29,15 @@ decoder =
         |> custom (D.index 4 D.int)
         -- finishedTime
         |> custom (D.index 5 D.int)
-        -- uploadedBytes
-        |> custom (D.index 6 D.int)
-        -- uploadRate
-        |> custom (D.index 7 D.int)
         -- downloadedBytes
-        |> custom (D.index 8 D.int)
+        |> custom (D.index 6 D.int)
         -- downloadRate
+        |> custom (D.index 7 D.int)
+        -- uploadedBytes
+        |> custom (D.index 8 D.int)
+        -- uploadRate
         |> custom (D.index 9 D.int)
+        -- peersConnected
+        |> custom (D.index 10 D.int)
         -- label
-        |> custom (D.index 10 D.string)
+        |> custom (D.index 11 D.string)

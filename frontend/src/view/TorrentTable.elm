@@ -1,12 +1,12 @@
 module View.TorrentTable exposing (..)
 
+import Dict
 import Filesize
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy3)
 import Model exposing (..)
-import Torrent
 import View.Utils.TorrentAttributeMethods
 
 
@@ -14,71 +14,84 @@ view : Model -> Html msg
 view model =
     table []
         (List.concat
-            [ [ tableHeader ]
+            [ [ tableHeader model.config ]
             , [ tableBody model ]
             ]
         )
 
 
-tableHeader : Html msg
-tableHeader =
-    thead []
-        [ tr []
-            [ th [] [ text "Name" ]
-            , th [] [ text "Size" ]
-            , th [] [ text "Created" ]
-            , th [] [ text "Started" ]
-            , th [] [ text "Finished" ]
-            , th [] [ text "Uploaded" ]
-            , th [] [ text "Up B/s" ]
-            , th [] [ text "Downloaded" ]
-            , th [] [ text "Down B/s" ]
-            ]
+tableHeader : Config -> Html msg
+tableHeader config =
+    let
+        visibleOrder =
+            List.filter (isVisible config.visibleTorrentAttributes)
+                config.torrentAttributeOrder
+    in
+    thead [] [ tr [] (List.map headerCell visibleOrder) ]
+
+
+headerCell : TorrentAttribute -> Html msg
+headerCell attribute =
+    th []
+        [ text <|
+            View.Utils.TorrentAttributeMethods.attributeToTableHeaderString
+                attribute
         ]
 
 
 tableBody : Model -> Html msg
 tableBody model =
-    Keyed.node
-        "tbody"
-        []
-        (List.map (keyedtableRow model) model.torrents.sorted)
+    Keyed.node "tbody" [] <|
+        List.filterMap
+            identity
+            (List.map (keyedtableRow model) model.sortedTorrents)
 
 
-tableBody2 : Model -> Html msg
-tableBody2 model =
-    let
-        visible =
-            model.config.visibleTorrentAttributes
-    in
-    p [] []
+keyedtableRow : Model -> String -> Maybe ( String, Html msg )
+keyedtableRow model hash =
+    case Dict.get hash model.torrentsByHash of
+        Just torrent ->
+            Just
+                ( torrent.hash
+                , lazy3 tableRow model.config model.filesizeSettings torrent
+                )
 
-
-keyedtableRow : Model -> Torrent -> ( String, Html msg )
-keyedtableRow model torrent =
-    ( torrent.hash, lazy3 tableRow model.config model.filesizeSettings torrent )
+        Nothing ->
+            Nothing
 
 
 tableRow : Config -> Filesize.Settings -> Torrent -> Html msg
 tableRow config filesizeSettings torrent =
     let
         x =
-            Debug.log "rendering:" torrent
+            1
 
+        -- Debug.log "rendering:" torrent
         cell =
             tableCell filesizeSettings torrent
+
+        visibleOrder =
+            List.filter (isVisible config.visibleTorrentAttributes)
+                config.torrentAttributeOrder
     in
-    -- TODO: this should use torrentAttributeOrder and filter by visible?
     tr
         []
-        (List.map cell config.visibleTorrentAttributes)
+        (List.map cell visibleOrder)
+
+
+isVisible : List TorrentAttribute -> TorrentAttribute -> Bool
+isVisible visibleTorrentAttributes attribute =
+    List.member attribute visibleTorrentAttributes
 
 
 tableCell : Filesize.Settings -> Torrent -> TorrentAttribute -> Html msg
 tableCell filesizeSettings torrent attribute =
     let
         content =
-            Torrent.attributeAccessor filesizeSettings torrent attribute
+            View.Utils.TorrentAttributeMethods.attributeAccessor
+                filesizeSettings
+                torrent
+                attribute
     in
     td (tableCellAttributes attribute)
         [ text content

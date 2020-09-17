@@ -23,7 +23,10 @@
     var app, ws;
 
     function connect() {
-      ws = new WebSocket('ws://localhost:3000/ws');
+      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const ws_path = `${protocol}//${location.host}/ws`;
+
+      ws = new WebSocket(ws_path);
 
       ws.onclose = function(e) {
         console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
@@ -40,7 +43,7 @@
       // When a message comes into our WebSocket, we pass the message along
       // to the `messageReceiver` port.
       ws.onmessage = function(e) {
-        console.log('Message:', e.data);
+        //console.log('Message:', e.data);
         app.ports.messageReceiver.send(e.data);
       };
     }

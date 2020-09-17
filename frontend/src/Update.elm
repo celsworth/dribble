@@ -3,8 +3,10 @@ module Update exposing (update)
 import Dict exposing (Dict)
 import Json.Decode as JD
 import List
+import List.Extra
 import Model exposing (..)
 import Model.ConfigCoder as ConfigCoder
+import Model.Utils.Config
 import Ports
 import Subscriptions
 
@@ -13,10 +15,25 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         RefreshClicked ->
-            ( model, Subscriptions.getTorrents )
+            ( model, Subscriptions.getFullTorrents )
 
         SaveConfigClicked ->
             ( model, saveConfig model.config )
+
+        ToggleTorrentAttributeVisibility attribute ->
+            let
+                newConfig =
+                    Model.Utils.Config.toggleTorrentAttributeVisibility
+                        attribute
+                        model.config
+            in
+            ( { model | config = newConfig }, Cmd.none )
+
+        RequestFullTorrents ->
+            ( model, Subscriptions.getFullTorrents )
+
+        RequestUpdatedTorrents _ ->
+            ( model, Subscriptions.getUpdatedTorrents )
 
         WebsocketData response ->
             processWebsocketResponse model response
@@ -46,18 +63,13 @@ processWebsocketData model data =
             -- entire new list of torrents received
             -- TODO: incremental updates
             let
-                torrentsByHash =
-                    Dict.fromList <| List.map (\t -> ( t.hash, t )) torrentList
+                byHash =
+                    torrentsByHash model torrentList
 
-                -- could also sort Dict.values torrentsByHash
-                -- when we do incremental updates
                 sortedTorrents =
-                    sortTorrents model.config.sortBy torrentList
-
-                newTorrents =
-                    { sorted = sortedTorrents, byHash = torrentsByHash }
+                    sortTorrents model.config.sortBy (Dict.values byHash)
             in
-            { model | torrents = newTorrents }
+            { model | sortedTorrents = sortedTorrents, torrentsByHash = byHash }
 
         Error errStr ->
             let
@@ -69,14 +81,28 @@ processWebsocketData model data =
             { model | messages = newMessages }
 
 
+torrentsByHash : Model -> List Torrent -> Dict String Torrent
+torrentsByHash model torrentList =
+    let
+        newDict =
+            Dict.fromList <| List.map (\t -> ( t.hash, t )) torrentList
+    in
+    if Dict.isEmpty model.torrentsByHash then
+        newDict
+
+    else
+        Dict.union newDict model.torrentsByHash
+
+
 saveConfig : Config -> Cmd msg
 saveConfig config =
     ConfigCoder.encode config |> Ports.storeConfig
 
 
-sortTorrents : Sort -> List Torrent -> List Torrent
+sortTorrents : Sort -> List Torrent -> List String
 sortTorrents sortBy torrents =
-    List.sortWith (sortComparator <| sortBy) torrents
+    List.map .hash <|
+        List.sortWith (sortComparator <| sortBy) torrents
 
 
 sortComparator : Sort -> Torrent -> Torrent -> Order
@@ -97,17 +123,20 @@ sortComparator sortBy a b =
         SortBy FinishedTime direction ->
             maybeReverse direction <| torrentCmp a b .finishedTime
 
+        SortBy DownloadedBytes direction ->
+            maybeReverse direction <| torrentCmp a b .downloadedBytes
+
+        SortBy DownloadRate direction ->
+            maybeReverse direction <| torrentCmp a b .downloadRate
+
         SortBy UploadedBytes direction ->
             maybeReverse direction <| torrentCmp a b .uploadedBytes
 
         SortBy UploadRate direction ->
             maybeReverse direction <| torrentCmp a b .uploadRate
 
-        SortBy DownloadedBytes direction ->
-            maybeReverse direction <| torrentCmp a b .downloadedBytes
-
-        SortBy DownloadRate direction ->
-            maybeReverse direction <| torrentCmp a b .downloadRate
+        SortBy PeersConnected direction ->
+            maybeReverse direction <| torrentCmp a b .peersConnected
 
         SortBy Label direction ->
             maybeReverse direction <| torrentCmp a b .label

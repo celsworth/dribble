@@ -4,6 +4,7 @@ import Html exposing (..)
 import Html.Events exposing (onClick)
 import Model exposing (..)
 import View.TorrentTable
+import View.Utils.TorrentAttributeMethods
 
 
 view : Model -> Html Msg
@@ -19,8 +20,21 @@ header model =
     div []
         [ button [ onClick RefreshClicked ] [ text "Refresh" ]
         , button [ onClick SaveConfigClicked ] [ text "Save Config" ]
+        , toggleTorrentAttributeVisibilityButton CreationTime
+        , toggleTorrentAttributeVisibilityButton StartedTime
         , div [] [ p [] [ messages model ] ]
         ]
+
+
+toggleTorrentAttributeVisibilityButton : TorrentAttribute -> Html Msg
+toggleTorrentAttributeVisibilityButton attribute =
+    let
+        str =
+            "Toggle "
+                ++ View.Utils.TorrentAttributeMethods.attributeToString attribute
+    in
+    button [ onClick <| ToggleTorrentAttributeVisibility attribute ]
+        [ text str ]
 
 
 messages : Model -> Html Msg

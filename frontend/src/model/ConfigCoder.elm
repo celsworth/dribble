@@ -8,21 +8,26 @@ import Model exposing (..)
 
 default : Config
 default =
-    { refreshDelay = 10
-    , sortBy = SortBy StartedTime Desc
-    , visibleTorrentAttributes =
-        [ Name
-        , Size
-        , CreationTime
-        , StartedTime
-        , FinishedTime
-        , UploadedBytes
-        , UploadRate
-        , DownloadedBytes
-        , DownloadRate
-        , Label
-        ]
+    { refreshDelay = 5
+    , sortBy = SortBy UploadRate Desc
+    , visibleTorrentAttributes = defaultTorrentAttributes
+    , torrentAttributeOrder = defaultTorrentAttributes
     }
+
+
+defaultTorrentAttributes : List TorrentAttribute
+defaultTorrentAttributes =
+    [ Name
+    , Size
+    , CreationTime
+    , StartedTime
+    , FinishedTime
+    , DownloadedBytes
+    , DownloadRate
+    , UploadedBytes
+    , UploadRate
+    , Label
+    ]
 
 
 
@@ -35,6 +40,7 @@ encode config =
         [ ( "refreshDelay", E.int config.refreshDelay )
         , ( "sortBy", encodeSortBy config.sortBy )
         , ( "visibleTorrentAttributes", encodeTorrentAttributeList config.visibleTorrentAttributes )
+        , ( "torrentAttributeOrder", encodeTorrentAttributeList config.torrentAttributeOrder )
         ]
 
 
@@ -71,17 +77,20 @@ encodeTorrentAttribute attribute =
         FinishedTime ->
             E.string "finishedTime"
 
+        DownloadedBytes ->
+            E.string "downloadedBytes"
+
+        DownloadRate ->
+            E.string "downloadRate"
+
         UploadedBytes ->
             E.string "uploadedBytes"
 
         UploadRate ->
             E.string "uploadRate"
 
-        DownloadedBytes ->
-            E.string "downloadedBytes"
-
-        DownloadRate ->
-            E.string "downloadRate"
+        PeersConnected ->
+            E.string "peersConnected"
 
         Label ->
             E.string "label"
@@ -124,6 +133,9 @@ decoder =
         |> optional "visibleTorrentAttributes"
             torrentAttributeListDecoder
             default.visibleTorrentAttributes
+        |> optional "torrentAttributeOrder"
+            torrentAttributeListDecoder
+            default.torrentAttributeOrder
 
 
 torrentAttributeListDecoder : D.Decoder (List TorrentAttribute)
@@ -159,17 +171,20 @@ torrentAttributeDecoder =
                     "finishedTime" ->
                         D.succeed FinishedTime
 
+                    "downloadedBytes" ->
+                        D.succeed DownloadedBytes
+
+                    "downloadRate" ->
+                        D.succeed DownloadRate
+
                     "uploadedBytes" ->
                         D.succeed UploadedBytes
 
                     "uploadRate" ->
                         D.succeed UploadRate
 
-                    "downloadedBytes" ->
-                        D.succeed DownloadedBytes
-
-                    "downloadRate" ->
-                        D.succeed DownloadRate
+                    "peersConnected" ->
+                        D.succeed PeersConnected
 
                     "label" ->
                         D.succeed Label

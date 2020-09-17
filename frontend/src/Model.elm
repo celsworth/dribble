@@ -3,11 +3,15 @@ module Model exposing (..)
 import Dict exposing (Dict)
 import Filesize
 import Json.Decode as JD
+import Time
 
 
 type Msg
     = RefreshClicked
     | SaveConfigClicked
+    | ToggleTorrentAttributeVisibility TorrentAttribute
+    | RequestFullTorrents
+    | RequestUpdatedTorrents Time.Posix
     | WebsocketData (Result JD.Error DecodedData)
 
 
@@ -30,15 +34,10 @@ type alias Message =
     }
 
 
-type alias Torrents =
-    { sorted : List Torrent
-    , byHash : Dict String Torrent
-    }
-
-
 type alias Model =
     { config : Config
-    , torrents : Torrents
+    , sortedTorrents : List String
+    , torrentsByHash : Dict String Torrent
     , messages : List Message
     , filesizeSettings : Filesize.Settings
     }
@@ -48,8 +47,7 @@ type alias Config =
     { refreshDelay : Int
     , sortBy : Sort -- Name Asc, Size Desc, etc
     , visibleTorrentAttributes : List TorrentAttribute
-
-    -- torrentAttributeOrder ?
+    , torrentAttributeOrder : List TorrentAttribute
     }
 
 
@@ -60,10 +58,11 @@ type alias Torrent =
     , creationTime : Int
     , startedTime : Int
     , finishedTime : Int
-    , uploadedBytes : Int
-    , uploadRate : Int
     , downloadedBytes : Int
     , downloadRate : Int
+    , uploadedBytes : Int
+    , uploadRate : Int
+    , peersConnected : Int
     , label : String
     }
 
@@ -79,10 +78,11 @@ type TorrentAttribute
     | CreationTime
     | StartedTime
     | FinishedTime
-    | UploadedBytes
-    | UploadRate
     | DownloadedBytes
     | DownloadRate
+    | UploadedBytes
+    | UploadRate
+    | PeersConnected
     | Label
 
 

@@ -11,13 +11,14 @@ import Subscriptions
 init : JD.Value -> ( Model, Cmd Msg )
 init flags =
     ( { config = ConfigCoder.decodeOrDefault flags
-      , torrents = { sorted = [], byHash = Dict.empty }
+      , sortedTorrents = []
+      , torrentsByHash = Dict.empty
       , messages = []
 
-      -- temporary until I bother encoding to JSON for Config
+      -- temporary location until I bother encoding to JSON for Config
       , filesizeSettings = filesizeSettings
       }
-    , Subscriptions.getTorrents
+    , Subscriptions.getFullTorrents
     )
 
 
