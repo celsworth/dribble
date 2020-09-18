@@ -72,7 +72,7 @@ headerCellSortClass config attribute =
         Nothing
 
 
-body : Model -> Html msg
+body : Model -> Html Msg
 body model =
     Keyed.node "tbody" [] <|
         List.filterMap
@@ -80,7 +80,7 @@ body model =
             (List.map (keyedRow model) model.sortedTorrents)
 
 
-keyedRow : Model -> String -> Maybe ( String, Html msg )
+keyedRow : Model -> String -> Maybe ( String, Html Msg )
 keyedRow model hash =
     case Dict.get hash model.torrentsByHash of
         Just torrent ->
@@ -93,7 +93,7 @@ keyedRow model hash =
             Nothing
 
 
-lazyRow : Config -> Utils.Filesize.Settings -> Torrent -> Html msg
+lazyRow : Config -> Utils.Filesize.Settings -> Torrent -> Html Msg
 lazyRow config filesizeSettings torrent =
     -- just pass in what the row actually needs so lazy can look at
     -- as little as possible. this will help when some config changes,
@@ -105,7 +105,7 @@ lazyRow config filesizeSettings torrent =
         torrent
 
 
-row : List TorrentAttribute -> List TorrentAttribute -> Utils.Filesize.Settings -> Torrent -> Html msg
+row : List TorrentAttribute -> List TorrentAttribute -> Utils.Filesize.Settings -> Torrent -> Html Msg
 row visibleTorrentAttributes torrentAttributeOrder filesizeSettings torrent =
     let
         x =
@@ -126,14 +126,14 @@ isVisible visibleTorrentAttributes attribute =
     List.member attribute visibleTorrentAttributes
 
 
-cell : Utils.Filesize.Settings -> Torrent -> TorrentAttribute -> Html msg
+cell : Utils.Filesize.Settings -> Torrent -> TorrentAttribute -> Html Msg
 cell filesizeSettings torrent attribute =
     td (cellAttributes attribute)
         [ cellContent filesizeSettings torrent attribute
         ]
 
 
-cellContent : Utils.Filesize.Settings -> Torrent -> TorrentAttribute -> Html msg
+cellContent : Utils.Filesize.Settings -> Torrent -> TorrentAttribute -> Html Msg
 cellContent filesizeSettings torrent attribute =
     if attribute == DonePercent then
         donePercentCell torrent
@@ -146,7 +146,7 @@ cellContent filesizeSettings torrent attribute =
                 attribute
 
 
-donePercentCell : Torrent -> Html msg
+donePercentCell : Torrent -> Html Msg
 donePercentCell torrent =
     progress
         [ Html.Attributes.max "100"
@@ -155,14 +155,14 @@ donePercentCell torrent =
         [ text (String.fromFloat torrent.donePercent ++ "%") ]
 
 
-cellAttributes : TorrentAttribute -> List (Attribute msg)
+cellAttributes : TorrentAttribute -> List (Attribute Msg)
 cellAttributes attribute =
     List.filterMap identity <|
         [ cellTextAlign attribute
         ]
 
 
-cellTextAlign : TorrentAttribute -> Maybe (Attribute msg)
+cellTextAlign : TorrentAttribute -> Maybe (Attribute Msg)
 cellTextAlign attribute =
     case Model.Utils.TorrentAttribute.textAlignment attribute of
         Just str ->
