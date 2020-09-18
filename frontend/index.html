@@ -6,13 +6,9 @@
     <meta charset="UTF-8">
     <title>Dribble</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/normalize.css">
+    <link rel="stylesheet" href="/css/style.css">
     <script type="text/javascript" src="/elm.js"></script>
-    <style>
-      body {
-        font-family: Tahoma;
-        font-size: 11px;
-      }
-    </style>
   </head>
 
   <body>
@@ -28,11 +24,18 @@
 
       ws = new WebSocket(ws_path);
 
+      ws.onopen = function(event) {
+        // send elm a message to re-get full state?
+        app.ports.websocketStatusUpdated.send({connected: true});
+      }
+
       ws.onclose = function(e) {
-        console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+        console.log('Socket is closed. Reconnect will be attempted in 2 seconds.', e.reason);
         setTimeout(function() {
           connect();
-        }, 1000);
+        }, 2000);
+
+        app.ports.websocketStatusUpdated.send({connected: false});
       };
 
       ws.onerror = function(err) {
@@ -40,39 +43,31 @@
         ws.close();
       };
 
-      // When a message comes into our WebSocket, we pass the message along
-      // to the `messageReceiver` port.
       ws.onmessage = function(e) {
         //console.log('Message:', e.data);
         app.ports.messageReceiver.send(e.data);
       };
     }
 
+    var storedConfig = localStorage.getItem('app-config');
+    console.log("Retrieved config: ", storedConfig);
+    var startingConfig = storedConfig ? JSON.parse(storedConfig) : null;
+
+    app = Elm.Main.init({
+      node: document.getElementById('app'),
+      flags: startingConfig
+    });
+
+    app.ports.sendMessage.subscribe(function(message) {
+      ws.send(message);
+    });
+
+    app.ports.storeConfig.subscribe(function(config) {
+      console.log("Saved config: ", config);
+      localStorage.setItem('app-config', JSON.stringify(config));
+    });
+
     connect();
 
-    ws.onopen = function(event) {
-      if (app == undefined) {
-        var storedConfig = localStorage.getItem('app-config');
-        console.log("Retrieved config: ", storedConfig);
-        var startingConfig = storedConfig ? JSON.parse(storedConfig) : null;
-
-        app = Elm.Main.init({
-          node: document.getElementById('app'),
-          flags: startingConfig
-        });
-
-        // When a command goes to the `sendMessage` port, we pass the message
-        // along to the WebSocket.
-        app.ports.sendMessage.subscribe(function(message) {
-          ws.send(message);
-        });
-
-        app.ports.storeConfig.subscribe(function(config) {
-            console.log("Saved config: ", config);
-            localStorage.setItem('app-config', JSON.stringify(config));
-        });
-
-      }
-    }
   </script>
 </html>

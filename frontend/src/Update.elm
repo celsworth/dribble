@@ -5,8 +5,10 @@ import Json.Decode as JD
 import List
 import List.Extra
 import Model exposing (..)
-import Model.ConfigCoder as ConfigCoder
+import Model.ConfigCoder
+import Model.TorrentSorter
 import Model.Utils.Config
+import Model.Utils.TorrentAttribute
 import Ports
 import Subscriptions
 
@@ -29,19 +31,70 @@ update msg model =
             in
             ( { model | config = newConfig }, Cmd.none )
 
+        SetSortBy attribute ->
+            ( setSortBy model attribute, Cmd.none )
+
         RequestFullTorrents ->
             ( model, Subscriptions.getFullTorrents )
 
         RequestUpdatedTorrents _ ->
             ( model, Subscriptions.getUpdatedTorrents )
 
-        WebsocketData response ->
-            processWebsocketResponse model response
+        WebsocketData result ->
+            processWebsocketResponse model result
+
+        WebsocketStatusUpdated result ->
+            processWebsocketStatusUpdated model result
+
+
+saveConfig : Config -> Cmd msg
+saveConfig config =
+    Model.ConfigCoder.encode config |> Ports.storeConfig
+
+
+setSortBy : Model -> TorrentAttribute -> Model
+setSortBy model attribute =
+    let
+        newConfig =
+            Model.Utils.Config.setSortBy
+                attribute
+                model.config
+
+        sortedTorrents =
+            Model.TorrentSorter.sort newConfig.sortBy
+                (Dict.values model.torrentsByHash)
+    in
+    { model | config = newConfig, sortedTorrents = sortedTorrents }
+
+
+processWebsocketStatusUpdated : Model -> Result JD.Error Bool -> ( Model, Cmd Msg )
+processWebsocketStatusUpdated model result =
+    case result of
+        Ok connected ->
+            let
+                cmd =
+                    if connected then
+                        Subscriptions.getFullTorrents
+
+                    else
+                        Cmd.none
+            in
+            ( { model | websocketConnected = connected }, cmd )
+
+        Result.Err errStr ->
+            -- meh it'll do for now. this is used when we get invalid JSON
+            let
+                newMessages =
+                    List.append model.messages
+                        [ { message = JD.errorToString errStr, severity = ErrorSeverity }
+                        ]
+            in
+            ( { model | messages = newMessages }, Cmd.none )
 
 
 processWebsocketResponse : Model -> Result JD.Error DecodedData -> ( Model, Cmd Msg )
-processWebsocketResponse model response =
-    case response of
+processWebsocketResponse model result =
+    case result of
         Ok data ->
             ( processWebsocketData model data, Cmd.none )
 
@@ -60,14 +113,13 @@ processWebsocketData : Model -> DecodedData -> Model
 processWebsocketData model data =
     case data of
         TorrentsReceived torrentList ->
-            -- entire new list of torrents received
-            -- TODO: incremental updates
             let
                 byHash =
                     torrentsByHash model torrentList
 
                 sortedTorrents =
-                    sortTorrents model.config.sortBy (Dict.values byHash)
+                    Model.TorrentSorter.sort model.config.sortBy
+                        (Dict.values byHash)
             in
             { model | sortedTorrents = sortedTorrents, torrentsByHash = byHash }
 
@@ -92,88 +144,3 @@ torrentsByHash model torrentList =
 
     else
         Dict.union newDict model.torrentsByHash
-
-
-saveConfig : Config -> Cmd msg
-saveConfig config =
-    ConfigCoder.encode config |> Ports.storeConfig
-
-
-sortTorrents : Sort -> List Torrent -> List String
-sortTorrents sortBy torrents =
-    List.map .hash <|
-        List.sortWith (sortComparator <| sortBy) torrents
-
-
-sortComparator : Sort -> Torrent -> Torrent -> Order
-sortComparator sortBy a b =
-    case sortBy of
-        SortBy Name direction ->
-            maybeReverse direction <| torrentCmp a b .name
-
-        SortBy Size direction ->
-            maybeReverse direction <| torrentCmp a b .size
-
-        SortBy CreationTime direction ->
-            maybeReverse direction <| torrentCmp a b .creationTime
-
-        SortBy StartedTime direction ->
-            maybeReverse direction <| torrentCmp a b .startedTime
-
-        SortBy FinishedTime direction ->
-            maybeReverse direction <| torrentCmp a b .finishedTime
-
-        SortBy DownloadedBytes direction ->
-            maybeReverse direction <| torrentCmp a b .downloadedBytes
-
-        SortBy DownloadRate direction ->
-            maybeReverse direction <| torrentCmp a b .downloadRate
-
-        SortBy UploadedBytes direction ->
-            maybeReverse direction <| torrentCmp a b .uploadedBytes
-
-        SortBy UploadRate direction ->
-            maybeReverse direction <| torrentCmp a b .uploadRate
-
-        SortBy PeersConnected direction ->
-            maybeReverse direction <| torrentCmp a b .peersConnected
-
-        SortBy Label direction ->
-            maybeReverse direction <| torrentCmp a b .label
-
-
-torrentCmp : Torrent -> Torrent -> (Torrent -> comparable) -> Order
-torrentCmp a b method =
-    let
-        a1 =
-            method a
-
-        b1 =
-            method b
-    in
-    if a1 == b1 then
-        EQ
-
-    else if a1 > b1 then
-        GT
-
-    else
-        LT
-
-
-maybeReverse : SortDirection -> Order -> Order
-maybeReverse direction order =
-    case direction of
-        Asc ->
-            order
-
-        Desc ->
-            case order of
-                LT ->
-                    GT
-
-                EQ ->
-                    EQ
-
-                GT ->
-                    LT

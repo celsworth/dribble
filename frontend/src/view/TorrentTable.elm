@@ -1,82 +1,124 @@
 module View.TorrentTable exposing (..)
 
 import Dict
-import Filesize
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onClick, onMouseDown)
 import Html.Keyed as Keyed
-import Html.Lazy exposing (lazy3)
+import Html.Lazy
 import Model exposing (..)
-import View.Utils.TorrentAttributeMethods
+import Model.Utils.TorrentAttribute
+import Utils.Filesize
 
 
-view : Model -> Html msg
+view : Model -> Html Msg
 view model =
     table []
         (List.concat
-            [ [ tableHeader model.config ]
-            , [ tableBody model ]
+            [ [ header model ]
+            , [ body model ]
             ]
         )
 
 
-tableHeader : Config -> Html msg
-tableHeader config =
+header : Model -> Html Msg
+header model =
     let
         visibleOrder =
-            List.filter (isVisible config.visibleTorrentAttributes)
-                config.torrentAttributeOrder
+            List.filter (isVisible model.config.visibleTorrentAttributes)
+                model.config.torrentAttributeOrder
     in
-    thead [] [ tr [] (List.map headerCell visibleOrder) ]
-
-
-headerCell : TorrentAttribute -> Html msg
-headerCell attribute =
-    th []
-        [ text <|
-            View.Utils.TorrentAttributeMethods.attributeToTableHeaderString
-                attribute
+    thead []
+        [ tr []
+            (List.map (headerCell model.config) visibleOrder)
         ]
 
 
-tableBody : Model -> Html msg
-tableBody model =
+headerCell : Config -> TorrentAttribute -> Html Msg
+headerCell config attribute =
+    let
+        attrString =
+            Model.Utils.TorrentAttribute.attributeToTableHeaderString
+                attribute
+    in
+    th (headerCellAttributes config attribute)
+        [ text <| attrString ]
+
+
+headerCellAttributes : Config -> TorrentAttribute -> List (Attribute Msg)
+headerCellAttributes config attribute =
+    List.filterMap identity <|
+        [ cellTextAlign attribute
+        , headerCellSortClass config attribute
+        , Just (onClick (SetSortBy attribute))
+        ]
+
+
+headerCellSortClass : Config -> TorrentAttribute -> Maybe (Attribute Msg)
+headerCellSortClass config attribute =
+    let
+        (SortBy currentSortAttribute currentSortDirection) =
+            config.sortBy
+    in
+    if currentSortAttribute == attribute then
+        case currentSortDirection of
+            Asc ->
+                Just <| class "sorted ascending"
+
+            Desc ->
+                Just <| class "sorted descending"
+
+    else
+        Nothing
+
+
+body : Model -> Html msg
+body model =
     Keyed.node "tbody" [] <|
         List.filterMap
             identity
-            (List.map (keyedtableRow model) model.sortedTorrents)
+            (List.map (keyedRow model) model.sortedTorrents)
 
 
-keyedtableRow : Model -> String -> Maybe ( String, Html msg )
-keyedtableRow model hash =
+keyedRow : Model -> String -> Maybe ( String, Html msg )
+keyedRow model hash =
     case Dict.get hash model.torrentsByHash of
         Just torrent ->
             Just
                 ( torrent.hash
-                , lazy3 tableRow model.config model.filesizeSettings torrent
+                , lazyRow model.config model.filesizeSettings torrent
                 )
 
         Nothing ->
             Nothing
 
 
-tableRow : Config -> Filesize.Settings -> Torrent -> Html msg
-tableRow config filesizeSettings torrent =
+lazyRow : Config -> Utils.Filesize.Settings -> Torrent -> Html msg
+lazyRow config filesizeSettings torrent =
+    -- just pass in what the row actually needs so lazy can look at
+    -- as little as possible. this will help when some config changes,
+    -- but not the config related to rendering the row.
+    Html.Lazy.lazy4 row
+        config.visibleTorrentAttributes
+        config.torrentAttributeOrder
+        filesizeSettings
+        torrent
+
+
+row : List TorrentAttribute -> List TorrentAttribute -> Utils.Filesize.Settings -> Torrent -> Html msg
+row visibleTorrentAttributes torrentAttributeOrder filesizeSettings torrent =
     let
         x =
             1
 
         -- Debug.log "rendering:" torrent
-        cell =
-            tableCell filesizeSettings torrent
-
         visibleOrder =
-            List.filter (isVisible config.visibleTorrentAttributes)
-                config.torrentAttributeOrder
+            List.filter (isVisible visibleTorrentAttributes)
+                torrentAttributeOrder
     in
     tr
         []
-        (List.map cell visibleOrder)
+        (List.map (cell filesizeSettings torrent) visibleOrder)
 
 
 isVisible : List TorrentAttribute -> TorrentAttribute -> Bool
@@ -84,32 +126,47 @@ isVisible visibleTorrentAttributes attribute =
     List.member attribute visibleTorrentAttributes
 
 
-tableCell : Filesize.Settings -> Torrent -> TorrentAttribute -> Html msg
-tableCell filesizeSettings torrent attribute =
-    let
-        content =
-            View.Utils.TorrentAttributeMethods.attributeAccessor
+cell : Utils.Filesize.Settings -> Torrent -> TorrentAttribute -> Html msg
+cell filesizeSettings torrent attribute =
+    td (cellAttributes attribute)
+        [ cellContent filesizeSettings torrent attribute
+        ]
+
+
+cellContent : Utils.Filesize.Settings -> Torrent -> TorrentAttribute -> Html msg
+cellContent filesizeSettings torrent attribute =
+    if attribute == DonePercent then
+        donePercentCell torrent
+
+    else
+        text <|
+            Model.Utils.TorrentAttribute.attributeAccessor
                 filesizeSettings
                 torrent
                 attribute
-    in
-    td (tableCellAttributes attribute)
-        [ text content
+
+
+donePercentCell : Torrent -> Html msg
+donePercentCell torrent =
+    progress
+        [ Html.Attributes.max "100"
+        , Html.Attributes.value <| String.fromFloat torrent.donePercent
         ]
+        [ text (String.fromFloat torrent.donePercent ++ "%") ]
 
 
-tableCellAttributes : TorrentAttribute -> List (Attribute msg)
-tableCellAttributes attribute =
+cellAttributes : TorrentAttribute -> List (Attribute msg)
+cellAttributes attribute =
     List.filterMap identity <|
-        [ tableCellTextAlign attribute
+        [ cellTextAlign attribute
         ]
 
 
-tableCellTextAlign : TorrentAttribute -> Maybe (Attribute msg)
-tableCellTextAlign attribute =
-    case View.Utils.TorrentAttributeMethods.textAlignment attribute of
+cellTextAlign : TorrentAttribute -> Maybe (Attribute msg)
+cellTextAlign attribute =
+    case Model.Utils.TorrentAttribute.textAlignment attribute of
         Just str ->
-            Just <| style "text-align" str
+            Just <| class "text-right"
 
         Nothing ->
             Nothing

@@ -1,10 +1,11 @@
 module View exposing (view)
 
 import Html exposing (..)
+import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Model exposing (..)
+import Model.Utils.TorrentAttribute
 import View.TorrentTable
-import View.Utils.TorrentAttributeMethods
 
 
 view : Model -> Html Msg
@@ -31,7 +32,7 @@ toggleTorrentAttributeVisibilityButton attribute =
     let
         str =
             "Toggle "
-                ++ View.Utils.TorrentAttributeMethods.attributeToString attribute
+                ++ Model.Utils.TorrentAttribute.attributeToString attribute
     in
     button [ onClick <| ToggleTorrentAttributeVisibility attribute ]
         [ text str ]

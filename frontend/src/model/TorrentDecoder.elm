@@ -15,8 +15,9 @@ listDecoder =
 decoder : D.Decoder Torrent
 decoder =
     -- this order MUST match Subscriptions.elm#getTorrentsRequest
-    -- and Torrent model definition!
-    D.succeed Torrent
+    --
+    -- this gets fed to internalDecoder (below) which populates a Torrent
+    D.succeed internalDecoder
         -- hash
         |> custom (D.index 0 D.string)
         -- name
@@ -41,3 +42,29 @@ decoder =
         |> custom (D.index 10 D.int)
         -- label
         |> custom (D.index 11 D.string)
+        |> Pipeline.resolve
+
+
+internalDecoder : String -> String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> String -> D.Decoder Torrent
+internalDecoder hash name size creationTime startedTime finishedTime downloadedBytes downloadRate uploadedBytes uploadRate peersConnected label =
+    let
+        -- after decoder is done, we can add further internal fields here
+        donePercent =
+            -- XXX this may change if a torrent is hashing?
+            (toFloat downloadedBytes / toFloat size) * 100.0
+    in
+    D.succeed <|
+        Torrent
+            hash
+            name
+            size
+            creationTime
+            startedTime
+            finishedTime
+            downloadedBytes
+            downloadRate
+            uploadedBytes
+            uploadRate
+            peersConnected
+            label
+            donePercent

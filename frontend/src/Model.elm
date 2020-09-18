@@ -1,18 +1,20 @@
 module Model exposing (..)
 
 import Dict exposing (Dict)
-import Filesize
 import Json.Decode as JD
 import Time
+import Utils.Filesize
 
 
 type Msg
     = RefreshClicked
     | SaveConfigClicked
     | ToggleTorrentAttributeVisibility TorrentAttribute
+    | SetSortBy TorrentAttribute
     | RequestFullTorrents
     | RequestUpdatedTorrents Time.Posix
     | WebsocketData (Result JD.Error DecodedData)
+    | WebsocketStatusUpdated (Result JD.Error Bool)
 
 
 type
@@ -36,10 +38,11 @@ type alias Message =
 
 type alias Model =
     { config : Config
+    , websocketConnected : Bool
     , sortedTorrents : List String
     , torrentsByHash : Dict String Torrent
     , messages : List Message
-    , filesizeSettings : Filesize.Settings
+    , filesizeSettings : Utils.Filesize.Settings
     }
 
 
@@ -64,6 +67,9 @@ type alias Torrent =
     , uploadRate : Int
     , peersConnected : Int
     , label : String
+
+    -- custom local vars, not from JSON
+    , donePercent : Float
     }
 
 
@@ -84,6 +90,7 @@ type TorrentAttribute
     | UploadRate
     | PeersConnected
     | Label
+    | DonePercent
 
 
 type SortDirection

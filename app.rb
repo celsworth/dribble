@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'sinatra/reloader'
+require 'sassc'
 
 require 'rtorrent'
 
@@ -8,6 +9,8 @@ class Dribble < Sinatra::Application
   configure do
     set :sockets, {}
     set :rtorrent_host, ENV['DOCKER'] ? 'docker-host' : 'localhost'
+
+    set :sass, style: :compact
 
     register Sinatra::Reloader
   end
@@ -63,6 +66,15 @@ class Dribble < Sinatra::Application
 
   get '/' do
     File.read('./frontend/index.html')
+  end
+
+  get '/css/style.css' do
+    etag File.mtime 'assets/css/style.scss'
+    content_type 'text/css'
+    scss = File.read('assets/css/style.scss')
+    # TODO: save rendered css for future static return;
+    # need a filename fingerprint
+    SassC::Engine.new(scss, style: :compressed).render
   end
 
   get '/ws' do
