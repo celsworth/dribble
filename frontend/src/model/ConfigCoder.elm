@@ -4,6 +4,7 @@ import Json.Decode as D
 import Json.Decode.Pipeline as Pipeline exposing (optional, required)
 import Json.Encode as E
 import Model exposing (..)
+import Model.Utils.TorrentAttribute
 
 
 default : Config
@@ -19,6 +20,7 @@ defaultTorrentAttributes : List TorrentAttribute
 defaultTorrentAttributes =
     [ Name
     , Size
+    , DonePercent
     , CreationTime
     , StartedTime
     , FinishedTime
@@ -61,39 +63,7 @@ encodeTorrentAttributeList torrentAttributes =
 
 encodeTorrentAttribute : TorrentAttribute -> E.Value
 encodeTorrentAttribute attribute =
-    case attribute of
-        Name ->
-            E.string "name"
-
-        Size ->
-            E.string "size"
-
-        CreationTime ->
-            E.string "creationTime"
-
-        StartedTime ->
-            E.string "startedTime"
-
-        FinishedTime ->
-            E.string "finishedTime"
-
-        DownloadedBytes ->
-            E.string "downloadedBytes"
-
-        DownloadRate ->
-            E.string "downloadRate"
-
-        UploadedBytes ->
-            E.string "uploadedBytes"
-
-        UploadRate ->
-            E.string "uploadRate"
-
-        PeersConnected ->
-            E.string "peersConnected"
-
-        Label ->
-            E.string "label"
+    E.string <| Model.Utils.TorrentAttribute.attributeToKey attribute
 
 
 encodeSortDirection : SortDirection -> E.Value

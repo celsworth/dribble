@@ -1,5 +1,6 @@
 module Subscriptions exposing (..)
 
+import Browser.Events
 import Json.Decode as D
 import Json.Encode as E
 import Model exposing (..)
@@ -10,15 +11,44 @@ import Time
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch
-        [ messageReceiver (WebsocketData << decodeString)
-        , Time.every (toFloat model.config.refreshDelay * 1000) RequestUpdatedTorrents
-        ]
+    let
+        ticker =
+            if model.websocketConnected then
+                Just <| Time.every (toFloat model.config.refreshDelay * 1000) RequestUpdatedTorrents
+
+            else
+                Nothing
+
+        onMouseMove =
+            Browser.Events.onMouseMove <|
+                D.map2 MouseMove
+                    (D.field "pageX" D.float)
+                    (D.field "pageY" D.float)
+    in
+    Sub.batch <|
+        List.filterMap
+            identity
+        <|
+            [ Just <| messageReceiver (WebsocketData << decodeString)
+            , Just <| websocketStatusUpdated (WebsocketStatusUpdated << decodeStatus)
+            , ticker
+            , Just <| onMouseMove
+            ]
 
 
 decodeString : String -> Result D.Error DecodedData
 decodeString =
     D.decodeString websocketMessageDecoder
+
+
+decodeStatus : E.Value -> Result D.Error Bool
+decodeStatus =
+    D.decodeValue websocketStatusDecoder
+
+
+websocketStatusDecoder : D.Decoder Bool
+websocketStatusDecoder =
+    D.field "connected" D.bool
 
 
 websocketMessageDecoder : D.Decoder DecodedData

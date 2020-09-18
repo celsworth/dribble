@@ -10,6 +10,9 @@ import Json.Encode as JE
 port storeConfig : JE.Value -> Cmd msg
 
 
+port websocketStatusUpdated : (JE.Value -> msg) -> Sub msg
+
+
 port sendMessage : String -> Cmd msg
 
 

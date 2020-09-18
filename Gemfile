@@ -2,11 +2,16 @@
 
 source 'https://rubygems.org'
 
-gem 'filewatcher'
 gem 'rake'
+gem 'sassc'
 gem 'sinatra'
 gem 'sinatra-contrib'
 gem 'sinatra-websocket'
 gem 'thin'
 gem 'xmlrpc'
 gem 'xmlrpcs'
+
+group :development do
+  gem 'filewatcher'
+  gem 'scss_lint'
+end

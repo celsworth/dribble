@@ -16,3 +16,27 @@ toggleTorrentAttributeVisibility attr config =
                 attr :: config.visibleTorrentAttributes
     in
     { config | visibleTorrentAttributes = newVTA }
+
+
+setSortBy : TorrentAttribute -> Config -> Config
+setSortBy attr config =
+    let
+        (SortBy currentAttr currentDirection) =
+            config.sortBy
+
+        currentSortMatchesAttr =
+            currentAttr == attr
+
+        newSort =
+            if currentSortMatchesAttr then
+                case currentDirection of
+                    Asc ->
+                        SortBy attr Desc
+
+                    Desc ->
+                        SortBy attr Asc
+
+            else
+                SortBy attr currentDirection
+    in
+    { config | sortBy = newSort }

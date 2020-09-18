@@ -1,8 +1,91 @@
-module View.Utils.TorrentAttributeMethods exposing (..)
+module Model.Utils.TorrentAttribute exposing (..)
 
-import Filesize
 import Model exposing (..)
+import Utils.Filesize
 import View.Utils.DateFormatter
+
+
+attributeToKey : TorrentAttribute -> String
+attributeToKey attribute =
+    case attribute of
+        Name ->
+            "name"
+
+        Size ->
+            "size"
+
+        CreationTime ->
+            "creationTime"
+
+        StartedTime ->
+            "startedTime"
+
+        FinishedTime ->
+            "finishedTime"
+
+        DownloadedBytes ->
+            "downloadedBytes"
+
+        DownloadRate ->
+            "downloadRate"
+
+        UploadedBytes ->
+            "uploadedBytes"
+
+        UploadRate ->
+            "uploadRate"
+
+        PeersConnected ->
+            "peersConnected"
+
+        Label ->
+            "label"
+
+        DonePercent ->
+            "donePercent"
+
+
+keyToAttribute : String -> TorrentAttribute
+keyToAttribute str =
+    case str of
+        "name" ->
+            Name
+
+        "size" ->
+            Size
+
+        "creationTime" ->
+            CreationTime
+
+        "startedTime" ->
+            StartedTime
+
+        "finishedTime" ->
+            FinishedTime
+
+        "downloadedBytes" ->
+            DownloadedBytes
+
+        "downloadRate" ->
+            DownloadRate
+
+        "uploadedBytes" ->
+            UploadedBytes
+
+        "uploadRate" ->
+            UploadRate
+
+        "peersConnected" ->
+            PeersConnected
+
+        "label" ->
+            Label
+
+        "donePercent" ->
+            DonePercent
+
+        _ ->
+            Debug.todo "NOT DONE :("
 
 
 
@@ -44,6 +127,9 @@ attributeToString attribute =
         Label ->
             "Label"
 
+        DonePercent ->
+            "Done"
+
         _ ->
             "UNHANDLED ATTRIBUTE"
 
@@ -75,7 +161,7 @@ attributeToTableHeaderString attribute =
 -- This is what we need to render the data in HTML tables.
 
 
-attributeAccessor : Filesize.Settings -> Torrent -> TorrentAttribute -> String
+attributeAccessor : Utils.Filesize.Settings -> Torrent -> TorrentAttribute -> String
 attributeAccessor filesizeSettings torrent attribute =
     case attribute of
         Name ->
@@ -121,13 +207,16 @@ attributeAccessor filesizeSettings torrent attribute =
         Label ->
             torrent.label
 
+        DonePercent ->
+            String.fromFloat torrent.donePercent
 
-humanBytes : Filesize.Settings -> Int -> String
+
+humanBytes : Utils.Filesize.Settings -> Int -> String
 humanBytes settings num =
-    Filesize.formatWith settings num
+    Utils.Filesize.formatWith settings num
 
 
-humanByteSpeed : Filesize.Settings -> Int -> String
+humanByteSpeed : Utils.Filesize.Settings -> Int -> String
 humanByteSpeed settings num =
     -- could return a Maybe? As we don't want to show anything for zero speed
     case num of
