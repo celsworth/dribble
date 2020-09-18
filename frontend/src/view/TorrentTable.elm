@@ -198,7 +198,7 @@ cellAttributes attribute =
         ]
 
 
-cellTextAlign : TorrentAttribute -> Maybe (Attribute msg)
+cellTextAlign : TorrentAttribute -> Maybe (Attribute Msg)
 cellTextAlign attribute =
     case Model.Utils.TorrentAttribute.textAlignment attribute of
         Just str ->
