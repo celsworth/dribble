@@ -21,18 +21,6 @@ init flags =
       , torrentsByHash = Dict.empty
       , messages = []
       , preferencesVisible = False
-
-      -- temporary location until I bother encoding to JSON for Config
-      , filesizeSettings = filesizeSettings
       }
     , Cmd.none
     )
-
-
-filesizeSettings : Utils.Filesize.Settings
-filesizeSettings =
-    let
-        default =
-            Utils.Filesize.defaultSettings
-    in
-    { default | units = Utils.Filesize.Base2 }

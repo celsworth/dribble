@@ -50,6 +50,7 @@
     var storedConfig = localStorage.getItem('app-config');
     console.log("Retrieved config: ", storedConfig);
     var startingConfig = storedConfig ? JSON.parse(storedConfig) : null;
+    console.log("Parsed config: ", startingConfig);
 
     app = Elm.Main.init({
       node: document.getElementById('app'),

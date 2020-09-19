@@ -47,6 +47,7 @@ attributeToKey attribute =
 
 keyToAttribute : String -> TorrentAttribute
 keyToAttribute str =
+    --- XXX: should be a Maybe so NOT DONE can return Nothing?
     case str of
         "name" ->
             Name

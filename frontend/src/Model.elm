@@ -44,7 +44,6 @@ type alias Model =
     , torrentsByHash : Dict String Torrent
     , messages : List Message
     , preferencesVisible : Bool
-    , filesizeSettings : Utils.Filesize.Settings
     }
 
 
@@ -53,6 +52,7 @@ type alias Config =
     , sortBy : Sort -- Name Asc, Size Desc, etc
     , visibleTorrentAttributes : List TorrentAttribute
     , torrentAttributeOrder : List TorrentAttribute
+    , filesizeSettings : Utils.Filesize.Settings
     }
 
 

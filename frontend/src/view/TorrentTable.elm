@@ -4,9 +4,11 @@ import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onMouseDown)
+import Html.Events.Extra.Mouse
 import Html.Keyed as Keyed
 import Html.Lazy
 import Model exposing (..)
+import Model.Shared
 import Model.Utils.TorrentAttribute
 import Utils.Filesize
 
@@ -30,19 +32,41 @@ header model =
     in
     thead []
         [ tr []
-            (List.map (headerCell model.config) visibleOrder)
+            (List.map (headerCell model) visibleOrder)
         ]
 
 
-headerCell : Config -> TorrentAttribute -> Html Msg
-headerCell config attribute =
+headerCell : Model -> TorrentAttribute -> Html Msg
+headerCell model attribute =
     let
         attrString =
             Model.Utils.TorrentAttribute.attributeToTableHeaderString
                 attribute
     in
-    th (headerCellAttributes config attribute)
-        [ text <| attrString ]
+    th (headerCellAttributes model.config attribute)
+        [ span (headerCellSpanAttributes model attribute)
+            [ text <| attrString ]
+        , div
+            [ Html.Events.Extra.Mouse.onDown
+                (\event -> MouseDownMsg attribute event.clientPos)
+            ]
+            []
+        ]
+
+
+headerCellSpanAttributes : Model -> TorrentAttribute -> List (Attribute Msg)
+headerCellSpanAttributes model attribute =
+    [ onClick (SetSortBy attribute)
+    ]
+
+
+headerCellWidth : Model -> TorrentAttribute -> Attribute Msg
+headerCellWidth model attribute =
+    let
+        width =
+            Model.Shared.getColumnWidth model attribute
+    in
+    style "width" (String.fromFloat width ++ "px")
 
 
 headerCellAttributes : Config -> TorrentAttribute -> List (Attribute Msg)
@@ -50,7 +74,6 @@ headerCellAttributes config attribute =
     List.filterMap identity <|
         [ cellTextAlign attribute
         , headerCellSortClass config attribute
-        , Just (onClick (SetSortBy attribute))
         ]
 
 
@@ -86,32 +109,34 @@ keyedRow model hash =
         Just torrent ->
             Just
                 ( torrent.hash
-                , lazyRow model.config model.filesizeSettings torrent
+                , lazyRow model.config torrent
                 )
 
         Nothing ->
             Nothing
 
 
-lazyRow : Config -> Utils.Filesize.Settings -> Torrent -> Html Msg
-lazyRow config filesizeSettings torrent =
+lazyRow : Config -> Torrent -> Html Msg
+lazyRow config torrent =
     -- just pass in what the row actually needs so lazy can look at
     -- as little as possible. this will help when some config changes,
     -- but not the config related to rendering the row.
-    Html.Lazy.lazy4 row
+    Html.Lazy.lazy5 row
+        config.columnWidths
         config.visibleTorrentAttributes
         config.torrentAttributeOrder
-        filesizeSettings
+        config.filesizeSettings
         torrent
 
 
-row : List TorrentAttribute -> List TorrentAttribute -> Utils.Filesize.Settings -> Torrent -> Html Msg
-row visibleTorrentAttributes torrentAttributeOrder filesizeSettings torrent =
+row : ColumnWidths -> List TorrentAttribute -> List TorrentAttribute -> Utils.Filesize.Settings -> Torrent -> Html Msg
+row columnWidths visibleTorrentAttributes torrentAttributeOrder filesizeSettings torrent =
     let
+        {--
         x =
-            1
+            Debug.log "rendering:" torrent
 
-        -- Debug.log "rendering:" torrent
+        --}
         visibleOrder =
             List.filter (isVisible visibleTorrentAttributes)
                 torrentAttributeOrder

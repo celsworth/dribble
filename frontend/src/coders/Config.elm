@@ -1,10 +1,12 @@
 module Coders.Config exposing (..)
 
+import Coders.FilesizeSettings
 import Json.Decode as D
 import Json.Decode.Pipeline as Pipeline exposing (optional, required)
 import Json.Encode as E
 import Model exposing (..)
 import Model.Utils.TorrentAttribute
+import Utils.Filesize
 
 
 default : Config
@@ -13,6 +15,7 @@ default =
     , sortBy = SortBy UploadRate Desc
     , visibleTorrentAttributes = defaultTorrentAttributes
     , torrentAttributeOrder = defaultTorrentAttributes
+    , filesizeSettings = Utils.Filesize.defaultSettings
     }
 
 
@@ -43,6 +46,7 @@ encode config =
         , ( "sortBy", encodeSortBy config.sortBy )
         , ( "visibleTorrentAttributes", encodeTorrentAttributeList config.visibleTorrentAttributes )
         , ( "torrentAttributeOrder", encodeTorrentAttributeList config.torrentAttributeOrder )
+        , ( "filesizeSettings", Coders.FilesizeSettings.encode config.filesizeSettings )
         ]
 
 
@@ -106,6 +110,9 @@ decoder =
         |> optional "torrentAttributeOrder"
             torrentAttributeListDecoder
             default.torrentAttributeOrder
+        |> optional "filesizeSettings"
+            Coders.FilesizeSettings.decoder
+            default.filesizeSettings
 
 
 torrentAttributeListDecoder : D.Decoder (List TorrentAttribute)
