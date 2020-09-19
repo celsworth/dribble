@@ -71,7 +71,11 @@ th {
 }
 
 th {
-  position: relative;
+  //position: sticky; // don't scroll off top
+  //top: 0;
+
+  position: relative; // so the div can anchor to the right
+
   background-color: $table-header-background;
   text-align: left;
 

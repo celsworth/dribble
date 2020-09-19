@@ -11,11 +11,7 @@ import Utils.Filesize
 
 init : JD.Value -> ( Model, Cmd Msg )
 init flags =
-    let
-        config =
-            Coders.Config.decodeOrDefault flags
-    in
-    ( { config = config
+    ( { config = Coders.Config.decodeOrDefault flags
       , websocketConnected = False
       , sortedTorrents = []
       , torrentsByHash = Dict.empty

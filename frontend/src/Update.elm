@@ -1,5 +1,6 @@
 module Update exposing (update)
 
+import Coders.Base
 import Coders.Config
 import Dict exposing (Dict)
 import Html.Events.Extra.Mouse
@@ -34,7 +35,7 @@ update msg model =
             ( processMouseUp model pos, Cmd.none )
 
         RefreshClicked ->
-            ( model, Subscriptions.getFullTorrents )
+            ( model, getFullTorrents )
 
         SaveConfigClicked ->
             ( model, saveConfig model.config )
@@ -55,10 +56,10 @@ update msg model =
             ( setSortBy model attribute, Cmd.none )
 
         RequestFullTorrents ->
-            ( model, Subscriptions.getFullTorrents )
+            ( model, getFullTorrents )
 
         RequestUpdatedTorrents _ ->
-            ( model, Subscriptions.getUpdatedTorrents )
+            ( model, getUpdatedTorrents )
 
         WebsocketData result ->
             processWebsocketResponse model result
@@ -126,6 +127,16 @@ saveConfig config =
     Coders.Config.encode config |> Ports.storeConfig
 
 
+getFullTorrents : Cmd Msg
+getFullTorrents =
+    Ports.sendMessage Coders.Base.getFullTorrents
+
+
+getUpdatedTorrents : Cmd Msg
+getUpdatedTorrents =
+    Ports.sendMessage Coders.Base.getUpdatedTorrents
+
+
 setSortBy : Model -> TorrentAttribute -> Model
 setSortBy model attribute =
     let
@@ -148,7 +159,7 @@ processWebsocketStatusUpdated model result =
             let
                 cmd =
                     if connected then
-                        Subscriptions.getFullTorrents
+                        getFullTorrents
 
                     else
                         Cmd.none
