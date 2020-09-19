@@ -1,4 +1,4 @@
-module Model.ConfigCoder exposing (..)
+module Coders.Config exposing (..)
 
 import Json.Decode as D
 import Json.Decode.Pipeline as Pipeline exposing (optional, required)

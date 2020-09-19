@@ -1,4 +1,4 @@
-module Model.TorrentDecoder exposing (decoder, listDecoder)
+module Coders.Torrent exposing (decoder, listDecoder)
 
 import Json.Decode as D
 import Json.Decode.Pipeline as Pipeline exposing (custom)
