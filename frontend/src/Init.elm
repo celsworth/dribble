@@ -20,6 +20,7 @@ init flags =
       , sortedTorrents = []
       , torrentsByHash = Dict.empty
       , messages = []
+      , preferencesVisible = False
 
       -- temporary location until I bother encoding to JSON for Config
       , filesizeSettings = filesizeSettings

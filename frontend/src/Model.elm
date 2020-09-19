@@ -9,6 +9,7 @@ import Utils.Filesize
 type Msg
     = RefreshClicked
     | SaveConfigClicked
+    | ShowPreferencesClicked
     | ToggleTorrentAttributeVisibility TorrentAttribute
     | SetSortBy TorrentAttribute
     | RequestFullTorrents
@@ -42,6 +43,7 @@ type alias Model =
     , sortedTorrents : List String
     , torrentsByHash : Dict String Torrent
     , messages : List Message
+    , preferencesVisible : Bool
     , filesizeSettings : Utils.Filesize.Settings
     }
 

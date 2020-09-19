@@ -22,6 +22,9 @@ update msg model =
         SaveConfigClicked ->
             ( model, saveConfig model.config )
 
+        ShowPreferencesClicked ->
+            ( { model | preferencesVisible = True }, Cmd.none )
+
         ToggleTorrentAttributeVisibility attribute ->
             let
                 newConfig =
