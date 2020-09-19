@@ -21,6 +21,8 @@ init flags =
       , torrentsByHash = Dict.empty
       , messages = []
       , preferencesVisible = False
+      , dragging = Nothing
+      , mousePosition = ( 0.0, 0.0 )
       }
     , Cmd.none
     )

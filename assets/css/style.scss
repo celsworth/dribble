@@ -1,7 +1,9 @@
-$table-border-colour: #ccc;
+$table-border-colour: #ddd;
 $table-header-background: #eee;
 
 $progress-fill-color: #0b0;
+
+$white: #fff;
 
 @mixin unselectable {
   -webkit-user-select: none;
@@ -14,7 +16,7 @@ $progress-fill-color: #0b0;
   position: absolute;
   z-index: 1000;
   border: 2px outset #555;
-  background: #fff;
+  background: $white;
   width: 200px;
   height: 200px;
   padding: 5px;
@@ -24,39 +26,61 @@ $progress-fill-color: #0b0;
   }
 }
 
+#dragbar {
+  display: none;
+  z-index: 500;
+
+  position: absolute;
+  width: 1px;
+  border-left: 1px solid #b38b0d;
+  height: 100%;
+  cursor: col-resize;
+
+  &.visible {
+    display: block;
+  }
+}
+
 body {
   font-family: Tahoma;
   font-size: 11px;
+
+  margin: 0;
 }
 
 .text-right {
   text-align: right;
 }
 
+.resizing-x {
+  cursor: col-resize;
+}
+
 table {
   @include unselectable;
 
   border: 1px solid $table-border-colour;
+  border-spacing: 0;
   overflow: scroll;
   table-layout: fixed;
-  border-spacing: 0;
 }
 
 td,
 th {
-  padding: 3px;
+  padding: 4px;
 }
 
 th {
   position: relative;
   background-color: $table-header-background;
-  cursor: default;
-  padding-right: 14px;
   text-align: left;
+
+  border-bottom: 1px solid $white;
+  border-left: 1px solid #bbb;
 
   &.sorted {
     background-repeat: no-repeat;
-    background-position: 100% center;
+    background-position: calc(100% - 1px) center;
     background-size: 10px;
 
     &.descending {
@@ -68,21 +92,26 @@ th {
     }
   }
 
-  div { // resize bar
-    display: inline-block;
+  span { // header string
+    cursor: default;
+    padding-right: 14px;
+  }
+
+  div { // resize bar, rendered as a white line to act like right border of the cell
     position: absolute;
-    right: 0;
-    background: #f00;
+    border-right: 1px solid $white;
     cursor: col-resize;
-    width: 5px;
-    height: 10px;
+    top: 0;
+    right: 0;
+    width: 3px;
+    height: 100%;
   }
 }
 
 td {
   border-top: 1px solid $table-border-colour;
 
-  div {
+  div { // cell content so fixed sizes work
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

@@ -7,7 +7,10 @@ import Utils.Filesize
 
 
 type Msg
-    = RefreshClicked
+    = MouseDownMsg TorrentAttribute ( Float, Float )
+    | MouseMoveMsg ( Float, Float )
+    | MouseUpMsg ( Float, Float )
+    | RefreshClicked
     | SaveConfigClicked
     | ShowPreferencesClicked
     | ToggleTorrentAttributeVisibility TorrentAttribute
@@ -37,6 +40,27 @@ type alias Message =
     }
 
 
+type alias Dragging =
+    Maybe ( TorrentAttribute, Float )
+
+
+type alias MousePosition =
+    ( Float, Float )
+
+
+type alias ColumnWidths =
+    Dict String Float
+
+
+type SortDirection
+    = Asc
+    | Desc
+
+
+type Sort
+    = SortBy TorrentAttribute SortDirection
+
+
 type alias Model =
     { config : Config
     , websocketConnected : Bool
@@ -44,6 +68,8 @@ type alias Model =
     , torrentsByHash : Dict String Torrent
     , messages : List Message
     , preferencesVisible : Bool
+    , dragging : Dragging
+    , mousePosition : MousePosition
     }
 
 
@@ -52,8 +78,24 @@ type alias Config =
     , sortBy : Sort -- Name Asc, Size Desc, etc
     , visibleTorrentAttributes : List TorrentAttribute
     , torrentAttributeOrder : List TorrentAttribute
+    , columnWidths : ColumnWidths
     , filesizeSettings : Utils.Filesize.Settings
     }
+
+
+type TorrentAttribute
+    = Name
+    | Size
+    | CreationTime
+    | StartedTime
+    | FinishedTime
+    | DownloadedBytes
+    | DownloadRate
+    | UploadedBytes
+    | UploadRate
+    | PeersConnected
+    | Label
+    | DonePercent
 
 
 type alias Torrent =
@@ -73,32 +115,3 @@ type alias Torrent =
     -- custom local vars, not from JSON
     , donePercent : Float
     }
-
-
-type alias TorrentAttributeStuff =
-    { tableAlign : String
-    }
-
-
-type TorrentAttribute
-    = Name
-    | Size
-    | CreationTime
-    | StartedTime
-    | FinishedTime
-    | DownloadedBytes
-    | DownloadRate
-    | UploadedBytes
-    | UploadRate
-    | PeersConnected
-    | Label
-    | DonePercent
-
-
-type SortDirection
-    = Asc
-    | Desc
-
-
-type Sort
-    = SortBy TorrentAttribute SortDirection

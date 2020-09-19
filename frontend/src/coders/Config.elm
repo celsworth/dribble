@@ -1,6 +1,7 @@
 module Coders.Config exposing (..)
 
 import Coders.FilesizeSettings
+import Dict
 import Json.Decode as D
 import Json.Decode.Pipeline as Pipeline exposing (optional, required)
 import Json.Encode as E
@@ -15,6 +16,7 @@ default =
     , sortBy = SortBy UploadRate Desc
     , visibleTorrentAttributes = defaultTorrentAttributes
     , torrentAttributeOrder = defaultTorrentAttributes
+    , columnWidths = defaultColumnWidths
     , filesizeSettings = Utils.Filesize.defaultSettings
     }
 
@@ -35,6 +37,18 @@ defaultTorrentAttributes =
     ]
 
 
+defaultColumnWidths : ColumnWidths
+defaultColumnWidths =
+    Dict.fromList <|
+        List.map defaultColumnWidth defaultTorrentAttributes
+
+
+defaultColumnWidth : TorrentAttribute -> ( String, Float )
+defaultColumnWidth attribute =
+    -- naive, TODO: set some better defaults per column
+    ( Model.Utils.TorrentAttribute.attributeToKey attribute, 50.0 )
+
+
 
 --- ENODERS
 
@@ -46,6 +60,7 @@ encode config =
         , ( "sortBy", encodeSortBy config.sortBy )
         , ( "visibleTorrentAttributes", encodeTorrentAttributeList config.visibleTorrentAttributes )
         , ( "torrentAttributeOrder", encodeTorrentAttributeList config.torrentAttributeOrder )
+        , ( "columnWidths", encodeColumnWidths config.columnWidths )
         , ( "filesizeSettings", Coders.FilesizeSettings.encode config.filesizeSettings )
         ]
 
@@ -60,16 +75,6 @@ encodeSortBy sortBy =
                 ]
 
 
-encodeTorrentAttributeList : List TorrentAttribute -> E.Value
-encodeTorrentAttributeList torrentAttributes =
-    E.list encodeTorrentAttribute torrentAttributes
-
-
-encodeTorrentAttribute : TorrentAttribute -> E.Value
-encodeTorrentAttribute attribute =
-    E.string <| Model.Utils.TorrentAttribute.attributeToKey attribute
-
-
 encodeSortDirection : SortDirection -> E.Value
 encodeSortDirection direction =
     case direction of
@@ -80,7 +85,45 @@ encodeSortDirection direction =
             E.string "desc"
 
 
+encodeTorrentAttributeList : List TorrentAttribute -> E.Value
+encodeTorrentAttributeList torrentAttributes =
+    E.list encodeTorrentAttribute torrentAttributes
 
+
+encodeTorrentAttribute : TorrentAttribute -> E.Value
+encodeTorrentAttribute attribute =
+    E.string <| Model.Utils.TorrentAttribute.attributeToKey attribute
+
+
+encodeColumnWidths : ColumnWidths -> E.Value
+encodeColumnWidths columnWidths =
+    Dict.toList columnWidths
+        |> List.map (\( k, v ) -> ( k, E.float v ))
+        |> E.object
+
+
+
+{-
+   -- for futurue reference..
+   -- => [ {"attribute": "name", "value": 50}, .. ]
+
+   encodeColumnWidthsAsArray : ColumnWidths -> E.Value
+   encodeColumnWidthsAsArray columnWidths =
+       E.list encodeColumnWidth (Dict.toList columnWidths)
+
+
+   encodeColumnWidth : ( String, Float ) -> E.Value
+   encodeColumnWidth tuple =
+       let
+           ( attribute, value ) =
+               tuple
+       in
+       E.object
+           [ ( "column", E.string attribute )
+           , ( "value", E.float value )
+           ]
+
+-}
 --- DECODERS
 
 
@@ -110,6 +153,9 @@ decoder =
         |> optional "torrentAttributeOrder"
             torrentAttributeListDecoder
             default.torrentAttributeOrder
+        |> optional "columnWidths"
+            columnWidthsDecoder
+            default.columnWidths
         |> optional "filesizeSettings"
             Coders.FilesizeSettings.decoder
             default.filesizeSettings
@@ -127,50 +173,6 @@ sortByDecoder =
         |> required "direction" sortDirectionDecoder
 
 
-torrentAttributeDecoder : D.Decoder TorrentAttribute
-torrentAttributeDecoder =
-    D.string
-        |> D.andThen
-            (\input ->
-                case input of
-                    "name" ->
-                        D.succeed Name
-
-                    "size" ->
-                        D.succeed Size
-
-                    "creationTime" ->
-                        D.succeed CreationTime
-
-                    "startedTime" ->
-                        D.succeed StartedTime
-
-                    "finishedTime" ->
-                        D.succeed FinishedTime
-
-                    "downloadedBytes" ->
-                        D.succeed DownloadedBytes
-
-                    "downloadRate" ->
-                        D.succeed DownloadRate
-
-                    "uploadedBytes" ->
-                        D.succeed UploadedBytes
-
-                    "uploadRate" ->
-                        D.succeed UploadRate
-
-                    "peersConnected" ->
-                        D.succeed PeersConnected
-
-                    "label" ->
-                        D.succeed Label
-
-                    _ ->
-                        D.fail <| "unknown attribute" ++ input
-            )
-
-
 sortDirectionDecoder : D.Decoder SortDirection
 sortDirectionDecoder =
     D.string
@@ -186,3 +188,17 @@ sortDirectionDecoder =
                     _ ->
                         D.fail <| "unknown direction" ++ input
             )
+
+
+torrentAttributeDecoder : D.Decoder TorrentAttribute
+torrentAttributeDecoder =
+    D.string
+        |> D.andThen
+            (\input ->
+                D.succeed <| Model.Utils.TorrentAttribute.keyToAttribute input
+            )
+
+
+columnWidthsDecoder : D.Decoder ColumnWidths
+columnWidthsDecoder =
+    D.dict D.float

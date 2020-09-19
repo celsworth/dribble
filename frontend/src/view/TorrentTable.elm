@@ -60,11 +60,11 @@ headerCellSpanAttributes model attribute =
     ]
 
 
-headerCellWidth : Model -> TorrentAttribute -> Attribute Msg
-headerCellWidth model attribute =
+headerCellWidth : Config -> TorrentAttribute -> Attribute Msg
+headerCellWidth config attribute =
     let
         width =
-            Model.Shared.getColumnWidth model attribute
+            Model.Shared.getColumnWidth config.columnWidths attribute
     in
     style "width" (String.fromFloat width ++ "px")
 
@@ -74,6 +74,7 @@ headerCellAttributes config attribute =
     List.filterMap identity <|
         [ cellTextAlign attribute
         , headerCellSortClass config attribute
+        , Just <| headerCellWidth config attribute
         ]
 
 
@@ -118,19 +119,21 @@ keyedRow model hash =
 
 lazyRow : Config -> Torrent -> Html Msg
 lazyRow config torrent =
-    -- just pass in what the row actually needs so lazy can look at
-    -- as little as possible. this will help when some config changes,
-    -- but not the config related to rendering the row.
+    {- just pass in what the row actually needs so lazy can look at
+       as little as possible. this will help when some config changes,
+       but not the config related to rendering the row, eg sortBy is
+       not relevant here and would make resorting slower
+    -}
     Html.Lazy.lazy5 row
-        config.columnWidths
         config.visibleTorrentAttributes
         config.torrentAttributeOrder
+        config.columnWidths
         config.filesizeSettings
         torrent
 
 
-row : ColumnWidths -> List TorrentAttribute -> List TorrentAttribute -> Utils.Filesize.Settings -> Torrent -> Html Msg
-row columnWidths visibleTorrentAttributes torrentAttributeOrder filesizeSettings torrent =
+row : List TorrentAttribute -> List TorrentAttribute -> ColumnWidths -> Utils.Filesize.Settings -> Torrent -> Html Msg
+row visibleTorrentAttributes torrentAttributeOrder columnWidths filesizeSettings torrent =
     let
         {--
         x =
@@ -143,7 +146,7 @@ row columnWidths visibleTorrentAttributes torrentAttributeOrder filesizeSettings
     in
     tr
         []
-        (List.map (cell filesizeSettings torrent) visibleOrder)
+        (List.map (cell columnWidths filesizeSettings torrent) visibleOrder)
 
 
 isVisible : List TorrentAttribute -> TorrentAttribute -> Bool
@@ -151,11 +154,22 @@ isVisible visibleTorrentAttributes attribute =
     List.member attribute visibleTorrentAttributes
 
 
-cell : Utils.Filesize.Settings -> Torrent -> TorrentAttribute -> Html Msg
-cell filesizeSettings torrent attribute =
+cell : ColumnWidths -> Utils.Filesize.Settings -> Torrent -> TorrentAttribute -> Html Msg
+cell columnWidths filesizeSettings torrent attribute =
+    let
+        width =
+            Model.Shared.getColumnWidth columnWidths attribute
+    in
     td (cellAttributes attribute)
-        [ cellContent filesizeSettings torrent attribute
+        [ div [ cellWidthAttribute width ]
+            [ cellContent filesizeSettings torrent attribute
+            ]
         ]
+
+
+cellWidthAttribute : Float -> Attribute Msg
+cellWidthAttribute width =
+    style "width" <| String.fromFloat width ++ "px"
 
 
 cellContent : Utils.Filesize.Settings -> Torrent -> TorrentAttribute -> Html Msg
