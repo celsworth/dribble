@@ -1,10 +1,10 @@
 module Subscriptions exposing (..)
 
 import Browser.Events
+import Coders.Torrent
 import Json.Decode as D
 import Json.Encode as E
 import Model exposing (..)
-import Model.TorrentDecoder as TorrentDecoder
 import Ports exposing (..)
 import Time
 
@@ -55,7 +55,7 @@ websocketMessageDecoder : D.Decoder DecodedData
 websocketMessageDecoder =
     D.oneOf
         [ errorDecoder
-        , TorrentDecoder.listDecoder
+        , Coders.Torrent.listDecoder
         ]
 
 

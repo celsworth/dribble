@@ -12,6 +12,7 @@ type Msg
     | MouseMove Float Float
     | RefreshClicked
     | SaveConfigClicked
+    | ShowPreferencesClicked
     | ToggleTorrentAttributeVisibility TorrentAttribute
     | SetSortBy TorrentAttribute
     | RequestFullTorrents
@@ -49,6 +50,7 @@ type alias Model =
     , sortedTorrents : List String
     , torrentsByHash : Dict String Torrent
     , messages : List Message
+    , preferencesVisible : Bool
     , filesizeSettings : Utils.Filesize.Settings
     , dragging : Maybe ( TorrentAttribute, Edge )
     , columnWidths : Dict String Float

@@ -5,13 +5,15 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Model exposing (..)
 import Model.Utils.TorrentAttribute
+import View.Preferences
 import View.TorrentTable
 
 
 view : Model -> Html Msg
 view model =
     div []
-        [ header model
+        [ View.Preferences.view model
+        , header model
         , body model
         ]
 
@@ -21,6 +23,7 @@ header model =
     div []
         [ button [ onClick RefreshClicked ] [ text "Refresh" ]
         , button [ onClick SaveConfigClicked ] [ text "Save Config" ]
+        , button [ onClick ShowPreferencesClicked ] [ text "Preferences" ]
         , toggleTorrentAttributeVisibilityButton CreationTime
         , toggleTorrentAttributeVisibilityButton StartedTime
         , div [] [ p [] [ messages model ] ]
@@ -62,4 +65,4 @@ message msg =
 
 body : Model -> Html Msg
 body model =
-    div [] [ View.TorrentTable.view model ]
+    View.TorrentTable.view model

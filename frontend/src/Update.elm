@@ -1,11 +1,11 @@
 module Update exposing (update)
 
+import Coders.Config
 import Dict exposing (Dict)
 import Json.Decode as JD
 import List
 import List.Extra
 import Model exposing (..)
-import Model.ConfigCoder
 import Model.TorrentSorter
 import Model.Utils.Config
 import Model.Utils.TorrentAttribute
@@ -39,6 +39,9 @@ update msg model =
 
         SaveConfigClicked ->
             ( model, saveConfig model.config )
+
+        ShowPreferencesClicked ->
+            ( { model | preferencesVisible = True }, Cmd.none )
 
         ToggleTorrentAttributeVisibility attribute ->
             let
@@ -98,7 +101,7 @@ processMouseUp model =
 
 saveConfig : Config -> Cmd msg
 saveConfig config =
-    Model.ConfigCoder.encode config |> Ports.storeConfig
+    Coders.Config.encode config |> Ports.storeConfig
 
 
 setSortBy : Model -> TorrentAttribute -> Model
