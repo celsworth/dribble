@@ -17,7 +17,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         TorrentAttributeResizeStarted attribute pos button keys ->
-            Update.MouseHandlers.processMouseDown
+            Update.MouseHandlers.processTorrentAttributeResizeStarted
                 model
                 attribute
                 pos
@@ -25,10 +25,19 @@ update msg model =
                 keys
 
         TorrentAttributeResized resizeOp pos ->
-            Update.MouseHandlers.processMouseMove model resizeOp pos
+            Update.MouseHandlers.processTorrentAttributeResized
+                model
+                resizeOp
+                pos
 
         TorrentAttributeResizeEnded resizeOp pos ->
-            Update.MouseHandlers.processMouseUp model resizeOp pos
+            Update.MouseHandlers.processTorrentAttributeResizeEnded
+                model
+                resizeOp
+                pos
+
+        GotColumnWidth attribute result ->
+            ( setColumnWidth model attribute result, Cmd.none )
 
         RefreshClicked ->
             ( model, getFullTorrents )
@@ -62,9 +71,6 @@ update msg model =
 
         WebsocketStatusUpdated result ->
             processWebsocketStatusUpdated model result
-
-        GotColumnWidth attribute result ->
-            ( setColumnWidth model attribute result, Cmd.none )
 
 
 setColumnWidth : Model -> TorrentAttribute -> Result Browser.Dom.Error Browser.Dom.Element -> Model

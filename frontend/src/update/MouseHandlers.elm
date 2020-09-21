@@ -8,8 +8,12 @@ import Model.Utils.TorrentAttribute
 import Task
 
 
-processMouseDown : Model -> TorrentAttribute -> MousePosition -> Mouse.Button -> Mouse.Keys -> ( Model, Cmd Msg )
-processMouseDown model attribute pos button keys =
+
+{- maybe these are TorrentResizeHandlers really? the mouse is irrelevant -}
+
+
+processTorrentAttributeResizeStarted : Model -> TorrentAttribute -> MousePosition -> Mouse.Button -> Mouse.Keys -> ( Model, Cmd Msg )
+processTorrentAttributeResizeStarted model attribute pos button keys =
     case button of
         Mouse.MainButton ->
             processMouseDownMainButton model attribute pos keys
@@ -41,8 +45,8 @@ processMouseDownMainButton model attribute pos keys =
         )
 
 
-processMouseMove : Model -> TorrentAttributeResizeOp -> MousePosition -> ( Model, Cmd Msg )
-processMouseMove model resizeOp pos =
+processTorrentAttributeResized : Model -> TorrentAttributeResizeOp -> MousePosition -> ( Model, Cmd Msg )
+processTorrentAttributeResized model resizeOp pos =
     {- when dragging, if releasing the mouse button now would result in
        a column width below minimumColumnPx, ignore the new mousePosition
     -}
@@ -64,8 +68,8 @@ processMouseMove model resizeOp pos =
         ( model, Cmd.none )
 
 
-processMouseUp : Model -> TorrentAttributeResizeOp -> MousePosition -> ( Model, Cmd Msg )
-processMouseUp model resizeOp pos =
+processTorrentAttributeResizeEnded : Model -> TorrentAttributeResizeOp -> MousePosition -> ( Model, Cmd Msg )
+processTorrentAttributeResizeEnded model resizeOp pos =
     {- on mouseup, we get a final MousePosition reading. If this is valid,
        using similar logic to processMouseMove, we save it and use it.
 

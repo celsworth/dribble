@@ -9,10 +9,10 @@ import Utils.Filesize
 
 
 type Msg
-    = GotColumnWidth TorrentAttribute (Result Browser.Dom.Error Browser.Dom.Element)
-    | TorrentAttributeResizeStarted TorrentAttribute MousePosition Mouse.Button Mouse.Keys
+    = TorrentAttributeResizeStarted TorrentAttribute MousePosition Mouse.Button Mouse.Keys
     | TorrentAttributeResized TorrentAttributeResizeOp MousePosition
     | TorrentAttributeResizeEnded TorrentAttributeResizeOp MousePosition
+    | GotColumnWidth TorrentAttribute (Result Browser.Dom.Error Browser.Dom.Element)
     | RefreshClicked
     | SaveConfigClicked
     | ShowPreferencesClicked
