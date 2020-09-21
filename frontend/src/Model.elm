@@ -56,7 +56,9 @@ type alias TorrentAttributeResizeOp =
 
 
 type alias MousePosition =
-    { x : Float, y : Float }
+    { x : Float
+    , y : Float
+    }
 
 
 type alias ColumnWidths =
