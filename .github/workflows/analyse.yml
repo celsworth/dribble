@@ -9,4 +9,4 @@ jobs:
         with:
           elm_analyse_version: 0.16.5
           ignore_error: false
-          working_directory: frontend/src
+          working_directory: frontend
