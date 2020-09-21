@@ -1,9 +1,10 @@
 module Update exposing (update)
 
+import Browser.Dom
 import Coders.Base
 import Coders.Config
 import Dict exposing (Dict)
-import Html.Events.Extra.Mouse
+import Html.Events.Extra.Mouse as Mouse
 import Json.Decode as JD
 import List
 import List.Extra
@@ -14,25 +15,26 @@ import Model.Utils.Config
 import Model.Utils.TorrentAttribute
 import Ports
 import Subscriptions
+import Task
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        MouseDownMsg attribute pos ->
-            ( processMouseDown model attribute pos, Cmd.none )
+        MouseDownMsg attribute pos keys ->
+            processMouseDown model attribute pos keys
 
-        MouseMoveMsg pos ->
+        MouseMoveMsg dragging pos ->
             case model.dragging of
                 -- ignore surplus MouseMoveMsg if we're not dragging
                 Nothing ->
                     ( model, Cmd.none )
 
                 _ ->
-                    ( processMouseMove model pos, Cmd.none )
+                    ( processMouseMove model dragging pos, Cmd.none )
 
-        MouseUpMsg pos ->
-            ( processMouseUp model pos, Cmd.none )
+        MouseUpMsg dragging pos ->
+            ( processMouseUp model dragging pos, Cmd.none )
 
         RefreshClicked ->
             ( model, getFullTorrents )
@@ -67,33 +69,70 @@ update msg model =
         WebsocketStatusUpdated result ->
             processWebsocketStatusUpdated model result
 
+        GotColumnWidth attribute result ->
+            ( setColumnWidth model attribute result, Cmd.none )
+
+
+setColumnWidth : Model -> TorrentAttribute -> Result Browser.Dom.Error Browser.Dom.Element -> Model
+setColumnWidth model attribute result =
+    case result of
+        Ok r ->
+            Model.Shared.setColumnWidth
+                model
+                attribute
+                { px = r.element.width, auto = False }
+
+        Err r ->
+            let
+                _ =
+                    Debug.log "ERR: " r
+            in
+            model
+
 
 
 -- TODO: move mouse stuff to Update.Shared.MouseProcessing or something?
 
 
-processMouseDown : Model -> TorrentAttribute -> MousePosition -> Model
-processMouseDown model attribute pos =
+processMouseDown : Model -> TorrentAttribute -> MousePosition -> Mouse.Keys -> ( Model, Cmd Msg )
+processMouseDown model attribute pos keys =
     let
         ( x, y ) =
             pos
+
+        id =
+            Model.Utils.TorrentAttribute.attributeToTableHeaderId attribute
+
+        {- move to a context menu -}
+        cmd =
+            Task.attempt (GotColumnWidth attribute) <| Browser.Dom.getElement id
     in
-    { model | mousePosition = pos, dragging = Just ( attribute, x ) }
+    if keys.alt then
+        {- move to a context menu -}
+        ( Model.Shared.setColumnWidthAuto model attribute, cmd )
+
+    else
+        ( { model | mousePosition = pos, dragging = Just ( attribute, x ) }
+        , Cmd.none
+        )
 
 
-processMouseMove : Model -> MousePosition -> Model
-processMouseMove model pos =
+processMouseMove : Model -> Dragging -> MousePosition -> Model
+processMouseMove model dragging pos =
     {- when dragging, if releasing the mouse button now would result in
-       a column width below 20, ignore the new mousePosition
+       a column width below minimumColumnPx, ignore the new mousePosition
     -}
     let
-        newColumnWidth =
-            Model.Shared.calculateNewColumnWidth model pos
+        ( attribute, mouseStartX ) =
+            dragging
 
+        newColumnWidth =
+            Model.Shared.calculateNewColumnWidth model attribute mouseStartX pos
+
+        -- stop the dragbar moving any further if the column would be too narrow
         valid =
-            newColumnWidth > Model.Shared.minimumColumnWidth
+            newColumnWidth.px > Model.Shared.minimumColumnPx
     in
-    -- stop the dragbar moving any further if the column would be too narrow
     if valid then
         { model | mousePosition = pos }
 
@@ -101,20 +140,14 @@ processMouseMove model pos =
         model
 
 
-processMouseUp : Model -> MousePosition -> Model
-processMouseUp model pos =
+processMouseUp : Model -> Dragging -> MousePosition -> Model
+processMouseUp model dragging pos =
     let
         ( attribute, mouseStartX ) =
-            case model.dragging of
-                Just dragging ->
-                    dragging
-
-                -- XXX this should never happen
-                Nothing ->
-                    ( Name, 0.0 )
+            dragging
 
         newWidth =
-            Model.Shared.calculateNewColumnWidth model pos
+            Model.Shared.calculateNewColumnWidth model attribute mouseStartX pos
 
         newModel =
             Model.Shared.setColumnWidth model attribute newWidth

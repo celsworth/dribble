@@ -5,12 +5,11 @@ import Model exposing (..)
 import Model.Utils.TorrentAttribute
 
 
-minimumColumnWidth : Float
-minimumColumnWidth =
+minimumColumnPx : Float
+minimumColumnPx =
     50
 
 
-getColumnWidth : ColumnWidths -> TorrentAttribute -> Float
 getColumnWidth columnWidths attribute =
     let
         key =
@@ -21,10 +20,11 @@ getColumnWidth columnWidths attribute =
             width
 
         Nothing ->
-            minimumColumnWidth
+            -- default
+            { px = minimumColumnPx, auto = False }
 
 
-setColumnWidth : Model -> TorrentAttribute -> Float -> Model
+setColumnWidth : Model -> TorrentAttribute -> ColumnWidth -> Model
 setColumnWidth model attribute newWidth =
     let
         key =
@@ -42,31 +42,47 @@ setColumnWidth model attribute newWidth =
     { model | config = newConfig }
 
 
-calculateNewColumnWidth : Model -> MousePosition -> Float
-calculateNewColumnWidth model pos =
+setColumnWidthAuto : Model -> TorrentAttribute -> Model
+setColumnWidthAuto model attribute =
     let
-        ( x, y ) =
-            pos
-
-        ( attribute, mouseStartX ) =
-            case model.dragging of
-                Just dragging ->
-                    dragging
-
-                -- XXX this should never happen
-                Nothing ->
-                    ( Name, minimumColumnWidth )
+        key =
+            Model.Utils.TorrentAttribute.attributeToKey attribute
 
         oldWidth =
             getColumnWidth model.config.columnWidths attribute
 
         newWidth =
-            oldWidth + x - mouseStartX
+            { oldWidth | auto = True }
+
+        newDict =
+            Dict.insert key newWidth model.config.columnWidths
+
+        config =
+            model.config
+
+        newConfig =
+            { config | columnWidths = newDict }
     in
-    -- prevent columns going below 20px
-    case List.maximum [ minimumColumnWidth, newWidth ] of
+    { model | config = newConfig }
+
+
+calculateNewColumnWidth : Model -> TorrentAttribute -> Float -> MousePosition -> ColumnWidth
+calculateNewColumnWidth model attribute mouseStartX pos =
+    let
+        ( x, y ) =
+            pos
+
+        oldWidth =
+            getColumnWidth model.config.columnWidths attribute
+
+        newPx =
+            oldWidth.px + x - mouseStartX
+    in
+    -- prevent columns going below 50px
+    case List.maximum [ minimumColumnPx, newPx ] of
         Just max ->
-            max
+            { oldWidth | px = max }
 
         Nothing ->
-            minimumColumnWidth
+            -- notreachable, minimumColumnPx is never unset
+            { px = minimumColumnPx, auto = False }

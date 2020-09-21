@@ -28,25 +28,18 @@ viewAttributes model =
 
 viewAttributesIfDragging : Model -> List (Attribute Msg)
 viewAttributesIfDragging model =
-    let
-        -- if we're dragging, show a resize cursor all the time
-        resizing =
-            class "resizing-x"
-
-        moveEvent =
-            Html.Events.Extra.Mouse.onMove
-                (\event -> MouseMoveMsg event.clientPos)
-
-        upEvent =
-            Html.Events.Extra.Mouse.onUp
-                (\event -> MouseUpMsg event.clientPos)
-    in
     case model.dragging of
+        Just dragging ->
+            [ -- if we're dragging, show a resize cursor all the time
+              class "resizing-x"
+            , Html.Events.Extra.Mouse.onUp
+                (\e -> MouseUpMsg dragging e.clientPos)
+            , Html.Events.Extra.Mouse.onMove
+                (\e -> MouseMoveMsg dragging e.clientPos)
+            ]
+
         Nothing ->
             []
-
-        _ ->
-            [ resizing, upEvent, moveEvent ]
 
 
 header : Model -> Html Msg

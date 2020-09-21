@@ -10,6 +10,7 @@ import Html.Lazy
 import Model exposing (..)
 import Model.Shared
 import Model.Utils.TorrentAttribute
+import Round
 import Utils.Filesize
 
 
@@ -43,43 +44,49 @@ headerCell model attribute =
             Model.Utils.TorrentAttribute.attributeToTableHeaderString
                 attribute
     in
-    th (headerCellAttributes model.config attribute)
-        [ span (headerCellSpanAttributes model attribute)
-            [ text <| attrString ]
-        , div
-            [ Html.Events.Extra.Mouse.onDown
-                (\event -> MouseDownMsg attribute event.clientPos)
-            ]
+    th (headerCellAttributes model attribute)
+        [ div (headerCellContentDivAttributes model attribute)
+            [ div [ class "content" ] [ text <| attrString ] ]
+        , div (headerCellDragBarAttributes model attribute)
             []
         ]
 
 
-headerCellSpanAttributes : Model -> TorrentAttribute -> List (Attribute Msg)
-headerCellSpanAttributes model attribute =
-    [ onClick (SetSortBy attribute)
-    ]
-
-
-headerCellWidth : Config -> TorrentAttribute -> Attribute Msg
-headerCellWidth config attribute =
-    let
-        width =
-            Model.Shared.getColumnWidth config.columnWidths attribute
-    in
-    style "width" (String.fromFloat width ++ "px")
-
-
-headerCellAttributes : Config -> TorrentAttribute -> List (Attribute Msg)
-headerCellAttributes config attribute =
+headerCellAttributes : Model -> TorrentAttribute -> List (Attribute Msg)
+headerCellAttributes model attribute =
     List.filterMap identity <|
-        [ cellTextAlign attribute
-        , headerCellSortClass config attribute
-        , Just <| headerCellWidth config attribute
+        [ headerCellIdAttribute attribute
+        , cellTextAlign attribute
+        , headerCellSortClass model attribute
         ]
 
 
-headerCellSortClass : Config -> TorrentAttribute -> Maybe (Attribute Msg)
-headerCellSortClass config attribute =
+headerCellIdAttribute : TorrentAttribute -> Maybe (Attribute Msg)
+headerCellIdAttribute attribute =
+    Just <|
+        id <|
+            Model.Utils.TorrentAttribute.attributeToTableHeaderId attribute
+
+
+headerCellContentDivAttributes : Model -> TorrentAttribute -> List (Attribute Msg)
+headerCellContentDivAttributes model attribute =
+    List.filterMap identity <|
+        [ Just <| class "size"
+        , thWidthAttribute model.config.columnWidths attribute
+        , Just <| onClick (SetSortBy attribute)
+        ]
+
+
+headerCellDragBarAttributes : Model -> TorrentAttribute -> List (Attribute Msg)
+headerCellDragBarAttributes _ attribute =
+    [ class "dragbar"
+    , Html.Events.Extra.Mouse.onDown
+        (\event -> MouseDownMsg attribute event.clientPos event.keys)
+    ]
+
+
+headerCellSortClass : Model -> TorrentAttribute -> Maybe (Attribute Msg)
+headerCellSortClass { config } attribute =
     let
         (SortBy currentSortAttribute currentSortDirection) =
             config.sortBy
@@ -156,20 +163,29 @@ isVisible visibleTorrentAttributes attribute =
 
 cell : ColumnWidths -> Utils.Filesize.Settings -> Torrent -> TorrentAttribute -> Html Msg
 cell columnWidths filesizeSettings torrent attribute =
-    let
-        width =
-            Model.Shared.getColumnWidth columnWidths attribute
-    in
-    td (cellAttributes attribute)
-        [ div [ cellWidthAttribute width ]
+    td []
+        [ div (cellAttributes columnWidths attribute)
             [ cellContent filesizeSettings torrent attribute
             ]
         ]
 
 
-cellWidthAttribute : Float -> Attribute Msg
-cellWidthAttribute width =
-    style "width" <| String.fromFloat width ++ "px"
+cellAttributes : ColumnWidths -> TorrentAttribute -> List (Attribute Msg)
+cellAttributes columnWidths attribute =
+    List.filterMap identity <|
+        [ tdWidthAttribute columnWidths attribute
+        , cellTextAlign attribute
+        ]
+
+
+cellTextAlign : TorrentAttribute -> Maybe (Attribute Msg)
+cellTextAlign attribute =
+    case Model.Utils.TorrentAttribute.textAlignment attribute of
+        Just str ->
+            Just <| class "text-right"
+
+        Nothing ->
+            Nothing
 
 
 cellContent : Utils.Filesize.Settings -> Torrent -> TorrentAttribute -> Html Msg
@@ -194,18 +210,40 @@ donePercentCell torrent =
         [ text (String.fromFloat torrent.donePercent ++ "%") ]
 
 
-cellAttributes : TorrentAttribute -> List (Attribute Msg)
-cellAttributes attribute =
-    List.filterMap identity <|
-        [ cellTextAlign attribute
-        ]
+
+{-
+   WIDTH HELPERS
+
+   this complication is because the width stored in columnWidths
+   includes padding and borders.
+
+   For th columns, that amounts to 10px (4px padding, 1px border)
+
+   For td, there are no borders, so its just 4px padding to remove
+-}
 
 
-cellTextAlign : TorrentAttribute -> Maybe (Attribute Msg)
-cellTextAlign attribute =
-    case Model.Utils.TorrentAttribute.textAlignment attribute of
-        Just str ->
-            Just <| class "text-right"
+thWidthAttribute : ColumnWidths -> TorrentAttribute -> Maybe (Attribute Msg)
+thWidthAttribute columnWidths attribute =
+    widthAttribute columnWidths attribute 10
 
-        Nothing ->
-            Nothing
+
+tdWidthAttribute : ColumnWidths -> TorrentAttribute -> Maybe (Attribute Msg)
+tdWidthAttribute columnWidths attribute =
+    widthAttribute columnWidths attribute 8
+
+
+widthAttribute : ColumnWidths -> TorrentAttribute -> Float -> Maybe (Attribute Msg)
+widthAttribute columnWidths attribute subtract =
+    let
+        width =
+            Model.Shared.getColumnWidth columnWidths attribute
+
+        { auto, px } =
+            width
+    in
+    if auto then
+        Nothing
+
+    else
+        Just <| style "width" (String.fromFloat (px - subtract) ++ "px")
