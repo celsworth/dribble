@@ -2,6 +2,7 @@ on: [push, pull_request]
 name: Elm Analyse
 jobs:
   analyse:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - uses: harehare/elm-analyse-action@v1
