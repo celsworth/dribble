@@ -79,9 +79,19 @@ headerCellContentDivAttributes model attribute =
 
 headerCellDragBarAttributes : Model -> TorrentAttribute -> List (Attribute Msg)
 headerCellDragBarAttributes _ attribute =
+    let
+        {- this mess converts (x, y) to { x: x, y: y } -}
+        reconstructClientPos =
+            \event ->
+                let
+                    ( x, y ) =
+                        event.clientPos
+                in
+                { x = x, y = y }
+    in
     [ class "dragbar"
     , Html.Events.Extra.Mouse.onDown
-        (\event -> MouseDownMsg attribute event.clientPos event.keys)
+        (\e -> MouseDownMsg attribute (reconstructClientPos e) e.keys)
     ]
 
 

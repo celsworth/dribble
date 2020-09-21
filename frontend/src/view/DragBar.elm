@@ -12,19 +12,17 @@ view model =
 
 attributes : Model -> List (Attribute Msg)
 attributes model =
-    let
-        ( x, y ) =
-            model.mousePosition
+    case model.torrentAttributeResizeOp of
+        Just resizeOp ->
+            attributesIfResizing resizeOp
 
-        kls =
-            if model.dragging /= Nothing then
-                Just <| class "visible"
+        _ ->
+            []
 
-            else
-                Nothing
-    in
-    List.filterMap identity <|
-        [ Just <| id "dragbar"
-        , kls
-        , Just <| style "left" (String.fromFloat x ++ "px")
-        ]
+
+attributesIfResizing : TorrentAttributeResizeOp -> List (Attribute Msg)
+attributesIfResizing resizeOp =
+    [ id "dragbar"
+    , class "visible"
+    , style "left" (String.fromFloat resizeOp.currentPosition.x ++ "px")
+    ]

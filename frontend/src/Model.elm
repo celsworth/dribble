@@ -11,8 +11,8 @@ import Utils.Filesize
 type Msg
     = GotColumnWidth TorrentAttribute (Result Browser.Dom.Error Browser.Dom.Element)
     | MouseDownMsg TorrentAttribute MousePosition Mouse.Keys
-    | MouseMoveMsg Dragging MousePosition
-    | MouseUpMsg Dragging MousePosition
+    | MouseMoveMsg TorrentAttributeResizeOp MousePosition
+    | MouseUpMsg TorrentAttributeResizeOp MousePosition
     | RefreshClicked
     | SaveConfigClicked
     | ShowPreferencesClicked
@@ -45,12 +45,18 @@ type alias Message =
     }
 
 
-type alias Dragging =
-    ( TorrentAttribute, Float )
+type alias TorrentAttributeResizeOp =
+    {- Dragging a TorrentAttribute resize bar
+       Could possibly extend to other table types in future
+    -}
+    { attribute : TorrentAttribute
+    , startPosition : MousePosition
+    , currentPosition : MousePosition
+    }
 
 
 type alias MousePosition =
-    ( Float, Float )
+    { x : Float, y : Float }
 
 
 type alias ColumnWidths =
@@ -79,8 +85,7 @@ type alias Model =
     , torrentsByHash : Dict String Torrent
     , messages : List Message
     , preferencesVisible : Bool
-    , dragging : Maybe Dragging
-    , mousePosition : MousePosition
+    , torrentAttributeResizeOp : Maybe TorrentAttributeResizeOp
     }
 
 

@@ -24,17 +24,11 @@ update msg model =
         MouseDownMsg attribute pos keys ->
             processMouseDown model attribute pos keys
 
-        MouseMoveMsg dragging pos ->
-            case model.dragging of
-                -- ignore surplus MouseMoveMsg if we're not dragging
-                Nothing ->
-                    ( model, Cmd.none )
+        MouseMoveMsg resizeOp pos ->
+            ( processMouseMove model resizeOp pos, Cmd.none )
 
-                _ ->
-                    ( processMouseMove model dragging pos, Cmd.none )
-
-        MouseUpMsg dragging pos ->
-            ( processMouseUp model dragging pos, Cmd.none )
+        MouseUpMsg resizeOp pos ->
+            ( processMouseUp model resizeOp pos, Cmd.none )
 
         RefreshClicked ->
             ( model, getFullTorrents )
@@ -97,11 +91,11 @@ setColumnWidth model attribute result =
 processMouseDown : Model -> TorrentAttribute -> MousePosition -> Mouse.Keys -> ( Model, Cmd Msg )
 processMouseDown model attribute pos keys =
     let
-        ( x, y ) =
-            pos
-
         id =
             Model.Utils.TorrentAttribute.attributeToTableHeaderId attribute
+
+        resizeOp =
+            { attribute = attribute, startPosition = pos, currentPosition = pos }
 
         {- move to a context menu -}
         cmd =
@@ -112,47 +106,63 @@ processMouseDown model attribute pos keys =
         ( Model.Shared.setColumnWidthAuto model attribute, cmd )
 
     else
-        ( { model | mousePosition = pos, dragging = Just ( attribute, x ) }
+        ( { model | torrentAttributeResizeOp = Just resizeOp }
         , Cmd.none
         )
 
 
-processMouseMove : Model -> Dragging -> MousePosition -> Model
-processMouseMove model dragging pos =
+processMouseMove : Model -> TorrentAttributeResizeOp -> MousePosition -> Model
+processMouseMove model resizeOp pos =
     {- when dragging, if releasing the mouse button now would result in
        a column width below minimumColumnPx, ignore the new mousePosition
     -}
     let
-        ( attribute, mouseStartX ) =
-            dragging
+        newResizeOp =
+            { resizeOp | currentPosition = pos }
 
-        newColumnWidth =
-            Model.Shared.calculateNewColumnWidth model attribute mouseStartX pos
+        newWidth =
+            Model.Shared.calculateNewColumnWidth model newResizeOp
 
         -- stop the dragbar moving any further if the column would be too narrow
         valid =
-            newColumnWidth.px > Model.Shared.minimumColumnPx
+            newWidth.px > Model.Shared.minimumColumnPx
     in
     if valid then
-        { model | mousePosition = pos }
+        { model | torrentAttributeResizeOp = Just newResizeOp }
 
     else
         model
 
 
-processMouseUp : Model -> Dragging -> MousePosition -> Model
-processMouseUp model dragging pos =
+processMouseUp : Model -> TorrentAttributeResizeOp -> MousePosition -> Model
+processMouseUp model resizeOp pos =
+    {- on mouseup, we get a final MousePosition reading. If this is valid,
+       using similar logic to processMouseMove, we save it and use it.
+
+       If it's not valid, use the existing resizeOp without changing it.
+    -}
     let
-        ( attribute, mouseStartX ) =
-            dragging
+        newResizeOp =
+            { resizeOp | currentPosition = pos }
 
         newWidth =
-            Model.Shared.calculateNewColumnWidth model attribute mouseStartX pos
+            Model.Shared.calculateNewColumnWidth model newResizeOp
+
+        -- don't use newResizeOp if the column would be too narrow
+        valid =
+            newWidth.px > Model.Shared.minimumColumnPx
+
+        validResizeOp =
+            if valid then
+                newResizeOp
+
+            else
+                resizeOp
 
         newModel =
-            Model.Shared.setColumnWidth model attribute newWidth
+            Model.Shared.setColumnWidth model validResizeOp.attribute newWidth
     in
-    { newModel | dragging = Nothing }
+    { newModel | torrentAttributeResizeOp = Nothing }
 
 
 saveConfig : Config -> Cmd msg

@@ -10,6 +10,7 @@ minimumColumnPx =
     50
 
 
+getColumnWidth : ColumnWidths -> TorrentAttribute -> ColumnWidth
 getColumnWidth columnWidths attribute =
     let
         key =
@@ -66,17 +67,14 @@ setColumnWidthAuto model attribute =
     { model | config = newConfig }
 
 
-calculateNewColumnWidth : Model -> TorrentAttribute -> Float -> MousePosition -> ColumnWidth
-calculateNewColumnWidth model attribute mouseStartX pos =
+calculateNewColumnWidth : Model -> TorrentAttributeResizeOp -> ColumnWidth
+calculateNewColumnWidth model resizeOp =
     let
-        ( x, y ) =
-            pos
-
         oldWidth =
-            getColumnWidth model.config.columnWidths attribute
+            getColumnWidth model.config.columnWidths resizeOp.attribute
 
         newPx =
-            oldWidth.px + x - mouseStartX
+            oldWidth.px + resizeOp.currentPosition.x - resizeOp.startPosition.x
     in
     -- prevent columns going below 50px
     case List.maximum [ minimumColumnPx, newPx ] of
