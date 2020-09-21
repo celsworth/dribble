@@ -43,10 +43,13 @@ defaultColumnWidths =
         List.map defaultColumnWidth defaultTorrentAttributes
 
 
-defaultColumnWidth : TorrentAttribute -> ( String, Float )
+defaultColumnWidth : TorrentAttribute -> ( String, ColumnWidth )
 defaultColumnWidth attribute =
     -- naive, TODO: set some better defaults per column
-    ( Model.Utils.TorrentAttribute.attributeToKey attribute, 50.0 )
+    ( Model.Utils.TorrentAttribute.attributeToKey
+        attribute
+    , { px = 50, auto = False }
+    )
 
 
 
@@ -98,13 +101,21 @@ encodeTorrentAttribute attribute =
 encodeColumnWidths : ColumnWidths -> E.Value
 encodeColumnWidths columnWidths =
     Dict.toList columnWidths
-        |> List.map (\( k, v ) -> ( k, E.float v ))
+        |> List.map (\( k, v ) -> ( k, encodeColumnWidth v ))
         |> E.object
+
+
+encodeColumnWidth : ColumnWidth -> E.Value
+encodeColumnWidth columnWidth =
+    E.object
+        [ ( "px", E.float columnWidth.px )
+        , ( "auto", E.bool columnWidth.auto )
+        ]
 
 
 
 {-
-   -- for futurue reference..
+   -- for future reference..
    -- => [ {"attribute": "name", "value": 50}, .. ]
 
    encodeColumnWidthsAsArray : ColumnWidths -> E.Value
@@ -201,4 +212,11 @@ torrentAttributeDecoder =
 
 columnWidthsDecoder : D.Decoder ColumnWidths
 columnWidthsDecoder =
-    D.dict D.float
+    D.dict columnWidthDecoder
+
+
+columnWidthDecoder : D.Decoder ColumnWidth
+columnWidthDecoder =
+    D.succeed ColumnWidth
+        |> required "px" D.float
+        |> required "auto" D.bool

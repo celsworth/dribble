@@ -1,38 +1,43 @@
 module Update exposing (update)
 
+import Browser.Dom
 import Coders.Base
 import Coders.Config
 import Dict exposing (Dict)
-import Html.Events.Extra.Mouse
 import Json.Decode as JD
-import List
-import List.Extra
 import Model exposing (..)
 import Model.Shared
 import Model.TorrentSorter
 import Model.Utils.Config
-import Model.Utils.TorrentAttribute
 import Ports
-import Subscriptions
+import Update.MouseHandlers
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        MouseDownMsg attribute pos ->
-            ( processMouseDown model attribute pos, Cmd.none )
+        TorrentAttributeResizeStarted attribute pos button keys ->
+            Update.MouseHandlers.processTorrentAttributeResizeStarted
+                model
+                attribute
+                pos
+                button
+                keys
 
-        MouseMoveMsg pos ->
-            case model.dragging of
-                -- ignore surplus MouseMoveMsg if we're not dragging
-                Nothing ->
-                    ( model, Cmd.none )
+        TorrentAttributeResized resizeOp pos ->
+            Update.MouseHandlers.processTorrentAttributeResized
+                model
+                resizeOp
+                pos
 
-                _ ->
-                    ( processMouseMove model pos, Cmd.none )
+        TorrentAttributeResizeEnded resizeOp pos ->
+            Update.MouseHandlers.processTorrentAttributeResizeEnded
+                model
+                resizeOp
+                pos
 
-        MouseUpMsg pos ->
-            ( processMouseUp model pos, Cmd.none )
+        GotColumnWidth attribute result ->
+            ( setColumnWidth model attribute result, Cmd.none )
 
         RefreshClicked ->
             ( model, getFullTorrents )
@@ -68,58 +73,21 @@ update msg model =
             processWebsocketStatusUpdated model result
 
 
+setColumnWidth : Model -> TorrentAttribute -> Result Browser.Dom.Error Browser.Dom.Element -> Model
+setColumnWidth model attribute result =
+    case result of
+        Ok r ->
+            Model.Shared.setColumnWidth
+                model
+                attribute
+                { px = r.element.width, auto = False }
 
--- TODO: move mouse stuff to Update.Shared.MouseProcessing or something?
-
-
-processMouseDown : Model -> TorrentAttribute -> MousePosition -> Model
-processMouseDown model attribute pos =
-    let
-        ( x, y ) =
-            pos
-    in
-    { model | mousePosition = pos, dragging = Just ( attribute, x ) }
-
-
-processMouseMove : Model -> MousePosition -> Model
-processMouseMove model pos =
-    {- when dragging, if releasing the mouse button now would result in
-       a column width below 20, ignore the new mousePosition
-    -}
-    let
-        newColumnWidth =
-            Model.Shared.calculateNewColumnWidth model pos
-
-        valid =
-            newColumnWidth > Model.Shared.minimumColumnWidth
-    in
-    -- stop the dragbar moving any further if the column would be too narrow
-    if valid then
-        { model | mousePosition = pos }
-
-    else
-        model
-
-
-processMouseUp : Model -> MousePosition -> Model
-processMouseUp model pos =
-    let
-        ( attribute, mouseStartX ) =
-            case model.dragging of
-                Just dragging ->
-                    dragging
-
-                -- XXX this should never happen
-                Nothing ->
-                    ( Name, 0.0 )
-
-        newWidth =
-            Model.Shared.calculateNewColumnWidth model pos
-
-        newModel =
-            Model.Shared.setColumnWidth model attribute newWidth
-    in
-    { newModel | dragging = Nothing }
+        Err r ->
+            let
+                _ =
+                    Debug.log "ERR: " r
+            in
+            model
 
 
 saveConfig : Config -> Cmd msg

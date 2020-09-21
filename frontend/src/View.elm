@@ -29,24 +29,27 @@ viewAttributes model =
 viewAttributesIfDragging : Model -> List (Attribute Msg)
 viewAttributesIfDragging model =
     let
-        -- if we're dragging, show a resize cursor all the time
-        resizing =
-            class "resizing-x"
-
-        moveEvent =
-            Html.Events.Extra.Mouse.onMove
-                (\event -> MouseMoveMsg event.clientPos)
-
-        upEvent =
-            Html.Events.Extra.Mouse.onUp
-                (\event -> MouseUpMsg event.clientPos)
+        {- this mess converts (x, y) to { x: x, y: y } -}
+        reconstructClientPos =
+            \event ->
+                let
+                    ( x, y ) =
+                        event.clientPos
+                in
+                { x = x, y = y }
     in
-    case model.dragging of
+    case model.torrentAttributeResizeOp of
+        Just resizeOp ->
+            [ -- if we're dragging, show a resize cursor all the time
+              class "resizing-x"
+            , Html.Events.Extra.Mouse.onUp
+                (\e -> TorrentAttributeResizeEnded resizeOp (reconstructClientPos e))
+            , Html.Events.Extra.Mouse.onMove
+                (\e -> TorrentAttributeResized resizeOp (reconstructClientPos e))
+            ]
+
         Nothing ->
             []
-
-        _ ->
-            [ resizing, upEvent, moveEvent ]
 
 
 header : Model -> Html Msg

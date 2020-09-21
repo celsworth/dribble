@@ -1,15 +1,18 @@
 module Model exposing (..)
 
+import Browser.Dom
 import Dict exposing (Dict)
+import Html.Events.Extra.Mouse as Mouse
 import Json.Decode as JD
 import Time
 import Utils.Filesize
 
 
 type Msg
-    = MouseDownMsg TorrentAttribute ( Float, Float )
-    | MouseMoveMsg ( Float, Float )
-    | MouseUpMsg ( Float, Float )
+    = TorrentAttributeResizeStarted TorrentAttribute MousePosition Mouse.Button Mouse.Keys
+    | TorrentAttributeResized TorrentAttributeResizeOp MousePosition
+    | TorrentAttributeResizeEnded TorrentAttributeResizeOp MousePosition
+    | GotColumnWidth TorrentAttribute (Result Browser.Dom.Error Browser.Dom.Element)
     | RefreshClicked
     | SaveConfigClicked
     | ShowPreferencesClicked
@@ -21,9 +24,11 @@ type Msg
     | WebsocketStatusUpdated (Result JD.Error Bool)
 
 
-type
-    DecodedData
-    -- TODO: add lists of labels, trackers, peers, etc?
+
+-- TODO: add lists of trackers, peers, etc?
+
+
+type DecodedData
     = TorrentsReceived (List Torrent)
     | Error String
 
@@ -40,16 +45,28 @@ type alias Message =
     }
 
 
-type alias Dragging =
-    Maybe ( TorrentAttribute, Float )
+type alias TorrentAttributeResizeOp =
+    {- Dragging a TorrentAttribute resize bar
+       Could possibly extend to other table types in future
+    -}
+    { attribute : TorrentAttribute
+    , startPosition : MousePosition
+    , currentPosition : MousePosition
+    }
 
 
 type alias MousePosition =
-    ( Float, Float )
+    { x : Float, y : Float }
 
 
 type alias ColumnWidths =
-    Dict String Float
+    Dict String ColumnWidth
+
+
+type alias ColumnWidth =
+    { px : Float
+    , auto : Bool
+    }
 
 
 type SortDirection
@@ -68,8 +85,7 @@ type alias Model =
     , torrentsByHash : Dict String Torrent
     , messages : List Message
     , preferencesVisible : Bool
-    , dragging : Dragging
-    , mousePosition : MousePosition
+    , torrentAttributeResizeOp : Maybe TorrentAttributeResizeOp
     }
 
 

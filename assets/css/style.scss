@@ -17,9 +17,9 @@ $white: #fff;
   z-index: 1000;
   border: 2px outset #555;
   background: $white;
+  padding: 5px;
   width: 200px;
   height: 200px;
-  padding: 5px;
 
   &.visible {
     display: block;
@@ -28,24 +28,30 @@ $white: #fff;
 
 #dragbar {
   display: none;
-  z-index: 500;
-
   position: absolute;
-  width: 1px;
+  z-index: 500;
   border-left: 1px solid #b38b0d;
-  height: 100%;
   cursor: col-resize;
+  width: 1px;
+  height: 100%;
 
   &.visible {
     display: block;
   }
 }
 
+html {
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
 body {
+  margin: 0;
   font-family: Tahoma;
   font-size: 11px;
-
-  margin: 0;
 }
 
 .text-right {
@@ -60,9 +66,9 @@ table {
   @include unselectable;
 
   border: 1px solid $table-border-colour;
-  border-spacing: 0;
   overflow: scroll;
   table-layout: fixed;
+  border-spacing: 0;
 }
 
 td,
@@ -76,11 +82,12 @@ th {
 
   position: relative; // so the div can anchor to the right
 
+  border-bottom: 1px solid $white;
+  border-left: 1px solid $white;
+  border-right: 1px solid #bbb;
+
   background-color: $table-header-background;
   text-align: left;
-
-  border-bottom: 1px solid $white;
-  border-left: 1px solid #bbb;
 
   &.sorted {
     background-repeat: no-repeat;
@@ -96,18 +103,21 @@ th {
     }
   }
 
-  span { // header string
-    cursor: default;
-    padding-right: 14px;
+  .size { // width style applied by elm
+    .content { // actual content with padding in here (room for sort arrow)
+      cursor: default;
+      padding-right: 10px;
+    }
   }
 
-  div { // resize bar, rendered as a white line to act like right border of the cell
+  .dragbar { 
     position: absolute;
-    border-right: 1px solid $white;
-    cursor: col-resize;
+    z-index: 5;
     top: 0;
     right: 0;
-    width: 3px;
+    margin-right: -3px;
+    cursor: col-resize;
+    width: 6px;
     height: 100%;
   }
 }
@@ -117,7 +127,6 @@ td {
 
   div { // cell content so fixed sizes work
     overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
   }
 }

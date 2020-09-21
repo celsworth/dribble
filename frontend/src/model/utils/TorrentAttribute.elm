@@ -5,6 +5,11 @@ import Utils.Filesize
 import View.Utils.DateFormatter
 
 
+attributeToTableHeaderId : TorrentAttribute -> String
+attributeToTableHeaderId attribute =
+    "th-ta-" ++ attributeToKey attribute
+
+
 attributeToKey : TorrentAttribute -> String
 attributeToKey attribute =
     case attribute of
