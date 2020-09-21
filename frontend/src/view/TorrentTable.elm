@@ -91,7 +91,7 @@ headerCellDragBarAttributes _ attribute =
     in
     [ class "dragbar"
     , Html.Events.Extra.Mouse.onDown
-        (\e -> MouseDownMsg attribute (reconstructClientPos e) e.keys)
+        (\e -> TorrentAttributeResizeStarted attribute (reconstructClientPos e) e.button e.keys)
     ]
 
 

@@ -43,9 +43,9 @@ viewAttributesIfDragging model =
             [ -- if we're dragging, show a resize cursor all the time
               class "resizing-x"
             , Html.Events.Extra.Mouse.onUp
-                (\e -> MouseUpMsg resizeOp (reconstructClientPos e))
+                (\e -> TorrentAttributeResizeEnded resizeOp (reconstructClientPos e))
             , Html.Events.Extra.Mouse.onMove
-                (\e -> MouseMoveMsg resizeOp (reconstructClientPos e))
+                (\e -> TorrentAttributeResized resizeOp (reconstructClientPos e))
             ]
 
         Nothing ->

@@ -4,31 +4,31 @@ import Browser.Dom
 import Coders.Base
 import Coders.Config
 import Dict exposing (Dict)
-import Html.Events.Extra.Mouse as Mouse
 import Json.Decode as JD
-import List
-import List.Extra
 import Model exposing (..)
 import Model.Shared
 import Model.TorrentSorter
 import Model.Utils.Config
-import Model.Utils.TorrentAttribute
 import Ports
-import Subscriptions
-import Task
+import Update.MouseHandlers
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        MouseDownMsg attribute pos keys ->
-            processMouseDown model attribute pos keys
+        TorrentAttributeResizeStarted attribute pos button keys ->
+            Update.MouseHandlers.processMouseDown
+                model
+                attribute
+                pos
+                button
+                keys
 
-        MouseMoveMsg resizeOp pos ->
-            ( processMouseMove model resizeOp pos, Cmd.none )
+        TorrentAttributeResized resizeOp pos ->
+            Update.MouseHandlers.processMouseMove model resizeOp pos
 
-        MouseUpMsg resizeOp pos ->
-            ( processMouseUp model resizeOp pos, Cmd.none )
+        TorrentAttributeResizeEnded resizeOp pos ->
+            Update.MouseHandlers.processMouseUp model resizeOp pos
 
         RefreshClicked ->
             ( model, getFullTorrents )
@@ -82,87 +82,6 @@ setColumnWidth model attribute result =
                     Debug.log "ERR: " r
             in
             model
-
-
-
--- TODO: move mouse stuff to Update.Shared.MouseProcessing or something?
-
-
-processMouseDown : Model -> TorrentAttribute -> MousePosition -> Mouse.Keys -> ( Model, Cmd Msg )
-processMouseDown model attribute pos keys =
-    let
-        id =
-            Model.Utils.TorrentAttribute.attributeToTableHeaderId attribute
-
-        resizeOp =
-            { attribute = attribute, startPosition = pos, currentPosition = pos }
-
-        {- move to a context menu -}
-        cmd =
-            Task.attempt (GotColumnWidth attribute) <| Browser.Dom.getElement id
-    in
-    if keys.alt then
-        {- move to a context menu -}
-        ( Model.Shared.setColumnWidthAuto model attribute, cmd )
-
-    else
-        ( { model | torrentAttributeResizeOp = Just resizeOp }
-        , Cmd.none
-        )
-
-
-processMouseMove : Model -> TorrentAttributeResizeOp -> MousePosition -> Model
-processMouseMove model resizeOp pos =
-    {- when dragging, if releasing the mouse button now would result in
-       a column width below minimumColumnPx, ignore the new mousePosition
-    -}
-    let
-        newResizeOp =
-            { resizeOp | currentPosition = pos }
-
-        newWidth =
-            Model.Shared.calculateNewColumnWidth model newResizeOp
-
-        -- stop the dragbar moving any further if the column would be too narrow
-        valid =
-            newWidth.px > Model.Shared.minimumColumnPx
-    in
-    if valid then
-        { model | torrentAttributeResizeOp = Just newResizeOp }
-
-    else
-        model
-
-
-processMouseUp : Model -> TorrentAttributeResizeOp -> MousePosition -> Model
-processMouseUp model resizeOp pos =
-    {- on mouseup, we get a final MousePosition reading. If this is valid,
-       using similar logic to processMouseMove, we save it and use it.
-
-       If it's not valid, use the existing resizeOp without changing it.
-    -}
-    let
-        newResizeOp =
-            { resizeOp | currentPosition = pos }
-
-        newWidth =
-            Model.Shared.calculateNewColumnWidth model newResizeOp
-
-        -- don't use newResizeOp if the column would be too narrow
-        valid =
-            newWidth.px > Model.Shared.minimumColumnPx
-
-        validResizeOp =
-            if valid then
-                newResizeOp
-
-            else
-                resizeOp
-
-        newModel =
-            Model.Shared.setColumnWidth model validResizeOp.attribute newWidth
-    in
-    { newModel | torrentAttributeResizeOp = Nothing }
 
 
 saveConfig : Config -> Cmd msg
