@@ -1,0 +1,12 @@
+on: [push, pull_request]
+name: Elm Analyse
+jobs:
+  analyse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: harehare/elm-analyse-action@v1
+        with:
+          elm_analyse_version: 0.16.5
+          ignore_error: true
+          working_directory: frontend
