@@ -36,10 +36,11 @@ $white: #fff;
 #dragbar {
   display: none;
   position: absolute;
-  z-index: 500;
+  top: 0;
+  bottom: 0;
+  z-index: 5;
   border-left: 1px solid $dragbar-color;
   width: 1px;
-  height: 100%;
 
   &.visible {
     display: block;
@@ -68,6 +69,10 @@ body {
 
 .resizing-x {
   cursor: col-resize;
+}
+
+section {
+  position: relative;
 }
 
 table {
@@ -126,7 +131,7 @@ th {
     }
   }
 
-  .dragbar {
+  .resize-handle {
     position: absolute;
     top: 0;
     right: 0;

@@ -12,16 +12,20 @@ import Model.Shared
 import Model.Utils.TorrentAttribute
 import Round
 import Utils.Filesize
+import View.DragBar
 
 
 view : Model -> Html Msg
 view model =
-    table []
-        (List.concat
-            [ [ header model ]
-            , [ body model ]
-            ]
-        )
+    section []
+        [ View.DragBar.view model
+        , table []
+            (List.concat
+                [ [ header model ]
+                , [ body model ]
+                ]
+            )
+        ]
 
 
 header : Model -> Html Msg
@@ -47,7 +51,7 @@ headerCell model attribute =
     th (headerCellAttributes model attribute)
         [ div (headerCellContentDivAttributes model attribute)
             [ div [ class "content" ] [ text <| attrString ] ]
-        , div (headerCellDragBarAttributes model attribute)
+        , div (headerCellResizeHandleAttributes model attribute)
             []
         ]
 
@@ -77,8 +81,8 @@ headerCellContentDivAttributes model attribute =
         ]
 
 
-headerCellDragBarAttributes : Model -> TorrentAttribute -> List (Attribute Msg)
-headerCellDragBarAttributes _ attribute =
+headerCellResizeHandleAttributes : Model -> TorrentAttribute -> List (Attribute Msg)
+headerCellResizeHandleAttributes _ attribute =
     let
         {- this mess converts (x, y) to { x: x, y: y } -}
         reconstructClientPos =
@@ -89,7 +93,7 @@ headerCellDragBarAttributes _ attribute =
                 in
                 { x = x, y = y }
     in
-    [ class "dragbar"
+    [ class "resize-handle"
     , Html.Events.Extra.Mouse.onDown
         (\e -> TorrentAttributeResizeStarted attribute (reconstructClientPos e) e.button e.keys)
     ]

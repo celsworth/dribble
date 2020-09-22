@@ -6,7 +6,6 @@ import Html.Events exposing (onClick)
 import Html.Events.Extra.Mouse
 import Model exposing (..)
 import Model.Utils.TorrentAttribute
-import View.DragBar
 import View.Preferences
 import View.TorrentTable
 
@@ -15,7 +14,6 @@ view : Model -> Html Msg
 view model =
     div (viewAttributes model)
         [ View.Preferences.view model
-        , View.DragBar.view model
         , header model
         , body model
         ]
