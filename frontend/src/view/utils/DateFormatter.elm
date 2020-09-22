@@ -37,8 +37,4 @@ posixTime int =
 
 format : Int -> String
 format input =
-    let
-        time =
-            posixTime input
-    in
-    formatter timezone time
+    formatter timezone (posixTime input)

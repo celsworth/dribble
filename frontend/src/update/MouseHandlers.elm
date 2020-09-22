@@ -61,7 +61,11 @@ processTorrentAttributeResized model resizeOp pos =
         valid =
             newWidth.px > Model.Shared.minimumColumnPx
     in
-    if valid then
+    {- sometimes we get another TorrentAttributeResized just after
+       TorrentAttributeResizeEnded.
+       Ignore them (model.torrentAttributeResizeOp will be Nothing)
+    -}
+    if model.torrentAttributeResizeOp /= Nothing && valid then
         ( { model | torrentAttributeResizeOp = Just newResizeOp }, Cmd.none )
 
     else

@@ -213,11 +213,23 @@ cellContent filesizeSettings torrent attribute =
 
 donePercentCell : Torrent -> Html Msg
 donePercentCell torrent =
-    progress
-        [ Html.Attributes.max "100"
-        , Html.Attributes.value <| String.fromFloat torrent.donePercent
+    let
+        dp =
+            if torrent.donePercent == 100 then
+                0
+
+            else
+                1
+    in
+    div [ class "progress-container" ]
+        [ progress
+            [ Html.Attributes.max "100"
+            , Html.Attributes.value <| Round.round 0 torrent.donePercent
+            ]
+            []
+        , span []
+            [ text (Round.round dp torrent.donePercent ++ "%") ]
         ]
-        [ text (String.fromFloat torrent.donePercent ++ "%") ]
 
 
 

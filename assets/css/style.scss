@@ -1,7 +1,14 @@
-$table-border-colour: #ddd;
-$table-header-background: #eee;
+$table-border-colour: #d5d5d5;
+$table-header-background: linear-gradient(#eee 0%, #ccc 100%);
 
-$progress-fill-color: #0b0;
+$dragbar-color: #b38b0d;
+
+// 3d-effect borders, drag handles
+$th-border-right: #bbb;
+$th-border-left: #fff;
+
+$progress-border-color: #bbb;
+$progress-fill-color: #8d8;
 
 $white: #fff;
 
@@ -30,8 +37,7 @@ $white: #fff;
   display: none;
   position: absolute;
   z-index: 500;
-  border-left: 1px solid #b38b0d;
-  cursor: col-resize;
+  border-left: 1px solid $dragbar-color;
   width: 1px;
   height: 100%;
 
@@ -44,7 +50,9 @@ html {
   box-sizing: border-box;
 }
 
-*, *:before, *:after {
+*,
+*::before,
+*::after {
   box-sizing: inherit;
 }
 
@@ -73,33 +81,41 @@ table {
 
 td,
 th {
-  padding: 4px;
+  // changing this 4px l/r padding requires a change in elm.
+  // see TorrentTable widthAttribute methods
+  padding: 3px 4px;
+}
+
+thead {
+  position: sticky; // don't scroll off top
+  top: 0;
 }
 
 th {
-  //position: sticky; // don't scroll off top
-  //top: 0;
+  position: relative; // so the dragbar can anchor to the right
 
-  position: relative; // so the div can anchor to the right
+  border-right: 1px solid $th-border-right;
+  border-bottom: 1px solid $table-border-colour;
+  border-left: 1px solid $th-border-left;
 
-  border-bottom: 1px solid $white;
-  border-left: 1px solid $white;
-  border-right: 1px solid #bbb;
-
-  background-color: $table-header-background;
+  background: $table-header-background;
   text-align: left;
 
-  &.sorted {
-    background-repeat: no-repeat;
-    background-position: calc(100% - 1px) center;
-    background-size: 10px;
+  &:first-child {
+    border-left: 0;
+  }
 
+  &:last-child {
+    border-right: 0;
+  }
+
+  &.sorted {
     &.descending {
-      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='50' style='fill:none;stroke:currentColor;stroke-width:5'><polygon points='0,0 100,0 50,50'/></svg>");
+      background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='50' style='fill:none;stroke:currentColor;stroke-width:5'><polygon points='0,0 100,0 50,50'/></svg>") calc(100% - 2px) center / 10px no-repeat, $table-header-background;
     }
 
     &.ascending {
-      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='50' style='fill:none;stroke:currentColor;stroke-width:5'><polygon points='50,0 0,50 100,50'/></svg>");
+      background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='50' style='fill:none;stroke:currentColor;stroke-width:5'><polygon points='50,0 0,50 100,50'/></svg>") calc(100% - 2px) center / 10px no-repeat, $table-header-background;
     }
   }
 
@@ -110,11 +126,11 @@ th {
     }
   }
 
-  .dragbar { 
+  .dragbar {
     position: absolute;
-    z-index: 5;
     top: 0;
     right: 0;
+    z-index: 5;
     margin-right: -3px;
     cursor: col-resize;
     width: 6px;
@@ -123,7 +139,7 @@ th {
 }
 
 td {
-  border-top: 1px solid $table-border-colour;
+  border-bottom: 1px solid $table-border-colour;
 
   div { // cell content so fixed sizes work
     overflow: hidden;
@@ -131,25 +147,42 @@ td {
   }
 }
 
-progress {
-  border: 1px inset #888;
-  background-color: inherit;
-  width: 100%;
-  height: 12px;
-  color: $progress-fill-color;
+.progress-container {
+  position: relative;
 
-  -webkit-appearance: none;
-  appearance: none;
-
-  &::-webkit-progress-bar {
+  progress {
+    border: 1px solid $progress-border-color;
     background-color: inherit;
+    width: 100%;
+    height: 14px;
+    vertical-align: middle;
+    color: $progress-fill-color;
+
+    -webkit-appearance: none;
+    appearance: none;
+
+    &::-webkit-progress-bar {
+      background-color: inherit;
+    }
+
+    &::-moz-progress-bar {
+      background-color: $progress-fill-color;
+    }
+
+    &::-webkit-progress-value {
+      background-color: $progress-fill-color;
+    }
   }
 
-  &::-moz-progress-bar {
-    background-color: $progress-fill-color;
-  }
-
-  &::-webkit-progress-value {
-    background-color: $progress-fill-color;
+  span {
+    display: flex;
+    position: absolute;
+    top: 0;
+    left: 0;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: smaller;
   }
 }
