@@ -93,8 +93,3 @@ message msg =
                     Just "ERROR: "
     in
     p [] [ text <| Maybe.withDefault "" severity ++ msg.message ]
-
-
-sidebar : Model -> Html Msg
-sidebar model =
-    div [ class "sidebar" ] [ text "test" ]
