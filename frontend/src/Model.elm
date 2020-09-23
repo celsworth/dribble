@@ -104,7 +104,8 @@ type alias Config =
 
 
 type TorrentAttribute
-    = Name
+    = TorrentStatus
+    | Name
     | Size
     | CreationTime
     | StartedTime
@@ -118,8 +119,24 @@ type TorrentAttribute
     | DonePercent
 
 
+type TorrentStatus
+    = Seeding
+    | Downloading
+    | Paused
+    | Stopped
+    | Hashing
+
+
+type HashingStatus
+    = NotHashing
+    | InitialHash
+    | FinishHash
+    | Rehash
+
+
 type alias Torrent =
-    { hash : String
+    { status : TorrentStatus
+    , hash : String
     , name : String
     , size : Int
     , creationTime : Int
@@ -129,6 +146,9 @@ type alias Torrent =
     , downloadRate : Int
     , uploadedBytes : Int
     , uploadRate : Int
+    , isOpen : Bool
+    , isActive : Bool
+    , hashing : HashingStatus
     , peersConnected : Int
     , label : String
 

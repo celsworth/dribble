@@ -12,6 +12,10 @@ sort sortBy torrents =
 comparator : Sort -> Torrent -> Torrent -> Order
 comparator sortBy a b =
     case sortBy of
+        SortBy TorrentStatus direction ->
+            -- TODO
+            maybeReverse direction <| torrentCmp a b .name
+
         SortBy Name direction ->
             maybeReverse direction <| torrentCmp a b .name
 

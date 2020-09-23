@@ -14,7 +14,7 @@ listDecoder =
 
 decoder : D.Decoder Torrent
 decoder =
-    -- this order MUST match Subscriptions.elm#getTorrentsRequest
+    -- this order MUST match coders/Base.elm#getTorrentFields
     --
     -- this gets fed to internalDecoder (below) which populates a Torrent
     D.succeed internalDecoder
@@ -38,23 +38,52 @@ decoder =
         |> custom (D.index 8 D.int)
         -- uploadRate
         |> custom (D.index 9 D.int)
+        -- open
+        |> custom (D.index 10 intToBoolDecoder)
+        -- active
+        |> custom (D.index 11 intToBoolDecoder)
+        -- hashing
+        |> custom (D.index 12 intToHashingStatusDecoder)
         -- peersConnected
-        |> custom (D.index 10 D.int)
+        |> custom (D.index 13 D.int)
         -- label
-        |> custom (D.index 11 D.string)
+        |> custom (D.index 14 D.string)
         |> Pipeline.resolve
 
 
-internalDecoder : String -> String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> String -> D.Decoder Torrent
-internalDecoder hash name size creationTime startedTime finishedTime downloadedBytes downloadRate uploadedBytes uploadRate peersConnected label =
+internalDecoder : String -> String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Bool -> Bool -> HashingStatus -> Int -> String -> D.Decoder Torrent
+internalDecoder hash name size creationTime startedTime finishedTime downloadedBytes downloadRate uploadedBytes uploadRate isOpen isActive hashing peersConnected label =
     let
         -- after decoder is done, we can add further internal fields here
         donePercent =
             -- XXX this may change if a torrent is hashing?
             (toFloat downloadedBytes / toFloat size) * 100.0
+
+        done =
+            downloadedBytes == size
+
+        status =
+            if hashing /= NotHashing then
+                Hashing
+
+            else
+                {- TODO: Downloading -}
+                case ( isOpen, isActive, done ) of
+                    ( True, True, True ) ->
+                        Seeding
+
+                    ( True, True, False ) ->
+                        Downloading
+
+                    ( True, False, _ ) ->
+                        Paused
+
+                    ( False, _, _ ) ->
+                        Stopped
     in
     D.succeed <|
         Torrent
+            status
             hash
             name
             size
@@ -65,6 +94,49 @@ internalDecoder hash name size creationTime startedTime finishedTime downloadedB
             downloadRate
             uploadedBytes
             uploadRate
+            isOpen
+            isActive
+            hashing
             peersConnected
             label
             donePercent
+
+
+intToBoolDecoder : D.Decoder Bool
+intToBoolDecoder =
+    D.int
+        |> D.andThen
+            (\input ->
+                case input of
+                    0 ->
+                        D.succeed False
+
+                    1 ->
+                        D.succeed True
+
+                    _ ->
+                        D.fail <| "cannot convert to bool: " ++ String.fromInt input
+            )
+
+
+intToHashingStatusDecoder : D.Decoder HashingStatus
+intToHashingStatusDecoder =
+    D.int
+        |> D.andThen
+            (\input ->
+                case input of
+                    0 ->
+                        D.succeed NotHashing
+
+                    1 ->
+                        D.succeed InitialHash
+
+                    2 ->
+                        D.succeed FinishHash
+
+                    3 ->
+                        D.succeed Rehash
+
+                    _ ->
+                        D.fail <| "cannot convert to HashingStatus: " ++ String.fromInt input
+            )

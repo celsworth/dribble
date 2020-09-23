@@ -7,7 +7,7 @@ import Model.Utils.TorrentAttribute
 
 minimumColumnPx : Float
 minimumColumnPx =
-    50
+    30
 
 
 getColumnWidth : ColumnWidths -> TorrentAttribute -> ColumnWidth
@@ -76,7 +76,7 @@ calculateNewColumnWidth model resizeOp =
         newPx =
             oldWidth.px + resizeOp.currentPosition.x - resizeOp.startPosition.x
     in
-    -- prevent columns going below 50px
+    -- prevent columns going below 20px
     case List.maximum [ minimumColumnPx, newPx ] of
         Just max ->
             { oldWidth | px = max }

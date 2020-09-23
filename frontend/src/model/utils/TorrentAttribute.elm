@@ -14,6 +14,9 @@ attributeToTableHeaderId attribute =
 attributeToKey : TorrentAttribute -> String
 attributeToKey attribute =
     case attribute of
+        TorrentStatus ->
+            "torrentStatus"
+
         Name ->
             "name"
 
@@ -55,6 +58,9 @@ keyToAttribute : String -> TorrentAttribute
 keyToAttribute str =
     --- XXX: should be a Maybe so NOT DONE can return Nothing?
     case str of
+        "torrentStatus" ->
+            TorrentStatus
+
         "name" ->
             Name
 
@@ -104,6 +110,9 @@ keyToAttribute str =
 attributeToString : TorrentAttribute -> String
 attributeToString attribute =
     case attribute of
+        TorrentStatus ->
+            ""
+
         Name ->
             "Name"
 
@@ -171,6 +180,10 @@ attributeToTableHeaderString attribute =
 attributeAccessor : Utils.Filesize.Settings -> Time.Zone -> Torrent -> TorrentAttribute -> String
 attributeAccessor filesizeSettings timezone torrent attribute =
     case attribute of
+        TorrentStatus ->
+            -- TODO
+            "NOT SUPPORTED"
+
         Name ->
             torrent.name
 

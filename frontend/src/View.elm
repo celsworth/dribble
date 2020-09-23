@@ -14,45 +14,45 @@ view : Model -> Html Msg
 view model =
     div (viewAttributes model)
         [ View.Preferences.view model
-        , header model
-        , body model
+        , navigation model
+        , View.TorrentTable.view model
+        , footer [ class "footer" ] []
         ]
 
 
 viewAttributes : Model -> List (Attribute Msg)
 viewAttributes model =
-    viewAttributesIfDragging model
-
-
-viewAttributesIfDragging : Model -> List (Attribute Msg)
-viewAttributesIfDragging model =
     let
-        {- this mess converts (x, y) to { x: x, y: y } -}
-        reconstructClientPos =
-            \event ->
-                let
-                    ( x, y ) =
-                        event.clientPos
-                in
-                { x = x, y = y }
+        resizingAttributes =
+            Maybe.map viewAttributesForResizeOp model.torrentAttributeResizeOp
+                |> Maybe.withDefault []
     in
-    case model.torrentAttributeResizeOp of
-        Just resizeOp ->
-            [ -- if we're dragging, show a resize cursor all the time
-              class "resizing-x"
-            , Html.Events.Extra.Mouse.onUp
-                (\e -> TorrentAttributeResizeEnded resizeOp (reconstructClientPos e))
-            , Html.Events.Extra.Mouse.onMove
-                (\e -> TorrentAttributeResized resizeOp (reconstructClientPos e))
-            ]
-
-        Nothing ->
-            []
+    List.append [] resizingAttributes
 
 
-header : Model -> Html Msg
-header model =
-    div []
+viewAttributesForResizeOp : TorrentAttributeResizeOp -> List (Attribute Msg)
+viewAttributesForResizeOp resizeOp =
+    [ class "resizing-x"
+    , Html.Events.Extra.Mouse.onUp
+        (\e -> TorrentAttributeResizeEnded resizeOp (reconstructClientPos e))
+    , Html.Events.Extra.Mouse.onMove
+        (\e -> TorrentAttributeResized resizeOp (reconstructClientPos e))
+    ]
+
+
+reconstructClientPos : { e | clientPos : ( Float, Float ) } -> MousePosition
+reconstructClientPos event =
+    {- this mess converts (x, y) to { x: x, y: y } -}
+    let
+        ( x, y ) =
+            event.clientPos
+    in
+    { x = x, y = y }
+
+
+navigation : Model -> Html Msg
+navigation model =
+    section [ class "navigation" ]
         [ button [ onClick RefreshClicked ] [ text "Refresh" ]
         , button [ onClick SaveConfigClicked ] [ text "Save Config" ]
         , button [ onClick ShowPreferencesClicked ] [ text "Preferences" ]
@@ -95,6 +95,6 @@ message msg =
     p [] [ text <| Maybe.withDefault "" severity ++ msg.message ]
 
 
-body : Model -> Html Msg
-body model =
-    View.TorrentTable.view model
+sidebar : Model -> Html Msg
+sidebar model =
+    div [ class "sidebar" ] [ text "test" ]

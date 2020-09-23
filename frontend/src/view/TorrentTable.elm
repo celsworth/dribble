@@ -7,6 +7,7 @@ import Html.Events exposing (onClick, onMouseDown)
 import Html.Events.Extra.Mouse
 import Html.Keyed as Keyed
 import Html.Lazy
+import List
 import Model exposing (..)
 import Model.Shared
 import Model.Utils.TorrentAttribute
@@ -18,15 +19,18 @@ import View.DragBar
 
 view : Model -> Html Msg
 view model =
-    section []
-        [ View.DragBar.view model
-        , table []
-            (List.concat
-                [ [ header model ]
-                , [ body model ]
+    if List.isEmpty model.sortedTorrents then
+        section [ class "torrents loading" ]
+            [ i [ class "fas fa-spinner fa-pulse" ] [] ]
+
+    else
+        section [ class "torrents" ]
+            [ Html.table []
+                [ View.DragBar.view model
+                , header model
+                , body model
                 ]
-            )
-        ]
+            ]
 
 
 header : Model -> Html Msg
@@ -206,16 +210,47 @@ cellTextAlign attribute =
 
 cellContent : Utils.Filesize.Settings -> Time.Zone -> Torrent -> TorrentAttribute -> Html Msg
 cellContent filesizeSettings timezone torrent attribute =
-    if attribute == DonePercent then
-        donePercentCell torrent
+    case attribute of
+        TorrentStatus ->
+            torrentStatusCell torrent
 
-    else
-        text <|
-            Model.Utils.TorrentAttribute.attributeAccessor
-                filesizeSettings
-                timezone
-                torrent
-                attribute
+        DonePercent ->
+            donePercentCell torrent
+
+        _ ->
+            text <|
+                Model.Utils.TorrentAttribute.attributeAccessor
+                    filesizeSettings
+                    timezone
+                    torrent
+                    attribute
+
+
+torrentStatusCell : Torrent -> Html Msg
+torrentStatusCell torrent =
+    case torrent.status of
+        Seeding ->
+            torrentStatusIcon "seeding" "fa-arrow-up"
+
+        Downloading ->
+            torrentStatusIcon "downloading" "fa-arrow-down"
+
+        Paused ->
+            torrentStatusIcon "paused" "fa-pause"
+
+        Stopped ->
+            torrentStatusIcon "stopped" ""
+
+        Hashing ->
+            torrentStatusIcon "hashing" "fa-sync"
+
+
+torrentStatusIcon : String -> String -> Html Msg
+torrentStatusIcon kls icon =
+    span [ class ("torrent-status " ++ kls ++ " fa-stack") ]
+        [ i [ class "fas fa-square fa-stack-2x" ] []
+        , i [ class ("fas " ++ icon ++ " fa-inverse fa-stack-1x") ] []
+        ]
 
 
 donePercentCell : Torrent -> Html Msg
@@ -244,11 +279,12 @@ donePercentCell torrent =
    WIDTH HELPERS
 
    this complication is because the width stored in columnWidths
-   includes padding and borders.
+   includes padding and borders. To set the proper size for the
+   internal div, we need to subtract some:
 
-   For th columns, that amounts to 10px (4px padding, 1px border)
+   For th columns, that amounts to 10px (2*4px padding, 2*1px border)
 
-   For td, there are no borders, so its just 4px padding to remove
+   For td, there are no borders, so its just 2*4px padding to remove
 -}
 
 

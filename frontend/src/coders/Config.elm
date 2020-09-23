@@ -24,7 +24,8 @@ default =
 
 defaultTorrentAttributes : List TorrentAttribute
 defaultTorrentAttributes =
-    [ Name
+    [ TorrentStatus
+    , Name
     , Size
     , DonePercent
     , CreationTime

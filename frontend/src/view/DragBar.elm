@@ -7,12 +7,13 @@ import Model exposing (..)
 
 view : Model -> Html Msg
 view model =
-    case model.torrentAttributeResizeOp of
-        Just resizeOp ->
-            div (attributes resizeOp) []
+    Maybe.map dragbar model.torrentAttributeResizeOp
+        |> Maybe.withDefault (text "")
 
-        _ ->
-            text ""
+
+dragbar : TorrentAttributeResizeOp -> Html Msg
+dragbar resizeOp =
+    div (attributes resizeOp) []
 
 
 attributes : TorrentAttributeResizeOp -> List (Attribute Msg)

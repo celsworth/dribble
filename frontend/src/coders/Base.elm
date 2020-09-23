@@ -82,6 +82,9 @@ getTorrentFields =
         , "d.down.rate="
         , "d.up.total="
         , "d.up.rate="
+        , "d.is_open="
+        , "d.is_active="
+        , "d.hashing="
         , "d.peers_connected="
 
         -- seeders (connected)?

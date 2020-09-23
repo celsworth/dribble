@@ -22,8 +22,11 @@ $white: #fff;
   display: none;
   position: absolute;
   z-index: 1000;
-  border: 2px outset #555;
-  background: $white;
+  margin: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 0 15px 5px #aaa;
+  background: #f2f2f2;
   padding: 5px;
   width: 200px;
   height: 200px;
@@ -31,6 +34,14 @@ $white: #fff;
   &.visible {
     display: block;
   }
+}
+
+.context-menu {
+  z-index: 1000;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 0 15px 5px #aaa;
+  background: #f3f3f3;
 }
 
 #dragbar {
@@ -59,8 +70,35 @@ html {
 
 body {
   margin: 0;
+  overflow: hidden;
   font-family: Tahoma;
   font-size: 11px;
+}
+
+.torrent-status {
+  font-size: .5rem;
+
+  &.seeding {
+    color: #181;
+  }
+
+  // downloading
+  &.downloading {
+    color: #118;
+  }
+
+  &.paused {
+    color: #d80;
+  }
+
+  &.stopped {
+    color: #ccc;
+  }
+
+  // hashing
+  &.hashing {
+    color: #777;
+  }
 }
 
 .text-right {
@@ -71,29 +109,84 @@ body {
   cursor: col-resize;
 }
 
-section {
+.navigation {
+  border-bottom: 1px solid $table-border-colour;
+  height: 50px;
+}
+
+.torrents { // section
+  height: calc(100vh - 75px); // combined navigation and footer height
+  overflow: auto;
+
+  &.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10rem;
+  }
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  border-top: 1px solid $table-border-colour;
+  background: #eee;
+  width: 100%;
+  height: 25px;
+}
+
+.progress-container {
   position: relative;
+
+  progress {
+    border: 1px solid $progress-border-color;
+    background-color: inherit;
+    width: 100%;
+    height: 16px;
+    vertical-align: middle;
+    color: $progress-fill-color;
+
+    -webkit-appearance: none;
+    appearance: none;
+
+    &::-webkit-progress-bar {
+      background-color: inherit;
+    }
+
+    &::-moz-progress-bar {
+      background-color: $progress-fill-color;
+    }
+
+    &::-webkit-progress-value {
+      background-color: $progress-fill-color;
+    }
+  }
+
+  span {
+    display: flex;
+    position: absolute;
+    top: 0;
+    left: 0;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: smaller;
+  }
 }
 
 table {
   @include unselectable;
 
-  border: 1px solid $table-border-colour;
-  overflow: scroll;
-  table-layout: fixed;
+  position: relative;
+  //table-layout: fixed;
   border-spacing: 0;
-}
-
-td,
-th {
-  // changing this 4px l/r padding requires a change in elm.
-  // see TorrentTable widthAttribute methods
-  padding: 3px 4px;
 }
 
 thead {
   position: sticky; // don't scroll off top
   top: 0;
+  z-index: 1; // stop progress-bars overlaying headers
 }
 
 th {
@@ -104,6 +197,11 @@ th {
   border-left: 1px solid $th-border-left;
 
   background: $table-header-background;
+
+  // changing this 4px l/r padding requires a change in elm.
+  // see TorrentTable widthAttribute methods
+  padding: 4px;
+
   text-align: left;
 
   &:first-child {
@@ -146,48 +244,12 @@ th {
 td {
   border-bottom: 1px solid $table-border-colour;
 
-  div { // cell content so fixed sizes work
+  // changing this 4px l/r padding requires a change in elm.
+  // see TorrentTable widthAttribute methods
+  padding: 3px 4px;
+
+  div { // cell content to apply width style to
     overflow: hidden;
     white-space: nowrap;
-  }
-}
-
-.progress-container {
-  position: relative;
-
-  progress {
-    border: 1px solid $progress-border-color;
-    background-color: inherit;
-    width: 100%;
-    height: 14px;
-    vertical-align: middle;
-    color: $progress-fill-color;
-
-    -webkit-appearance: none;
-    appearance: none;
-
-    &::-webkit-progress-bar {
-      background-color: inherit;
-    }
-
-    &::-moz-progress-bar {
-      background-color: $progress-fill-color;
-    }
-
-    &::-webkit-progress-value {
-      background-color: $progress-fill-color;
-    }
-  }
-
-  span {
-    display: flex;
-    position: absolute;
-    top: 0;
-    left: 0;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    font-size: smaller;
   }
 }
