@@ -1,6 +1,7 @@
 module View.Utils.DateFormatter exposing (..)
 
 import DateFormat
+import Model exposing (..)
 import Time exposing (Posix, Zone, utc)
 
 
@@ -35,6 +36,6 @@ posixTime int =
     Time.millisToPosix (int * 1000)
 
 
-format : Int -> String
-format input =
-    formatter timezone (posixTime input)
+format : Time.Zone -> Int -> String
+format zone input =
+    formatter zone (posixTime input)

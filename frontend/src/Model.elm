@@ -88,6 +88,7 @@ type alias Model =
     , messages : List Message
     , preferencesVisible : Bool
     , torrentAttributeResizeOp : Maybe TorrentAttributeResizeOp
+    , timezone : Time.Zone
     }
 
 
@@ -98,6 +99,7 @@ type alias Config =
     , torrentAttributeOrder : List TorrentAttribute
     , columnWidths : ColumnWidths
     , filesizeSettings : Utils.Filesize.Settings
+    , timezone : String
     }
 
 

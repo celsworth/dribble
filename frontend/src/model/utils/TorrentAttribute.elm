@@ -1,6 +1,7 @@
 module Model.Utils.TorrentAttribute exposing (..)
 
 import Model exposing (..)
+import Time
 import Utils.Filesize
 import View.Utils.DateFormatter
 
@@ -167,8 +168,8 @@ attributeToTableHeaderString attribute =
 -- This is what we need to render the data in HTML tables.
 
 
-attributeAccessor : Utils.Filesize.Settings -> Torrent -> TorrentAttribute -> String
-attributeAccessor filesizeSettings torrent attribute =
+attributeAccessor : Utils.Filesize.Settings -> Time.Zone -> Torrent -> TorrentAttribute -> String
+attributeAccessor filesizeSettings timezone torrent attribute =
     case attribute of
         Name ->
             torrent.name
@@ -182,10 +183,10 @@ attributeAccessor filesizeSettings torrent attribute =
                     ""
 
                 r ->
-                    View.Utils.DateFormatter.format r
+                    View.Utils.DateFormatter.format timezone r
 
         StartedTime ->
-            View.Utils.DateFormatter.format torrent.startedTime
+            View.Utils.DateFormatter.format timezone torrent.startedTime
 
         FinishedTime ->
             case torrent.finishedTime of
@@ -193,7 +194,7 @@ attributeAccessor filesizeSettings torrent attribute =
                     ""
 
                 r ->
-                    View.Utils.DateFormatter.format r
+                    View.Utils.DateFormatter.format timezone r
 
         DownloadedBytes ->
             humanBytes filesizeSettings torrent.downloadedBytes

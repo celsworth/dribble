@@ -18,6 +18,7 @@ default =
     , torrentAttributeOrder = defaultTorrentAttributes
     , columnWidths = defaultColumnWidths
     , filesizeSettings = Utils.Filesize.defaultSettings
+    , timezone = "Europe/London"
     }
 
 
@@ -65,6 +66,7 @@ encode config =
         , ( "torrentAttributeOrder", encodeTorrentAttributeList config.torrentAttributeOrder )
         , ( "columnWidths", encodeColumnWidths config.columnWidths )
         , ( "filesizeSettings", Coders.FilesizeSettings.encode config.filesizeSettings )
+        , ( "timezone", E.string config.timezone )
         ]
 
 
@@ -170,6 +172,7 @@ decoder =
         |> optional "filesizeSettings"
             Coders.FilesizeSettings.decoder
             default.filesizeSettings
+        |> optional "timezone" D.string default.timezone
 
 
 torrentAttributeListDecoder : D.Decoder (List TorrentAttribute)

@@ -11,6 +11,7 @@ import Model exposing (..)
 import Model.Shared
 import Model.Utils.TorrentAttribute
 import Round
+import Time
 import Utils.Filesize
 import View.DragBar
 
@@ -131,30 +132,31 @@ keyedRow model hash =
         Just torrent ->
             Just
                 ( torrent.hash
-                , lazyRow model.config torrent
+                , lazyRow model.config model.timezone torrent
                 )
 
         Nothing ->
             Nothing
 
 
-lazyRow : Config -> Torrent -> Html Msg
-lazyRow config torrent =
+lazyRow : Config -> Time.Zone -> Torrent -> Html Msg
+lazyRow config timezone torrent =
     {- just pass in what the row actually needs so lazy can look at
        as little as possible. this will help when some config changes,
        but not the config related to rendering the row, eg sortBy is
        not relevant here and would make resorting slower
     -}
-    Html.Lazy.lazy5 row
+    Html.Lazy.lazy6 row
         config.visibleTorrentAttributes
         config.torrentAttributeOrder
         config.columnWidths
         config.filesizeSettings
+        timezone
         torrent
 
 
-row : List TorrentAttribute -> List TorrentAttribute -> ColumnWidths -> Utils.Filesize.Settings -> Torrent -> Html Msg
-row visibleTorrentAttributes torrentAttributeOrder columnWidths filesizeSettings torrent =
+row : List TorrentAttribute -> List TorrentAttribute -> ColumnWidths -> Utils.Filesize.Settings -> Time.Zone -> Torrent -> Html Msg
+row visibleTorrentAttributes torrentAttributeOrder columnWidths filesizeSettings timezone torrent =
     let
         {--
         x =
@@ -167,7 +169,7 @@ row visibleTorrentAttributes torrentAttributeOrder columnWidths filesizeSettings
     in
     tr
         []
-        (List.map (cell columnWidths filesizeSettings torrent) visibleOrder)
+        (List.map (cell columnWidths filesizeSettings timezone torrent) visibleOrder)
 
 
 isVisible : List TorrentAttribute -> TorrentAttribute -> Bool
@@ -175,11 +177,11 @@ isVisible visibleTorrentAttributes attribute =
     List.member attribute visibleTorrentAttributes
 
 
-cell : ColumnWidths -> Utils.Filesize.Settings -> Torrent -> TorrentAttribute -> Html Msg
-cell columnWidths filesizeSettings torrent attribute =
+cell : ColumnWidths -> Utils.Filesize.Settings -> Time.Zone -> Torrent -> TorrentAttribute -> Html Msg
+cell columnWidths filesizeSettings timezone torrent attribute =
     td []
         [ div (cellAttributes columnWidths attribute)
-            [ cellContent filesizeSettings torrent attribute
+            [ cellContent filesizeSettings timezone torrent attribute
             ]
         ]
 
@@ -202,8 +204,8 @@ cellTextAlign attribute =
             Nothing
 
 
-cellContent : Utils.Filesize.Settings -> Torrent -> TorrentAttribute -> Html Msg
-cellContent filesizeSettings torrent attribute =
+cellContent : Utils.Filesize.Settings -> Time.Zone -> Torrent -> TorrentAttribute -> Html Msg
+cellContent filesizeSettings timezone torrent attribute =
     if attribute == DonePercent then
         donePercentCell torrent
 
@@ -211,6 +213,7 @@ cellContent filesizeSettings torrent attribute =
         text <|
             Model.Utils.TorrentAttribute.attributeAccessor
                 filesizeSettings
+                timezone
                 torrent
                 attribute
 
