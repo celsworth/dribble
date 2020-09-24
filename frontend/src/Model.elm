@@ -113,6 +113,36 @@ type alias Model =
     }
 
 
+setConfig : Config -> Model -> Model
+setConfig new model =
+    { model | config = new }
+
+
+setWebsocketConnected : Bool -> Model -> Model
+setWebsocketConnected new model =
+    { model | websocketConnected = new }
+
+
+setSortedTorrents : List String -> Model -> Model
+setSortedTorrents new model =
+    { model | sortedTorrents = new }
+
+
+setMessages : List Message -> Model -> Model
+setMessages new model =
+    { model | messages = new }
+
+
+setSpeedChartHover : List DataSeries -> Model -> Model
+setSpeedChartHover new model =
+    { model | speedChartHover = new }
+
+
+setPreferencesVisible : Bool -> Model -> Model
+setPreferencesVisible new model =
+    { model | preferencesVisible = new }
+
+
 type alias Config =
     { refreshDelay : Int
     , sortBy : Sort -- Name Asc, Size Desc, etc
@@ -122,6 +152,16 @@ type alias Config =
     , filesizeSettings : Utils.Filesize.Settings
     , timezone : String
     }
+
+
+setSortBy : Sort -> Config -> Config
+setSortBy new config =
+    { config | sortBy = new }
+
+
+setVisibleTorrentAttributes : List TorrentAttribute -> Config -> Config
+setVisibleTorrentAttributes new config =
+    { config | visibleTorrentAttributes = new }
 
 
 type TorrentAttribute
@@ -180,3 +220,8 @@ type alias Torrent =
     -- custom local vars, not from JSON
     , donePercent : Float
     }
+
+
+addCmd : Cmd Msg -> Model -> ( Model, Cmd Msg )
+addCmd cmd model =
+    ( model, cmd )
