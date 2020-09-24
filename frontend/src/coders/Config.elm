@@ -35,6 +35,9 @@ defaultTorrentAttributes =
     , DownloadRate
     , UploadedBytes
     , UploadRate
+    , SeedersConnected
+    , SeedersTotal
+    , PeersConnected
     , Label
     ]
 

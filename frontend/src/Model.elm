@@ -18,8 +18,10 @@ type Msg
     | ShowPreferencesClicked
     | ToggleTorrentAttributeVisibility TorrentAttribute
     | SetSortBy TorrentAttribute
+    | SpeedChartHover (List DataSeries)
     | RequestFullTorrents
     | RequestUpdatedTorrents Time.Posix
+    | RequestUpdatedTraffic Time.Posix
     | WebsocketData (Result JD.Error DecodedData)
     | WebsocketStatusUpdated (Result JD.Error Bool)
 
@@ -30,7 +32,17 @@ type Msg
 
 type DecodedData
     = TorrentsReceived (List Torrent)
+    | TrafficReceived Traffic
     | Error String
+
+
+type alias Traffic =
+    { time : Int
+    , upDiff : Int
+    , downDiff : Int
+    , upTotal : Int
+    , downTotal : Int
+    }
 
 
 type MessageSeverity
@@ -80,11 +92,20 @@ type Sort
     = SortBy TorrentAttribute SortDirection
 
 
+type alias DataSeries =
+    { time : Int
+    , speed : Int
+    }
+
+
 type alias Model =
     { config : Config
     , websocketConnected : Bool
     , sortedTorrents : List String
     , torrentsByHash : Dict String Torrent
+    , traffic : List Traffic
+    , firstTraffic : Maybe Traffic
+    , speedChartHover : List DataSeries
     , messages : List Message
     , preferencesVisible : Bool
     , torrentAttributeResizeOp : Maybe TorrentAttributeResizeOp
@@ -114,6 +135,8 @@ type TorrentAttribute
     | DownloadRate
     | UploadedBytes
     | UploadRate
+    | SeedersConnected
+    | SeedersTotal
     | PeersConnected
     | Label
     | DonePercent
@@ -149,6 +172,8 @@ type alias Torrent =
     , isOpen : Bool
     , isActive : Bool
     , hashing : HashingStatus
+    , seedersConnected : Int
+    , seedersTotal : Int
     , peersConnected : Int
     , label : String
 

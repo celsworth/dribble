@@ -44,19 +44,22 @@ decoder =
         |> custom (D.index 11 intToBoolDecoder)
         -- hashing
         |> custom (D.index 12 intToHashingStatusDecoder)
-        -- peersConnected
+        -- seedersConnected
         |> custom (D.index 13 D.int)
-        -- label
+        -- seedersTotal
         |> custom (D.index 14 D.string)
+        -- peersConnected
+        |> custom (D.index 15 D.int)
+        -- label
+        |> custom (D.index 16 D.string)
         |> Pipeline.resolve
 
 
-internalDecoder : String -> String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Bool -> Bool -> HashingStatus -> Int -> String -> D.Decoder Torrent
-internalDecoder hash name size creationTime startedTime finishedTime downloadedBytes downloadRate uploadedBytes uploadRate isOpen isActive hashing peersConnected label =
+internalDecoder : String -> String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Bool -> Bool -> HashingStatus -> Int -> String -> Int -> String -> D.Decoder Torrent
+internalDecoder hash name size creationTime startedTime finishedTime downloadedBytes downloadRate uploadedBytes uploadRate isOpen isActive hashing seedersConnected seedersTotal peersConnected label =
     let
         -- after decoder is done, we can add further internal fields here
         donePercent =
-            -- XXX this may change if a torrent is hashing?
             (toFloat downloadedBytes / toFloat size) * 100.0
 
         done =
@@ -67,7 +70,6 @@ internalDecoder hash name size creationTime startedTime finishedTime downloadedB
                 Hashing
 
             else
-                {- TODO: Downloading -}
                 case ( isOpen, isActive, done ) of
                     ( True, True, True ) ->
                         Seeding
@@ -97,6 +99,8 @@ internalDecoder hash name size creationTime startedTime finishedTime downloadedB
             isOpen
             isActive
             hashing
+            seedersConnected
+            (Maybe.withDefault 0 <| String.toInt seedersTotal)
             peersConnected
             label
             donePercent

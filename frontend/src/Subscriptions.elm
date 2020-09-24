@@ -16,16 +16,26 @@ subscriptions model =
             , Just <|
                 Ports.websocketStatusUpdated
                     (WebsocketStatusUpdated << Coders.Base.decodeStatus)
-            , ticker model
+            , updateTorrentsTicker model
+            , updateTrafficTicker model
             ]
 
 
-ticker : Model -> Maybe (Sub Msg)
-ticker model =
+updateTorrentsTicker : Model -> Maybe (Sub Msg)
+updateTorrentsTicker model =
     if model.websocketConnected then
         Just <|
             Time.every (toFloat model.config.refreshDelay * 1000)
                 RequestUpdatedTorrents
+
+    else
+        Nothing
+
+
+updateTrafficTicker : Model -> Maybe (Sub Msg)
+updateTrafficTicker model =
+    if model.websocketConnected then
+        Just <| Time.every 10000 RequestUpdatedTraffic
 
     else
         Nothing

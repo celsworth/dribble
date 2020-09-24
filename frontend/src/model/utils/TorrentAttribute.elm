@@ -44,6 +44,12 @@ attributeToKey attribute =
         UploadRate ->
             "uploadRate"
 
+        SeedersConnected ->
+            "seedersConnected"
+
+        SeedersTotal ->
+            "seedersTotal"
+
         PeersConnected ->
             "peersConnected"
 
@@ -88,6 +94,12 @@ keyToAttribute str =
         "uploadRate" ->
             UploadRate
 
+        "seedersConnected" ->
+            SeedersConnected
+
+        "seedersTotal" ->
+            SeedersTotal
+
         "peersConnected" ->
             PeersConnected
 
@@ -111,7 +123,7 @@ attributeToString : TorrentAttribute -> String
 attributeToString attribute =
     case attribute of
         TorrentStatus ->
-            ""
+            "Status"
 
         Name ->
             "Name"
@@ -140,19 +152,31 @@ attributeToString attribute =
         UploadRate ->
             "Upload Rate"
 
+        SeedersConnected ->
+            "Seeders Connected"
+
+        SeedersTotal ->
+            "Seeders Total"
+
+        PeersConnected ->
+            "Peers Connected"
+
         Label ->
             "Label"
 
         DonePercent ->
             "Done"
 
-        _ ->
-            "UNHANDLED ATTRIBUTE"
-
 
 attributeToTableHeaderString : TorrentAttribute -> String
 attributeToTableHeaderString attribute =
     case attribute of
+        TorrentStatus ->
+            {- force #ta-ta-torrentStatus .size .content to
+               have height so it can be clicked on
+            -}
+            "\u{00A0}"
+
         CreationTime ->
             "Created"
 
@@ -179,6 +203,17 @@ attributeToTableHeaderString attribute =
 
 attributeAccessor : Utils.Filesize.Settings -> Time.Zone -> Torrent -> TorrentAttribute -> String
 attributeAccessor filesizeSettings timezone torrent attribute =
+    let
+        -- convert 0 speeds to Nothing
+        humanByteSpeed =
+            \bytes ->
+                case bytes of
+                    0 ->
+                        Nothing
+
+                    r ->
+                        Just <| Utils.Filesize.formatWith filesizeSettings r ++ "/s"
+    in
     case attribute of
         TorrentStatus ->
             -- TODO
@@ -188,7 +223,7 @@ attributeAccessor filesizeSettings timezone torrent attribute =
             torrent.name
 
         Size ->
-            humanBytes filesizeSettings torrent.size
+            Utils.Filesize.formatWith filesizeSettings torrent.size
 
         CreationTime ->
             case torrent.creationTime of
@@ -199,7 +234,12 @@ attributeAccessor filesizeSettings timezone torrent attribute =
                     View.Utils.DateFormatter.format timezone r
 
         StartedTime ->
-            View.Utils.DateFormatter.format timezone torrent.startedTime
+            case torrent.startedTime of
+                0 ->
+                    ""
+
+                r ->
+                    View.Utils.DateFormatter.format timezone r
 
         FinishedTime ->
             case torrent.finishedTime of
@@ -210,16 +250,24 @@ attributeAccessor filesizeSettings timezone torrent attribute =
                     View.Utils.DateFormatter.format timezone r
 
         DownloadedBytes ->
-            humanBytes filesizeSettings torrent.downloadedBytes
+            Utils.Filesize.formatWith filesizeSettings torrent.downloadedBytes
 
         DownloadRate ->
-            humanByteSpeed filesizeSettings torrent.downloadRate
+            humanByteSpeed torrent.downloadRate
+                |> Maybe.withDefault ""
 
         UploadedBytes ->
-            humanBytes filesizeSettings torrent.uploadedBytes
+            Utils.Filesize.formatWith filesizeSettings torrent.uploadedBytes
 
         UploadRate ->
-            humanByteSpeed filesizeSettings torrent.uploadRate
+            humanByteSpeed torrent.uploadRate
+                |> Maybe.withDefault ""
+
+        SeedersConnected ->
+            String.fromInt torrent.seedersConnected
+
+        SeedersTotal ->
+            String.fromInt torrent.seedersTotal
 
         PeersConnected ->
             String.fromInt torrent.peersConnected
@@ -229,22 +277,6 @@ attributeAccessor filesizeSettings timezone torrent attribute =
 
         DonePercent ->
             String.fromFloat torrent.donePercent
-
-
-humanBytes : Utils.Filesize.Settings -> Int -> String
-humanBytes settings num =
-    Utils.Filesize.formatWith settings num
-
-
-humanByteSpeed : Utils.Filesize.Settings -> Int -> String
-humanByteSpeed settings num =
-    -- could return a Maybe? As we don't want to show anything for zero speed
-    case num of
-        0 ->
-            ""
-
-        r ->
-            humanBytes settings r ++ "/s"
 
 
 textAlignment : TorrentAttribute -> Maybe String
@@ -263,6 +295,12 @@ textAlignment attribute =
             Just "right"
 
         UploadRate ->
+            Just "right"
+
+        SeedersConnected ->
+            Just "right"
+
+        SeedersTotal ->
             Just "right"
 
         PeersConnected ->

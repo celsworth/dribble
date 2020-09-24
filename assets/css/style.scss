@@ -84,7 +84,7 @@ body {
 
   // downloading
   &.downloading {
-    color: #118;
+    color: #38e;
   }
 
   &.paused {
@@ -111,11 +111,12 @@ body {
 
 .navigation {
   border-bottom: 1px solid $table-border-colour;
-  height: 50px;
+  height: 30px;
+  background: #eee;
 }
 
 .torrents { // section
-  height: calc(100vh - 75px); // combined navigation and footer height
+  height: calc(100vh - 230px); // combined navigation and footer height
   overflow: auto;
 
   &.loading {
@@ -127,12 +128,31 @@ body {
 }
 
 .footer {
-  position: absolute;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
   bottom: 0;
   border-top: 1px solid $table-border-colour;
   background: #eee;
   width: 100%;
-  height: 25px;
+  height: 200px;
+  padding: 5px;
+}
+
+.speed-chart {
+  background: #fff;
+  width: 450px;
+  border: 1px solid #888;
+
+  &:hover {
+    width: 90%;
+    height: auto;
+
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+  }
 }
 
 .progress-container {

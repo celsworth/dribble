@@ -1,6 +1,7 @@
 module Coders.Base exposing (..)
 
 import Coders.Torrent
+import Coders.Traffic
 import Json.Decode as D
 import Json.Encode as E
 import Model exposing (..)
@@ -30,6 +31,7 @@ websocketMessageDecoder =
     D.oneOf
         [ errorDecoder
         , Coders.Torrent.listDecoder
+        , Coders.Traffic.decoder
         ]
 
 
@@ -41,6 +43,35 @@ errorDecoder =
 
 
 -- Generic Encoders
+
+
+getTraffic : String
+getTraffic =
+    E.encode 0 <|
+        E.object
+            [ ( "save", E.string "trafficRate" )
+            , ( "command", getTrafficFields )
+            ]
+
+
+getTrafficFields : E.Value
+getTrafficFields =
+    E.list identity
+        [ E.string "system.multicall"
+        , E.list identity
+            [ encodeMethodWithParams "system.time" []
+            , encodeMethodWithParams "throttle.global_up.total" []
+            , encodeMethodWithParams "throttle.global_down.total" []
+            ]
+        ]
+
+
+encodeMethodWithParams : String -> List String -> E.Value
+encodeMethodWithParams methodName params =
+    E.object
+        [ ( "methodName", E.string methodName )
+        , ( "params", E.list E.string params )
+        ]
 
 
 getFullTorrents : String
@@ -85,17 +116,16 @@ getTorrentFields =
         , "d.is_open="
         , "d.is_active="
         , "d.hashing="
-        , "d.peers_connected="
 
         -- seeders (connected)?
-        -- , "d.peers_complete="
-        --
+        , "d.peers_complete="
+
         -- seeders (not connected)
-        -- cat="$t.multicall=d.hash=,t.scrape_complete=,cat={}"
-        --
+        , "cat=\"$t.multicall=d.hash=,t.scrape_complete=,cat={}\""
+
         -- peers connected ?
-        -- , "d.peers_accounted="
-        --
+        , "d.peers_accounted="
+
         -- peers (not connected)
         -- cat="$t.multicall=d.hash=,t.scrape_incomplete=,cat={}"
         --

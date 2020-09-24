@@ -5,6 +5,7 @@ import Coders.Base
 import Coders.Config
 import Dict exposing (Dict)
 import Json.Decode as JD
+import List.Extra
 import Model exposing (..)
 import Model.Shared
 import Model.TorrentSorter
@@ -60,11 +61,17 @@ update msg model =
         SetSortBy attribute ->
             ( setSortBy model attribute, Cmd.none )
 
+        SpeedChartHover data ->
+            ( { model | speedChartHover = data }, Cmd.none )
+
         RequestFullTorrents ->
             ( model, getFullTorrents )
 
         RequestUpdatedTorrents _ ->
             ( model, getUpdatedTorrents )
+
+        RequestUpdatedTraffic _ ->
+            ( model, getTraffic )
 
         WebsocketData result ->
             processWebsocketResponse model result
@@ -105,6 +112,11 @@ getUpdatedTorrents =
     Ports.sendMessage Coders.Base.getUpdatedTorrents
 
 
+getTraffic : Cmd Msg
+getTraffic =
+    Ports.sendMessage Coders.Base.getTraffic
+
+
 setSortBy : Model -> TorrentAttribute -> Model
 setSortBy model attribute =
     let
@@ -127,7 +139,10 @@ processWebsocketStatusUpdated model result =
             let
                 cmd =
                     if connected then
-                        getFullTorrents
+                        Cmd.batch
+                            [ getFullTorrents
+                            , getTraffic
+                            ]
 
                     else
                         Cmd.none
@@ -176,6 +191,9 @@ processWebsocketData model data =
             in
             { model | sortedTorrents = sortedTorrents, torrentsByHash = byHash }
 
+        TrafficReceived traffic ->
+            processTraffic model traffic
+
         Error errStr ->
             let
                 newMessages =
@@ -184,6 +202,40 @@ processWebsocketData model data =
                         ]
             in
             { model | messages = newMessages }
+
+
+processTraffic : Model -> Traffic -> Model
+processTraffic model traffic =
+    let
+        {- get diffs from firstTraffic if it exists. If it doesn't, store this as firstTraffic only -}
+        ( firstTraffic, newTraffic ) =
+            case model.firstTraffic of
+                Nothing ->
+                    ( traffic, [] )
+
+                Just ft ->
+                    ( ft, List.append model.traffic [ trafficDiff model traffic ] )
+    in
+    { model | firstTraffic = Just firstTraffic, traffic = newTraffic }
+
+
+trafficDiff : Model -> Traffic -> Traffic
+trafficDiff model traffic =
+    let
+        firstTraffic =
+            Maybe.withDefault { time = 0, upDiff = 0, downDiff = 0, upTotal = 0, downTotal = 0 }
+                model.firstTraffic
+
+        prevTraffic =
+            Maybe.withDefault firstTraffic (List.Extra.last model.traffic)
+
+        timeDiff =
+            traffic.time - prevTraffic.time
+    in
+    { traffic
+        | upDiff = (traffic.upTotal - prevTraffic.upTotal) // timeDiff
+        , downDiff = (traffic.downTotal - prevTraffic.downTotal) // timeDiff
+    }
 
 
 torrentsByHash : Model -> List Torrent -> Dict String Torrent

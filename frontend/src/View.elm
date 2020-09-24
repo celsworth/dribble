@@ -7,6 +7,7 @@ import Html.Events.Extra.Mouse
 import Model exposing (..)
 import Model.Utils.TorrentAttribute
 import View.Preferences
+import View.SpeedChart
 import View.TorrentTable
 
 
@@ -16,7 +17,10 @@ view model =
         [ View.Preferences.view model
         , navigation model
         , View.TorrentTable.view model
-        , footer [ class "footer" ] []
+        , footer [ class "footer" ]
+            [ div [] [ text "test" ]
+            , View.SpeedChart.view model
+            ]
         ]
 
 
