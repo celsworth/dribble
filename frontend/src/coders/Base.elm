@@ -59,7 +59,7 @@ getTrafficFields =
     E.list identity
         [ E.string "system.multicall"
         , E.list identity
-            [ encodeMethodWithParams "system.time" []
+            [ encodeMethodWithParams "system.time_seconds" []
             , encodeMethodWithParams "throttle.global_up.total" []
             , encodeMethodWithParams "throttle.global_down.total" []
             ]

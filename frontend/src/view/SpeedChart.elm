@@ -64,8 +64,8 @@ filterTraffic traffic =
                 |> Maybe.withDefault 0
 
         limit =
-            {- keep 5 minutes for now -}
-            now - 300
+            {- keep 10 minutes for now -}
+            now - 600
     in
     List.filterMap (newerThan limit) traffic
 
@@ -88,6 +88,16 @@ toDataSeries method traffic =
     }
 
 
+filesizeSettings : Model -> Utils.Filesize.Settings
+filesizeSettings model =
+    let
+        f =
+            model.config.filesizeSettings
+    in
+    -- always use Base10 for transfer speeds
+    { f | units = Utils.Filesize.Base10, decimalPlaces = 1 }
+
+
 config : Model -> LineChart.Config DataSeries Msg
 config model =
     { y = yAxisConfig model
@@ -95,7 +105,7 @@ config model =
     , container = containerConfig
     , interpolation = LineChart.Interpolation.monotone
     , intersection = LineChart.Axis.Intersection.atOrigin
-    , legends = LineChart.Legends.grouped .max .max -120 10
+    , legends = LineChart.Legends.grouped .max .min -120 -70
     , events = LineChart.Events.hoverMany SpeedChartHover
     , junk = LineChart.Junk.hoverMany model.speedChartHover (formatX model) (formatY model)
     , grid = LineChart.Grid.default
@@ -112,7 +122,7 @@ formatX model ds =
 
 formatY : Model -> DataSeries -> String
 formatY model ds =
-    Utils.Filesize.formatWith model.config.filesizeSettings ds.speed ++ "/s"
+    Utils.Filesize.formatWith (filesizeSettings model) ds.speed ++ "/s"
 
 
 containerConfig : LineChart.Container.Config msg
@@ -142,6 +152,21 @@ yAxisConfig model =
 
 customYRange : LineChart.Coordinate.Range -> LineChart.Coordinate.Range
 customYRange { min, max } =
+    {-
+       {-
+          Doesn't work very well, ticks drawn do not account for the updated
+          range, and working out tick spacing manually looks difficult.
+          One to try later.
+       -}
+       let
+           max2 =
+               if max < 5000 then
+                   5000
+
+               else
+                   max
+       in
+    -}
     { min = min, max = max * 1.04 }
 
 
@@ -154,7 +179,7 @@ yTickConfig : Model -> Int -> LineChart.Axis.Tick.Config msg
 yTickConfig model speed =
     let
         humanSpeed =
-            Utils.Filesize.formatWith model.config.filesizeSettings speed ++ "/s"
+            Utils.Filesize.formatWith (filesizeSettings model) speed ++ "/s"
 
         label =
             LineChart.Junk.label LineChart.Colors.black humanSpeed
@@ -185,7 +210,7 @@ xAxisConfig model =
 xTicksConfig : Model -> LineChart.Axis.Ticks.Config msg
 xTicksConfig model =
     -- not actually sure this model.timezone does anything..
-    LineChart.Axis.Ticks.timeCustom model.timezone 5 (xTickConfig model)
+    LineChart.Axis.Ticks.timeCustom model.timezone 8 (xTickConfig model)
 
 
 xTickConfig : Model -> LineChart.Axis.Tick.Time -> LineChart.Axis.Tick.Config msg

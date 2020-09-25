@@ -1,7 +1,6 @@
 module Update exposing (update)
 
 import Browser.Dom
-import Coders.Config
 import Json.Decode as JD
 import Model exposing (..)
 import Model.Shared
@@ -42,7 +41,7 @@ update msg model =
             ( setColumnWidth model attribute result, Cmd.none )
 
         RefreshClicked ->
-            ( model, Ports.getFullTorrents )
+            model |> addCmd Ports.getFullTorrents
 
         SaveConfigClicked ->
             model |> Update.SaveConfig.update

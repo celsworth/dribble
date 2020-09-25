@@ -204,6 +204,9 @@ attributeToTableHeaderString attribute =
 attributeAccessor : Utils.Filesize.Settings -> Time.Zone -> Torrent -> TorrentAttribute -> String
 attributeAccessor filesizeSettings timezone torrent attribute =
     let
+        speedFilesizeSettings =
+            { filesizeSettings | units = Utils.Filesize.Base10, decimalPlaces = 1 }
+
         -- convert 0 speeds to Nothing
         humanByteSpeed =
             \bytes ->
@@ -212,7 +215,7 @@ attributeAccessor filesizeSettings timezone torrent attribute =
                         Nothing
 
                     r ->
-                        Just <| Utils.Filesize.formatWith filesizeSettings r ++ "/s"
+                        Just <| Utils.Filesize.formatWith speedFilesizeSettings r ++ "/s"
     in
     case attribute of
         TorrentStatus ->
