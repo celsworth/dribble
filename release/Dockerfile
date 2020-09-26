@@ -6,7 +6,7 @@ RUN elm make src/Main.elm  --output /dribble.js
 
 
 FROM ruby:2.7-alpine AS ruby-builder
-RUN apk add --no-cache build-base bash
+RUN apk add --no-cache build-base
 COPY Gemfile* ./
 RUN gem install bundler
 RUN bundle config set without development
@@ -14,7 +14,6 @@ RUN bundle install -j4
 
 
 FROM ruby:2.7-alpine
-RUN apk add --no-cache bash
 RUN adduser -D app
 USER app
 WORKDIR /home/app

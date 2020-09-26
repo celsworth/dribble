@@ -4,9 +4,26 @@ Part learning exercise, part frontend GUI for rtorrent.
 
 May never do anything useful.
 
-## Getting Started
+---
+> **IMPORTANT SECURITY WARNING**: The thin server opens an endpoint (at `/ws`) that is a WebSocket proxy to your rtorrent SCGI interface. This endpoint must *never* be exposed to the Internet or you *will* get pwned via remote execution.
+---
 
-The easy way is to use docker-compose.
+## Running
+
+There's a release/Dockerfile that makes it easy:
+
+```
+docker build -t dribble -f release/Dockerfile .
+docker run --rm -i -t -p 127.0.0.1:3000:3000 dribble
+```
+
+## Development Server
+
+The easy way is to use docker-compose:
+
+```
+docker-compose up
+```
 
 If you want to run it natively, you'll need Ruby with bundler, and elm.
 
@@ -22,15 +39,11 @@ Install the Ruby packages:
 bundle install
 ```
 
-Start the webserver on port 3000:
+Start the webserver on localhost port 3000:
 
 ```
-thin start
+thin start -a 127.0.0.1 -p 3000
 ```
-
----
-> **IMPORTANT SECURITY WARNING**: The thin server opens an endpoint (at `/ws`) that is a WebSocket proxy to your rtorrent SCGI interface. This endpoint must *never* be exposed to the Internet or you *will* get pwned via remote execution.
----
 
 
 ### Limitations
