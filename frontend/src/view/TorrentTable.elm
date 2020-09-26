@@ -145,35 +145,26 @@ keyedRow model hash =
 
 lazyRow : Config -> Time.Zone -> Torrent -> Html Msg
 lazyRow config timezone torrent =
-    {- just pass in what the row actually needs so lazy can look at
-       as little as possible. this will help when some config changes,
-       but not the config related to rendering the row, eg sortBy is
-       not relevant here and would make resorting slower
-    -}
-    Html.Lazy.lazy6 row
-        config.visibleTorrentAttributes
-        config.torrentAttributeOrder
-        config.columnWidths
-        config.filesizeSettings
+    Html.Lazy.lazy3 row
+        config
         timezone
         torrent
 
 
-row : List TorrentAttribute -> List TorrentAttribute -> ColumnWidths -> Utils.Filesize.Settings -> Time.Zone -> Torrent -> Html Msg
-row visibleTorrentAttributes torrentAttributeOrder columnWidths filesizeSettings timezone torrent =
+row : Config -> Time.Zone -> Torrent -> Html Msg
+row config timezone torrent =
     let
         {--
-        x =
+        _ =
             Debug.log "rendering:" torrent
-
         --}
         visibleOrder =
-            List.filter (isVisible visibleTorrentAttributes)
-                torrentAttributeOrder
+            List.filter (isVisible config.visibleTorrentAttributes)
+                config.torrentAttributeOrder
     in
     tr
         []
-        (List.map (cell columnWidths filesizeSettings timezone torrent) visibleOrder)
+        (List.map (cell config timezone torrent) visibleOrder)
 
 
 isVisible : List TorrentAttribute -> TorrentAttribute -> Bool
@@ -181,11 +172,11 @@ isVisible visibleTorrentAttributes attribute =
     List.member attribute visibleTorrentAttributes
 
 
-cell : ColumnWidths -> Utils.Filesize.Settings -> Time.Zone -> Torrent -> TorrentAttribute -> Html Msg
-cell columnWidths filesizeSettings timezone torrent attribute =
+cell : Config -> Time.Zone -> Torrent -> TorrentAttribute -> Html Msg
+cell config timezone torrent attribute =
     td []
-        [ div (cellAttributes columnWidths attribute)
-            [ cellContent filesizeSettings timezone torrent attribute
+        [ div (cellAttributes config.columnWidths attribute)
+            [ cellContent config timezone torrent attribute
             ]
         ]
 
@@ -208,8 +199,8 @@ cellTextAlign attribute =
             Nothing
 
 
-cellContent : Utils.Filesize.Settings -> Time.Zone -> Torrent -> TorrentAttribute -> Html Msg
-cellContent filesizeSettings timezone torrent attribute =
+cellContent : Config -> Time.Zone -> Torrent -> TorrentAttribute -> Html Msg
+cellContent config timezone torrent attribute =
     case attribute of
         TorrentStatus ->
             torrentStatusCell torrent
@@ -220,7 +211,7 @@ cellContent filesizeSettings timezone torrent attribute =
         _ ->
             text <|
                 Model.Utils.TorrentAttribute.attributeAccessor
-                    filesizeSettings
+                    config
                     timezone
                     torrent
                     attribute
