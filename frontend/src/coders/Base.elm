@@ -127,8 +127,8 @@ getTorrentFields =
         , "d.peers_accounted="
 
         -- peers (not connected)
-        -- cat="$t.multicall=d.hash=,t.scrape_incomplete=,cat={}"
-        --
+        , "cat=\"$t.multicall=d.hash=,t.scrape_incomplete=,cat={}\""
+
         -- label
         , "d.custom1="
         ]

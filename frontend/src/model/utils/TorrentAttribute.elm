@@ -44,14 +44,23 @@ attributeToKey attribute =
         UploadRate ->
             "uploadRate"
 
+        Seeders ->
+            "seeders"
+
         SeedersConnected ->
             "seedersConnected"
 
         SeedersTotal ->
             "seedersTotal"
 
+        Peers ->
+            "peers"
+
         PeersConnected ->
             "peersConnected"
+
+        PeersTotal ->
+            "peersTotal"
 
         Label ->
             "label"
@@ -97,11 +106,20 @@ keyToAttribute str =
         "seedersConnected" ->
             SeedersConnected
 
+        "seeders" ->
+            Seeders
+
         "seedersTotal" ->
             SeedersTotal
 
+        "peers" ->
+            Peers
+
         "peersConnected" ->
             PeersConnected
+
+        "peersTotal" ->
+            PeersTotal
 
         "label" ->
             Label
@@ -155,11 +173,20 @@ attributeToString attribute =
         SeedersConnected ->
             "Seeders Connected"
 
+        Seeders ->
+            "Seeders"
+
         SeedersTotal ->
             "Seeders Total"
 
+        Peers ->
+            "Peers"
+
         PeersConnected ->
             "Peers Connected"
+
+        PeersTotal ->
+            "Peers Total"
 
         Label ->
             "Label"
@@ -201,12 +228,9 @@ attributeToTableHeaderString attribute =
 -- This is what we need to render the data in HTML tables.
 
 
-attributeAccessor : Utils.Filesize.Settings -> Time.Zone -> Torrent -> TorrentAttribute -> String
-attributeAccessor filesizeSettings timezone torrent attribute =
+attributeAccessor : Config -> Time.Zone -> Torrent -> TorrentAttribute -> String
+attributeAccessor config timezone torrent attribute =
     let
-        speedFilesizeSettings =
-            { filesizeSettings | units = Utils.Filesize.Base10, decimalPlaces = 1 }
-
         -- convert 0 speeds to Nothing
         humanByteSpeed =
             \bytes ->
@@ -215,7 +239,7 @@ attributeAccessor filesizeSettings timezone torrent attribute =
                         Nothing
 
                     r ->
-                        Just <| Utils.Filesize.formatWith speedFilesizeSettings r ++ "/s"
+                        Just <| Utils.Filesize.formatWith config.hSpeedSettings r ++ "/s"
     in
     case attribute of
         TorrentStatus ->
@@ -226,7 +250,7 @@ attributeAccessor filesizeSettings timezone torrent attribute =
             torrent.name
 
         Size ->
-            Utils.Filesize.formatWith filesizeSettings torrent.size
+            Utils.Filesize.formatWith config.hSizeSettings torrent.size
 
         CreationTime ->
             case torrent.creationTime of
@@ -253,18 +277,24 @@ attributeAccessor filesizeSettings timezone torrent attribute =
                     View.Utils.DateFormatter.format timezone r
 
         DownloadedBytes ->
-            Utils.Filesize.formatWith filesizeSettings torrent.downloadedBytes
+            Utils.Filesize.formatWith config.hSizeSettings torrent.downloadedBytes
 
         DownloadRate ->
             humanByteSpeed torrent.downloadRate
                 |> Maybe.withDefault ""
 
         UploadedBytes ->
-            Utils.Filesize.formatWith filesizeSettings torrent.uploadedBytes
+            Utils.Filesize.formatWith config.hSizeSettings torrent.uploadedBytes
 
         UploadRate ->
             humanByteSpeed torrent.uploadRate
                 |> Maybe.withDefault ""
+
+        Seeders ->
+            String.fromInt torrent.seedersConnected
+                ++ " ("
+                ++ String.fromInt torrent.seedersTotal
+                ++ ")"
 
         SeedersConnected ->
             String.fromInt torrent.seedersConnected
@@ -272,8 +302,17 @@ attributeAccessor filesizeSettings timezone torrent attribute =
         SeedersTotal ->
             String.fromInt torrent.seedersTotal
 
+        Peers ->
+            String.fromInt torrent.peersConnected
+                ++ " ("
+                ++ String.fromInt torrent.peersTotal
+                ++ ")"
+
         PeersConnected ->
             String.fromInt torrent.peersConnected
+
+        PeersTotal ->
+            String.fromInt torrent.peersTotal
 
         Label ->
             torrent.label
@@ -300,13 +339,22 @@ textAlignment attribute =
         UploadRate ->
             Just "right"
 
+        Seeders ->
+            Just "right"
+
         SeedersConnected ->
             Just "right"
 
         SeedersTotal ->
             Just "right"
 
+        Peers ->
+            Just "right"
+
         PeersConnected ->
+            Just "right"
+
+        PeersTotal ->
             Just "right"
 
         _ ->

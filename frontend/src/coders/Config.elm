@@ -17,7 +17,8 @@ default =
     , visibleTorrentAttributes = defaultTorrentAttributes
     , torrentAttributeOrder = defaultTorrentAttributes
     , columnWidths = defaultColumnWidths
-    , filesizeSettings = Utils.Filesize.defaultSettings
+    , hSizeSettings = { units = Utils.Filesize.Base2, decimalPlaces = 2, decimalSeparator = "." }
+    , hSpeedSettings = { units = Utils.Filesize.Base10, decimalPlaces = 1, decimalSeparator = "." }
     , timezone = "Europe/London"
     }
 
@@ -35,9 +36,14 @@ defaultTorrentAttributes =
     , DownloadRate
     , UploadedBytes
     , UploadRate
-    , SeedersConnected
-    , SeedersTotal
-    , PeersConnected
+    , Seeders
+
+    --, SeedersConnected
+    --, SeedersTotal
+    , Peers
+
+    --, PeersConnected
+    --, PeersTotal
     , Label
     ]
 
@@ -69,7 +75,8 @@ encode config =
         , ( "visibleTorrentAttributes", encodeTorrentAttributeList config.visibleTorrentAttributes )
         , ( "torrentAttributeOrder", encodeTorrentAttributeList config.torrentAttributeOrder )
         , ( "columnWidths", encodeColumnWidths config.columnWidths )
-        , ( "filesizeSettings", Coders.FilesizeSettings.encode config.filesizeSettings )
+        , ( "hSizeSettings", Coders.FilesizeSettings.encode config.hSizeSettings )
+        , ( "hSpeedSettings", Coders.FilesizeSettings.encode config.hSpeedSettings )
         , ( "timezone", E.string config.timezone )
         ]
 
@@ -173,9 +180,12 @@ decoder =
         |> optional "columnWidths"
             columnWidthsDecoder
             default.columnWidths
-        |> optional "filesizeSettings"
+        |> optional "hSizeSettings"
             Coders.FilesizeSettings.decoder
-            default.filesizeSettings
+            default.hSizeSettings
+        |> optional "hSpeedSettings"
+            Coders.FilesizeSettings.decoder
+            default.hSpeedSettings
         |> optional "timezone" D.string default.timezone
 
 

@@ -41,10 +41,10 @@ chart model =
             filterTraffic model.traffic
 
         upload =
-            List.map (toDataSeries .upDiff) filteredTraffic
+            List.map (toSpeedChartDataSeries .upDiff) filteredTraffic
 
         download =
-            List.map (toDataSeries .downDiff) filteredTraffic
+            List.map (toSpeedChartDataSeries .downDiff) filteredTraffic
     in
     LineChart.viewCustom (config model)
         [ LineChart.line LineChart.Colors.green LineChart.Dots.none "Upload" upload
@@ -79,8 +79,8 @@ newerThan limit traffic =
         Nothing
 
 
-toDataSeries : (Traffic -> Int) -> Traffic -> DataSeries
-toDataSeries method traffic =
+toSpeedChartDataSeries : (Traffic -> Int) -> Traffic -> SpeedChartDataSeries
+toSpeedChartDataSeries method traffic =
     { speed = method traffic
 
     {- time needs to be in millis -}
@@ -90,24 +90,23 @@ toDataSeries method traffic =
 
 filesizeSettings : Model -> Utils.Filesize.Settings
 filesizeSettings model =
-    let
-        f =
-            model.config.filesizeSettings
-    in
-    -- always use Base10 for transfer speeds
-    { f | units = Utils.Filesize.Base10, decimalPlaces = 1 }
+    model.config.hSpeedSettings
 
 
-config : Model -> LineChart.Config DataSeries Msg
+config : Model -> LineChart.Config SpeedChartDataSeries Msg
 config model =
     { y = yAxisConfig model
     , x = xAxisConfig model
     , container = containerConfig
     , interpolation = LineChart.Interpolation.monotone
     , intersection = LineChart.Axis.Intersection.atOrigin
-    , legends = LineChart.Legends.grouped .max .min -120 -70
+    , legends = LineChart.Legends.grouped .min .min 10 -50
     , events = LineChart.Events.hoverMany SpeedChartHover
-    , junk = LineChart.Junk.hoverMany model.speedChartHover (formatX model) (formatY model)
+    , junk =
+        LineChart.Junk.hoverMany
+            model.speedChartHover
+            (formatHoverX model)
+            (formatHoverY model)
     , grid = LineChart.Grid.default
     , area = LineChart.Area.default
     , line = LineChart.Line.wider 3
@@ -115,13 +114,13 @@ config model =
     }
 
 
-formatX : Model -> DataSeries -> String
-formatX model ds =
+formatHoverX : Model -> SpeedChartDataSeries -> String
+formatHoverX model ds =
     formatTime model (Time.millisToPosix ds.time)
 
 
-formatY : Model -> DataSeries -> String
-formatY model ds =
+formatHoverY : Model -> SpeedChartDataSeries -> String
+formatHoverY model ds =
     Utils.Filesize.formatWith (filesizeSettings model) ds.speed ++ "/s"
 
 
@@ -131,48 +130,100 @@ containerConfig =
         { attributesHtml = []
         , attributesSvg = []
         , size = LineChart.Container.relative
-        , margin = LineChart.Container.Margin 25 20 20 80
+        , margin = LineChart.Container.Margin 40 30 20 80
         , id = "speed-chart"
         }
 
 
-yAxisConfig : Model -> LineChart.Axis.Config DataSeries msg
+
+--- Y AXIS
+
+
+yAxisConfig : Model -> LineChart.Axis.Config SpeedChartDataSeries msg
 yAxisConfig model =
     LineChart.Axis.custom
         { title = LineChart.Axis.Title.default ""
         , variable = Just << toFloat << .speed
         , pixels = 500
-
-        --, range = LineChart.Axis.Range.default
-        , range = LineChart.Axis.Range.custom customYRange
+        , range = LineChart.Axis.Range.custom (yAxisRange model)
         , axisLine = LineChart.Axis.Line.default
         , ticks = yTicksConfig model
         }
 
 
-customYRange : LineChart.Coordinate.Range -> LineChart.Coordinate.Range
-customYRange { min, max } =
+yAxisRange : Model -> LineChart.Coordinate.Range -> LineChart.Coordinate.Range
+yAxisRange model { min, max } =
     {-
-       {-
-          Doesn't work very well, ticks drawn do not account for the updated
-          range, and working out tick spacing manually looks difficult.
-          One to try later.
-       -}
-       let
-           max2 =
-               if max < 5000 then
-                   5000
-
-               else
-                   max
-       in
+       Doesn't work very well, ticks drawn do not account for the updated
+       range, and working out tick spacing manually looks difficult.
+       One to try later.
     -}
-    { min = min, max = max * 1.04 }
+    let
+        max2 =
+            if max < 5000 then
+                5000
+
+            else
+                max
+    in
+    { min = 0, max = nextYAxisPoint model max2 }
 
 
 yTicksConfig : Model -> LineChart.Axis.Ticks.Config msg
 yTicksConfig model =
-    LineChart.Axis.Ticks.intCustom 5 (yTickConfig model)
+    LineChart.Axis.Ticks.custom <|
+        \dataRange axisRange ->
+            List.map (yTickConfig model) (yTicks model dataRange)
+
+
+yTicks : Model -> LineChart.Coordinate.Range -> List Int
+yTicks model dataRange =
+    let
+        maxTick =
+            nextYAxisPoint model dataRange.max
+    in
+    [ 0
+    , round (maxTick * 0.2)
+    , round (maxTick * 0.4)
+    , round (maxTick * 0.6)
+    , round (maxTick * 0.8)
+    , round maxTick
+    ]
+
+
+nextYAxisPoint : Model -> Float -> Float
+nextYAxisPoint model int =
+    let
+        default =
+            case (filesizeSettings model).units of
+                Utils.Filesize.Base2 ->
+                    10240
+
+                Utils.Filesize.Base10 ->
+                    10000
+    in
+    List.Extra.find (\n -> int < n) (yTickPoints model)
+        |> Maybe.withDefault default
+
+
+yTickMultis : Model -> List Float
+yTickMultis model =
+    case (filesizeSettings model).units of
+        Utils.Filesize.Base2 ->
+            [ 1024, 10240, 102400, 1048576, 10485760 ]
+
+        Utils.Filesize.Base10 ->
+            [ 1000, 10000, 100000, 1000000, 10000000 ]
+
+
+yTickPoints : Model -> List Float
+yTickPoints model =
+    yTickMultis model
+        |> List.Extra.andThen
+            (\m ->
+                [ 10, 15, 20, 25, 30, 40, 50, 60, 80 ]
+                    |> List.Extra.andThen (\p -> [ p * m ])
+            )
 
 
 yTickConfig : Model -> Int -> LineChart.Axis.Tick.Config msg
@@ -195,7 +246,11 @@ yTickConfig model speed =
         }
 
 
-xAxisConfig : Model -> LineChart.Axis.Config DataSeries msg
+
+--- X AXIS
+
+
+xAxisConfig : Model -> LineChart.Axis.Config SpeedChartDataSeries msg
 xAxisConfig model =
     LineChart.Axis.custom
         { title = LineChart.Axis.Title.default ""

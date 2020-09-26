@@ -50,13 +50,15 @@ decoder =
         |> custom (D.index 14 D.string)
         -- peersConnected
         |> custom (D.index 15 D.int)
-        -- label
+        -- peersTotal
         |> custom (D.index 16 D.string)
+        -- label
+        |> custom (D.index 17 D.string)
         |> Pipeline.resolve
 
 
-internalDecoder : String -> String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Bool -> Bool -> HashingStatus -> Int -> String -> Int -> String -> D.Decoder Torrent
-internalDecoder hash name size creationTime startedTime finishedTime downloadedBytes downloadRate uploadedBytes uploadRate isOpen isActive hashing seedersConnected seedersTotal peersConnected label =
+internalDecoder : String -> String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Bool -> Bool -> HashingStatus -> Int -> String -> Int -> String -> String -> D.Decoder Torrent
+internalDecoder hash name size creationTime startedTime finishedTime downloadedBytes downloadRate uploadedBytes uploadRate isOpen isActive hashing seedersConnected seedersTotal peersConnected peersTotal label =
     let
         -- after decoder is done, we can add further internal fields here
         donePercent =
@@ -102,6 +104,7 @@ internalDecoder hash name size creationTime startedTime finishedTime downloadedB
             seedersConnected
             (Maybe.withDefault 0 <| String.toInt seedersTotal)
             peersConnected
+            (Maybe.withDefault 0 <| String.toInt peersTotal)
             label
             donePercent
 

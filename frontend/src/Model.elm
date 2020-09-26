@@ -18,7 +18,7 @@ type Msg
     | ShowPreferencesClicked
     | ToggleTorrentAttributeVisibility TorrentAttribute
     | SetSortBy TorrentAttribute
-    | SpeedChartHover (List DataSeries)
+    | SpeedChartHover (List SpeedChartDataSeries)
     | RequestFullTorrents
     | RequestUpdatedTorrents Time.Posix
     | RequestUpdatedTraffic Time.Posix
@@ -92,7 +92,7 @@ type Sort
     = SortBy TorrentAttribute SortDirection
 
 
-type alias DataSeries =
+type alias SpeedChartDataSeries =
     { time : Int
     , speed : Int
     }
@@ -105,7 +105,7 @@ type alias Model =
     , torrentsByHash : Dict String Torrent
     , traffic : List Traffic
     , firstTraffic : Maybe Traffic
-    , speedChartHover : List DataSeries
+    , speedChartHover : List SpeedChartDataSeries
     , messages : List Message
     , preferencesVisible : Bool
     , torrentAttributeResizeOp : Maybe TorrentAttributeResizeOp
@@ -133,7 +133,7 @@ setMessages new model =
     { model | messages = new }
 
 
-setSpeedChartHover : List DataSeries -> Model -> Model
+setSpeedChartHover : List SpeedChartDataSeries -> Model -> Model
 setSpeedChartHover new model =
     { model | speedChartHover = new }
 
@@ -145,11 +145,12 @@ setPreferencesVisible new model =
 
 type alias Config =
     { refreshDelay : Int
-    , sortBy : Sort -- Name Asc, Size Desc, etc
+    , sortBy : Sort
     , visibleTorrentAttributes : List TorrentAttribute
     , torrentAttributeOrder : List TorrentAttribute
     , columnWidths : ColumnWidths
-    , filesizeSettings : Utils.Filesize.Settings
+    , hSizeSettings : Utils.Filesize.Settings
+    , hSpeedSettings : Utils.Filesize.Settings
     , timezone : String
     }
 
@@ -175,9 +176,12 @@ type TorrentAttribute
     | DownloadRate
     | UploadedBytes
     | UploadRate
+    | Seeders
     | SeedersConnected
     | SeedersTotal
+    | Peers
     | PeersConnected
+    | PeersTotal
     | Label
     | DonePercent
 
@@ -215,6 +219,7 @@ type alias Torrent =
     , seedersConnected : Int
     , seedersTotal : Int
     , peersConnected : Int
+    , peersTotal : Int
     , label : String
 
     -- custom local vars, not from JSON
