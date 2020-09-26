@@ -22,7 +22,7 @@ jobs:
       - name: Push the tagged Docker image
         run: docker push celsworth/dribble:${{steps.vars.outputs.tag}}
       - name: Build the latest Docker image
-        run: docker build . --file Dockerfile --tag celsworth/dribble:latest
+        run: docker tag celsworth/dribble:${{steps.vars.outputs.tag}} celsworth/dribble:latest
       - name: Push the latest Docker image
         run: docker push celsworth/dribble:latest
 
