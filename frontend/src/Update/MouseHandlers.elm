@@ -3,6 +3,7 @@ module Update.MouseHandlers exposing (..)
 import Browser.Dom
 import Html.Events.Extra.Mouse as Mouse
 import Model exposing (..)
+import Model.ResizeOp exposing (ResizeOp)
 import Model.Shared
 import Model.Torrent
 import Task
@@ -10,10 +11,10 @@ import View.Torrent
 
 
 
-{- maybe these are TorrentResizeHandlers really? the mouse is irrelevant -}
+{- maybe these are ResizeHandlers really? the mouse is irrelevant -}
 
 
-processTorrentAttributeResizeStarted : Model -> Model.Torrent.Attribute -> MousePosition -> Mouse.Button -> Mouse.Keys -> ( Model, Cmd Msg )
+processTorrentAttributeResizeStarted : Model -> Model.ResizeOp.Attribute -> Model.ResizeOp.MousePosition -> Mouse.Button -> Mouse.Keys -> ( Model, Cmd Msg )
 processTorrentAttributeResizeStarted model attribute pos button keys =
     case button of
         Mouse.MainButton ->
@@ -23,11 +24,16 @@ processTorrentAttributeResizeStarted model attribute pos button keys =
             ( model, Cmd.none )
 
 
-processMouseDownMainButton : Model -> Model.Torrent.Attribute -> MousePosition -> Mouse.Keys -> ( Model, Cmd Msg )
+processMouseDownMainButton : Model -> Model.ResizeOp.Attribute -> Model.ResizeOp.MousePosition -> Mouse.Keys -> ( Model, Cmd Msg )
 processMouseDownMainButton model attribute pos keys =
     let
+        attr =
+            case attribute of
+                Model.ResizeOp.TorrentAttribute a ->
+                    a
+
         id =
-            View.Torrent.attributeToTableHeaderId attribute
+            View.Torrent.attributeToTableHeaderId attr
 
         resizeOp =
             { attribute = attribute, startPosition = pos, currentPosition = pos }
@@ -46,7 +52,7 @@ processMouseDownMainButton model attribute pos keys =
         )
 
 
-processTorrentAttributeResized : Model -> TorrentAttributeResizeOp -> MousePosition -> ( Model, Cmd Msg )
+processTorrentAttributeResized : Model -> ResizeOp -> Model.ResizeOp.MousePosition -> ( Model, Cmd Msg )
 processTorrentAttributeResized model resizeOp pos =
     {- when dragging, if releasing the mouse button now would result in
        a column width below minimumColumnPx, ignore the new mousePosition
@@ -73,7 +79,7 @@ processTorrentAttributeResized model resizeOp pos =
         ( model, Cmd.none )
 
 
-processTorrentAttributeResizeEnded : Model -> TorrentAttributeResizeOp -> MousePosition -> ( Model, Cmd Msg )
+processTorrentAttributeResizeEnded : Model -> ResizeOp -> Model.ResizeOp.MousePosition -> ( Model, Cmd Msg )
 processTorrentAttributeResizeEnded model resizeOp pos =
     {- on mouseup, we get a final MousePosition reading. If this is valid,
        using similar logic to processMouseMove, we save it and use it.

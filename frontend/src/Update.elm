@@ -3,7 +3,8 @@ module Update exposing (update)
 import Browser.Dom
 import Json.Decode as JD
 import Model exposing (..)
-import Model.Message
+import Model.Message exposing (addMessage)
+import Model.ResizeOp
 import Model.Shared
 import Model.Torrent
 import Model.WebsocketData
@@ -77,7 +78,7 @@ update msg model =
             model |> Update.ProcessWebsocketStatusUpdated.update result
 
 
-setColumnWidth : Model -> Model.Torrent.Attribute -> Result Browser.Dom.Error Browser.Dom.Element -> Model
+setColumnWidth : Model -> Model.ResizeOp.Attribute -> Result Browser.Dom.Error Browser.Dom.Element -> Model
 setColumnWidth model attribute result =
     case result of
         Ok r ->
@@ -105,7 +106,7 @@ processWebsocketResponse result model =
             let
                 newMessages =
                     model.messages
-                        |> Model.Message.addMessage
+                        |> addMessage
                             { message = JD.errorToString errStr
                             , severity = Model.Message.Error
                             }
@@ -132,7 +133,7 @@ processWebsocketData model data =
             let
                 newMessages =
                     model.messages
-                        |> Model.Message.addMessage
+                        |> addMessage
                             { message = errStr, severity = Model.Message.Error }
             in
             model

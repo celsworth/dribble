@@ -6,6 +6,7 @@ import Html.Events.Extra.Mouse as Mouse
 import Json.Decode as JD
 import Model.Config exposing (Config)
 import Model.Message exposing (Message)
+import Model.ResizeOp exposing (ResizeOp)
 import Model.SpeedChart
 import Model.Torrent exposing (Torrent)
 import Model.Traffic exposing (Traffic)
@@ -14,10 +15,10 @@ import Time
 
 
 type Msg
-    = TorrentAttributeResizeStarted Model.Torrent.Attribute MousePosition Mouse.Button Mouse.Keys
-    | TorrentAttributeResized TorrentAttributeResizeOp MousePosition
-    | TorrentAttributeResizeEnded TorrentAttributeResizeOp MousePosition
-    | GotColumnWidth Model.Torrent.Attribute (Result Browser.Dom.Error Browser.Dom.Element)
+    = TorrentAttributeResizeStarted Model.ResizeOp.Attribute Model.ResizeOp.MousePosition Mouse.Button Mouse.Keys
+    | TorrentAttributeResized ResizeOp Model.ResizeOp.MousePosition
+    | TorrentAttributeResizeEnded ResizeOp Model.ResizeOp.MousePosition
+    | GotColumnWidth Model.ResizeOp.Attribute (Result Browser.Dom.Error Browser.Dom.Element)
     | RefreshClicked
     | SaveConfigClicked
     | ShowPreferencesClicked
@@ -31,26 +32,6 @@ type Msg
     | WebsocketStatusUpdated (Result JD.Error Bool)
 
 
-
--- TODO: add lists of trackers, peers, etc?
-
-
-type alias TorrentAttributeResizeOp =
-    {- Dragging a TorrentAttribute resize bar
-       Could possibly extend to other table types in future
-    -}
-    { attribute : Model.Torrent.Attribute
-    , startPosition : MousePosition
-    , currentPosition : MousePosition
-    }
-
-
-type alias MousePosition =
-    { x : Float
-    , y : Float
-    }
-
-
 type alias Model =
     { config : Config
     , websocketConnected : Bool
@@ -61,7 +42,7 @@ type alias Model =
     , speedChartHover : List Model.SpeedChart.DataSeries
     , messages : List Message
     , preferencesVisible : Bool
-    , torrentAttributeResizeOp : Maybe TorrentAttributeResizeOp
+    , torrentAttributeResizeOp : Maybe ResizeOp
     , timezone : Time.Zone
     }
 

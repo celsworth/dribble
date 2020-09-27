@@ -10,6 +10,7 @@ import Html.Lazy
 import List
 import Model exposing (..)
 import Model.Config exposing (ColumnWidths, Config)
+import Model.ResizeOp
 import Model.Shared
 import Model.Table
 import Model.Torrent exposing (Torrent)
@@ -125,7 +126,13 @@ headerCellResizeHandleAttributes _ attribute =
     in
     [ class "resize-handle"
     , Html.Events.Extra.Mouse.onDown
-        (\e -> TorrentAttributeResizeStarted attribute (reconstructClientPos e) e.button e.keys)
+        (\e ->
+            TorrentAttributeResizeStarted
+                (Model.ResizeOp.TorrentAttribute attribute)
+                (reconstructClientPos e)
+                e.button
+                e.keys
+        )
     ]
 
 
@@ -327,7 +334,8 @@ widthAttribute : ColumnWidths -> Model.Torrent.Attribute -> Float -> Maybe (Attr
 widthAttribute columnWidths attribute subtract =
     let
         width =
-            Model.Shared.getColumnWidth columnWidths attribute
+            Model.Shared.getColumnWidth columnWidths
+                (Model.ResizeOp.TorrentAttribute attribute)
 
         { auto, px } =
             width

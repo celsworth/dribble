@@ -3,6 +3,7 @@ module Model.Shared exposing (..)
 import Dict
 import Model exposing (..)
 import Model.Config exposing (ColumnWidth, ColumnWidths)
+import Model.ResizeOp exposing (ResizeOp)
 import Model.Torrent
 
 
@@ -11,11 +12,13 @@ minimumColumnPx =
     30
 
 
-getColumnWidth : ColumnWidths -> Model.Torrent.Attribute -> ColumnWidth
+getColumnWidth : ColumnWidths -> Model.ResizeOp.Attribute -> ColumnWidth
 getColumnWidth columnWidths attribute =
     let
         key =
-            Model.Torrent.attributeToKey attribute
+            case attribute of
+                Model.ResizeOp.TorrentAttribute a ->
+                    Model.Torrent.attributeToKey a
     in
     case Dict.get key columnWidths of
         Just width ->
@@ -26,11 +29,13 @@ getColumnWidth columnWidths attribute =
             { px = minimumColumnPx, auto = False }
 
 
-setColumnWidth : Model -> Model.Torrent.Attribute -> ColumnWidth -> Model
+setColumnWidth : Model -> Model.ResizeOp.Attribute -> ColumnWidth -> Model
 setColumnWidth model attribute newWidth =
     let
         key =
-            Model.Torrent.attributeToKey attribute
+            case attribute of
+                Model.ResizeOp.TorrentAttribute a ->
+                    Model.Torrent.attributeToKey a
 
         newDict =
             Dict.insert key newWidth model.config.columnWidths
@@ -44,11 +49,13 @@ setColumnWidth model attribute newWidth =
     { model | config = newConfig }
 
 
-setColumnWidthAuto : Model -> Model.Torrent.Attribute -> Model
+setColumnWidthAuto : Model -> Model.ResizeOp.Attribute -> Model
 setColumnWidthAuto model attribute =
     let
         key =
-            Model.Torrent.attributeToKey attribute
+            case attribute of
+                Model.ResizeOp.TorrentAttribute a ->
+                    Model.Torrent.attributeToKey a
 
         oldWidth =
             getColumnWidth model.config.columnWidths attribute
@@ -68,7 +75,7 @@ setColumnWidthAuto model attribute =
     { model | config = newConfig }
 
 
-calculateNewColumnWidth : Model -> TorrentAttributeResizeOp -> ColumnWidth
+calculateNewColumnWidth : Model -> ResizeOp -> ColumnWidth
 calculateNewColumnWidth model resizeOp =
     let
         oldWidth =
