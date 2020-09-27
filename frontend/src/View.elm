@@ -31,7 +31,7 @@ viewAttributes : Model -> List (Attribute Msg)
 viewAttributes model =
     let
         resizingAttributes =
-            Maybe.map viewAttributesForResizeOp model.torrentAttributeResizeOp
+            Maybe.map viewAttributesForResizeOp model.resizeOp
                 |> Maybe.withDefault []
     in
     List.append [] resizingAttributes

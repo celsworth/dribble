@@ -42,7 +42,7 @@ type alias Model =
     , speedChartHover : List Model.SpeedChart.DataSeries
     , messages : List Message
     , preferencesVisible : Bool
-    , torrentAttributeResizeOp : Maybe Model.Table.ResizeOp
+    , resizeOp : Maybe Model.Table.ResizeOp
     , timezone : Time.Zone
     }
 
@@ -77,9 +77,9 @@ setPreferencesVisible new model =
     { model | preferencesVisible = new }
 
 
-setTorrentAttributeResizeOp : Maybe Model.Table.ResizeOp -> Model -> Model
-setTorrentAttributeResizeOp new model =
-    { model | torrentAttributeResizeOp = new }
+setResizeOp : Maybe Model.Table.ResizeOp -> Model -> Model
+setResizeOp new model =
+    { model | resizeOp = new }
 
 
 addCmd : Cmd Msg -> Model -> ( Model, Cmd Msg )

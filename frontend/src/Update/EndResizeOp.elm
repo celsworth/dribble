@@ -1,40 +1,33 @@
 module Update.EndResizeOp exposing (update)
 
 import Model exposing (..)
-import Model.Config
+import Model.Config exposing (Config)
 import Model.Table
 
 
 update : Model.Table.ResizeOp -> Model.Table.MousePosition -> Model -> ( Model, Cmd Msg )
 update resizeOp mousePosition model =
     let
+        {- use the updated mouse coords if valid, otherwise use
+           the most recently stored valid resizeOp (passed in)
+        -}
         newResizeOp =
-            { resizeOp | currentPosition = mousePosition }
-
-        newWidth =
-            Model.Table.calculateNewColumnWidth newResizeOp model.config.torrentTable
-
-        -- don't use newResizeOp if the column would be too narrow
-        valid =
-            newWidth.px > Model.Table.minimumColumnPx
-
-        validResizeOp =
-            if valid then
-                newResizeOp
-
-            else
-                resizeOp
-
-        newConfig =
-            model.config
-                |> Model.Config.setTorrentTable
-                    (Model.Table.setColumnWidth
-                        validResizeOp.attribute
-                        newWidth
-                        model.config.torrentTable
-                    )
+            Model.Table.updateResizeOpIfValid resizeOp mousePosition
+                |> Maybe.withDefault resizeOp
     in
     model
-        |> Model.setTorrentAttributeResizeOp Nothing
-        |> Model.setConfig newConfig
+        |> Model.setResizeOp Nothing
+        |> Model.setConfig (newConfig newResizeOp model.config)
         |> Model.addCmd Cmd.none
+
+
+newConfig : Model.Table.ResizeOp -> Config -> Config
+newConfig resizeOp config =
+    -- TODO: remove torrentTable assumption
+    config
+        |> Model.Config.setTorrentTable
+            (Model.Table.setColumnWidth
+                resizeOp.attribute
+                resizeOp.currentWidth
+                config.torrentTable
+            )

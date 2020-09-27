@@ -13,7 +13,9 @@ type Attribute
 
 type alias ResizeOp =
     { attribute : Attribute
+    , startWidth : ColumnWidth
     , startPosition : MousePosition
+    , currentWidth : ColumnWidth
     , currentPosition : MousePosition
     }
 
@@ -79,7 +81,7 @@ defaultColumnWidth attribute =
 
 
 
--- COLUMN WIDTHS
+-- COLUMN WIDTHS / RESIZING
 
 
 minimumColumnPx : Float
@@ -138,23 +140,40 @@ setColumnWidthAuto attribute config =
     config |> setColumnWidths newDict
 
 
-calculateNewColumnWidth : ResizeOp -> Config -> ColumnWidth
-calculateNewColumnWidth resizeOp config =
+calculateNewColumnWidth : ResizeOp -> ColumnWidth
+calculateNewColumnWidth { startWidth, currentPosition, startPosition } =
     let
-        oldWidth =
-            getColumnWidth config.columnWidths resizeOp.attribute
-
         newPx =
-            oldWidth.px + resizeOp.currentPosition.x - resizeOp.startPosition.x
+            startWidth.px + currentPosition.x - startPosition.x
     in
     -- prevent columns going below 20px
     case List.maximum [ minimumColumnPx, newPx ] of
         Just max ->
-            { oldWidth | px = max }
+            { startWidth | px = max }
 
         Nothing ->
             -- notreachable, minimumColumnPx is never unset
             { px = minimumColumnPx, auto = False }
+
+
+updateResizeOpIfValid : ResizeOp -> MousePosition -> Maybe ResizeOp
+updateResizeOpIfValid resizeOp mousePosition =
+    let
+        newResizeOp =
+            { resizeOp | currentPosition = mousePosition }
+
+        newWidth =
+            calculateNewColumnWidth newResizeOp
+
+        -- stop the dragbar moving any further if the column would be too narrow
+        valid =
+            newWidth.px > minimumColumnPx
+    in
+    if valid then
+        Just { newResizeOp | currentWidth = newWidth }
+
+    else
+        Nothing
 
 
 

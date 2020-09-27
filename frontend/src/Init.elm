@@ -23,7 +23,7 @@ init flags =
       , speedChartHover = []
       , messages = []
       , preferencesVisible = False
-      , torrentAttributeResizeOp = Nothing
+      , resizeOp = Nothing
       , timezone = resolveTimezone config
       }
     , Cmd.none

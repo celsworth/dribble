@@ -8,8 +8,7 @@ import Model.Table
 
 view : Model -> Html Msg
 view model =
-    Maybe.map dragbar model.torrentAttributeResizeOp
-        |> Maybe.withDefault (text "")
+    Maybe.map dragbar model.resizeOp |> Maybe.withDefault (text "")
 
 
 dragbar : Model.Table.ResizeOp -> Html Msg

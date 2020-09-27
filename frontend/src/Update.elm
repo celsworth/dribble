@@ -9,6 +9,7 @@ import Model.Message exposing (addMessage)
 import Model.Table
 import Model.WebsocketData
 import Ports
+import Update.ColumnWidthReceived
 import Update.EndResizeOp
 import Update.ProcessTorrents
 import Update.ProcessTraffic
@@ -24,7 +25,6 @@ import Update.ToggleTorrentAttributeVisibility
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        -- rename this to MouseDown and handle the button in a method here
         MouseDown attribute pos button keys ->
             model |> handleMouseDown attribute pos button keys
 
@@ -35,7 +35,7 @@ update msg model =
             model |> Update.EndResizeOp.update resizeOp pos
 
         GotColumnWidth attribute result ->
-            ( setColumnWidth model attribute result, Cmd.none )
+            model |> Update.ColumnWidthReceived.update attribute result
 
         RefreshClicked ->
             model |> addCmd Ports.getFullTorrents
@@ -84,30 +84,6 @@ handleMouseDown attribute mousePosition mouseButton mouseKeys model =
 
             _ ->
                 ( model, Cmd.none )
-
-
-setColumnWidth : Model -> Model.Table.Attribute -> Result Browser.Dom.Error Browser.Dom.Element -> Model
-setColumnWidth model attribute result =
-    --- rename this to something better
-    case result of
-        Ok r ->
-            Model.setConfig
-                (Model.Config.setTorrentTable
-                    (Model.Table.setColumnWidth
-                        attribute
-                        { px = r.element.width, auto = False }
-                        model.config.torrentTable
-                    )
-                    model.config
-                )
-                model
-
-        Err r ->
-            let
-                _ =
-                    Debug.log "ERR: " r
-            in
-            model
 
 
 processWebsocketResponse : Result JD.Error Model.WebsocketData.Data -> Model -> ( Model, Cmd Msg )
