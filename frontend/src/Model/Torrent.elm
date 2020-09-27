@@ -16,6 +16,7 @@ type Sort
 
 type Status
     = Seeding
+    | Errored
     | Downloading
     | Paused
     | Stopped
@@ -65,6 +66,7 @@ type alias Torrent =
     , isOpen : Bool
     , isActive : Bool
     , hashing : HashingStatus
+    , message : String
     , seedersConnected : Int
     , seedersTotal : Int
     , peersConnected : Int
@@ -262,21 +264,23 @@ decoder =
         |> custom (D.index 11 intToBoolDecoder)
         -- hashing
         |> custom (D.index 12 intToHashingStatusDecoder)
+        -- message
+        |> custom (D.index 13 D.string)
         -- seedersConnected
-        |> custom (D.index 13 D.int)
+        |> custom (D.index 14 D.int)
         -- seedersTotal
-        |> custom (D.index 14 D.string)
+        |> custom (D.index 15 D.string)
         -- peersConnected
-        |> custom (D.index 15 D.int)
+        |> custom (D.index 16 D.int)
         -- peersTotal
-        |> custom (D.index 16 D.string)
-        -- label
         |> custom (D.index 17 D.string)
+        -- label
+        |> custom (D.index 18 D.string)
         |> Pipeline.resolve
 
 
-internalDecoder : String -> String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Bool -> Bool -> HashingStatus -> Int -> String -> Int -> String -> String -> D.Decoder Torrent
-internalDecoder hash name size creationTime startedTime finishedTime downloadedBytes downloadRate uploadedBytes uploadRate isOpen isActive hashing seedersConnected seedersTotal peersConnected peersTotal label =
+internalDecoder : String -> String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Bool -> Bool -> HashingStatus -> String -> Int -> String -> Int -> String -> String -> D.Decoder Torrent
+internalDecoder hash name size creationTime startedTime finishedTime downloadedBytes downloadRate uploadedBytes uploadRate isOpen isActive hashing message seedersConnected seedersTotal peersConnected peersTotal label =
     let
         -- after decoder is done, we can add further internal fields here
         donePercent =
@@ -286,22 +290,7 @@ internalDecoder hash name size creationTime startedTime finishedTime downloadedB
             downloadedBytes == size
 
         status =
-            if hashing /= NotHashing then
-                Hashing
-
-            else
-                case ( isOpen, isActive, done ) of
-                    ( True, True, True ) ->
-                        Seeding
-
-                    ( True, True, False ) ->
-                        Downloading
-
-                    ( True, False, _ ) ->
-                        Paused
-
-                    ( False, _, _ ) ->
-                        Stopped
+            resolveStatus message hashing isOpen isActive done
     in
     D.succeed <|
         Torrent
@@ -319,12 +308,39 @@ internalDecoder hash name size creationTime startedTime finishedTime downloadedB
             isOpen
             isActive
             hashing
+            message
             seedersConnected
             (Maybe.withDefault 0 <| String.toInt seedersTotal)
             peersConnected
             (Maybe.withDefault 0 <| String.toInt peersTotal)
             label
             donePercent
+
+
+resolveStatus : String -> HashingStatus -> Bool -> Bool -> Bool -> Status
+resolveStatus message hashing isOpen isActive done =
+    case hashing of
+        NotHashing ->
+            case message of
+                "" ->
+                    case ( isOpen, isActive, done ) of
+                        ( True, True, True ) ->
+                            Seeding
+
+                        ( True, True, False ) ->
+                            Downloading
+
+                        ( True, False, _ ) ->
+                            Paused
+
+                        ( False, _, _ ) ->
+                            Stopped
+
+                _ ->
+                    Errored
+
+        _ ->
+            Hashing
 
 
 intToBoolDecoder : D.Decoder Bool
@@ -379,17 +395,20 @@ statusToInt status =
         Seeding ->
             0
 
-        Downloading ->
+        Errored ->
             1
 
-        Paused ->
+        Downloading ->
             2
 
-        Stopped ->
+        Paused ->
             3
 
-        Hashing ->
+        Stopped ->
             4
+
+        Hashing ->
+            5
 
 
 

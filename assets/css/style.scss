@@ -82,7 +82,10 @@ body {
     color: #181;
   }
 
-  // downloading
+  &.errored {
+    color: #911;
+  }
+
   &.downloading {
     color: #38e;
   }

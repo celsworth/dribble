@@ -264,6 +264,9 @@ torrentStatusCell torrent =
         Model.Torrent.Seeding ->
             torrentStatusIcon "seeding" "fa-arrow-up"
 
+        Model.Torrent.Errored ->
+            torrentStatusIcon "errored" "fa-times"
+
         Model.Torrent.Downloading ->
             torrentStatusIcon "downloading" "fa-arrow-down"
 
