@@ -30,20 +30,20 @@ class Dribble < Sinatra::Application
   def rtorrent_cmd(input, store:)
     rtorrent = Rtorrent.new(settings.rtorrent_host, 5000)
 
-    store_key = input['load'] || input['save']
-    command = input['command'] || (store_key && store[store_key][:command])
+    key = input['load'] || input['save']
+    command = input['command'] || (key && store[key][:command])
 
     return { error: 'no command, what to do?' } unless command
 
     data = rtorrent.call(*command)
 
     new = if input['load']
-            diff_arrays(store[store_key][:data], data)
+            diff_arrays(store[key][:data], data)
           else
             data
           end
 
-    store[store_key] = { command: command, data: data } if store_key
+    store[key] = { command: command, data: data } if key
 
     { data: new }
   rescue StandardError => e
