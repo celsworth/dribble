@@ -9,9 +9,7 @@ import Html.Keyed as Keyed
 import Html.Lazy
 import List
 import Model exposing (..)
-import Model.Config exposing (ColumnWidths, Config)
-import Model.ResizeOp
-import Model.Shared
+import Model.Config exposing (Config)
 import Model.Table
 import Model.Torrent exposing (Torrent)
 import Round
@@ -101,7 +99,7 @@ headerCellContentDivAttributes model attribute =
         maybeWidthAttr =
             case fixedOrFluid model.config of
                 Model.Table.Fixed ->
-                    thWidthAttribute model.config.columnWidths attribute
+                    thWidthAttribute model.config.torrentTable.columnWidths attribute
 
                 Model.Table.Fluid ->
                     Nothing
@@ -127,8 +125,8 @@ headerCellResizeHandleAttributes _ attribute =
     [ class "resize-handle"
     , Html.Events.Extra.Mouse.onDown
         (\e ->
-            TorrentAttributeResizeStarted
-                (Model.ResizeOp.TorrentAttribute attribute)
+            MouseDown
+                (Model.Table.TorrentAttribute attribute)
                 (reconstructClientPos e)
                 e.button
                 e.keys
@@ -219,7 +217,7 @@ cellAttributes config attribute =
         maybeWidthAttr =
             case fixedOrFluid config of
                 Model.Table.Fixed ->
-                    tdWidthAttribute config.columnWidths attribute
+                    tdWidthAttribute config.torrentTable.columnWidths attribute
 
                 Model.Table.Fluid ->
                     Nothing
@@ -323,22 +321,22 @@ donePercentCell torrent =
 -}
 
 
-thWidthAttribute : ColumnWidths -> Model.Torrent.Attribute -> Maybe (Attribute Msg)
+thWidthAttribute : Model.Table.ColumnWidths -> Model.Torrent.Attribute -> Maybe (Attribute Msg)
 thWidthAttribute columnWidths attribute =
     widthAttribute columnWidths attribute 10
 
 
-tdWidthAttribute : ColumnWidths -> Model.Torrent.Attribute -> Maybe (Attribute Msg)
+tdWidthAttribute : Model.Table.ColumnWidths -> Model.Torrent.Attribute -> Maybe (Attribute Msg)
 tdWidthAttribute columnWidths attribute =
     widthAttribute columnWidths attribute 8
 
 
-widthAttribute : ColumnWidths -> Model.Torrent.Attribute -> Float -> Maybe (Attribute Msg)
+widthAttribute : Model.Table.ColumnWidths -> Model.Torrent.Attribute -> Float -> Maybe (Attribute Msg)
 widthAttribute columnWidths attribute subtract =
     let
         width =
-            Model.Shared.getColumnWidth columnWidths
-                (Model.ResizeOp.TorrentAttribute attribute)
+            Model.Table.getColumnWidth columnWidths
+                (Model.Table.TorrentAttribute attribute)
 
         { auto, px } =
             width

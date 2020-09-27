@@ -3,7 +3,7 @@ module View.DragBar exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Model exposing (..)
-import Model.ResizeOp exposing (ResizeOp)
+import Model.Table
 
 
 view : Model -> Html Msg
@@ -12,12 +12,12 @@ view model =
         |> Maybe.withDefault (text "")
 
 
-dragbar : ResizeOp -> Html Msg
+dragbar : Model.Table.ResizeOp -> Html Msg
 dragbar resizeOp =
     div (attributes resizeOp) []
 
 
-attributes : ResizeOp -> List (Attribute Msg)
+attributes : Model.Table.ResizeOp -> List (Attribute Msg)
 attributes resizeOp =
     [ id "dragbar"
     , class "visible"

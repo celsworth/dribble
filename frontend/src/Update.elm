@@ -1,45 +1,38 @@
 module Update exposing (update)
 
 import Browser.Dom
+import Html.Events.Extra.Mouse as Mouse
 import Json.Decode as JD
 import Model exposing (..)
+import Model.Config
 import Model.Message exposing (addMessage)
-import Model.ResizeOp
-import Model.Shared
-import Model.Torrent
+import Model.Table
 import Model.WebsocketData
 import Ports
-import Update.MouseHandlers
+import Update.EndResizeOp
 import Update.ProcessTorrents
 import Update.ProcessTraffic
 import Update.ProcessWebsocketStatusUpdated
+import Update.ResizeOpMoved
 import Update.SaveConfig
+import Update.SetColumnAutoWidth
 import Update.SetSortBy
+import Update.StartResizeOp
 import Update.ToggleTorrentAttributeVisibility
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        TorrentAttributeResizeStarted attribute pos button keys ->
-            Update.MouseHandlers.processTorrentAttributeResizeStarted
-                model
-                attribute
-                pos
-                button
-                keys
+        -- rename this to MouseDown and handle the button in a method here
+        MouseDown attribute pos button keys ->
+            model |> handleMouseDown attribute pos button keys
 
         TorrentAttributeResized resizeOp pos ->
-            Update.MouseHandlers.processTorrentAttributeResized
-                model
-                resizeOp
-                pos
+            model |> Update.ResizeOpMoved.update resizeOp pos
 
         TorrentAttributeResizeEnded resizeOp pos ->
-            Update.MouseHandlers.processTorrentAttributeResizeEnded
-                model
-                resizeOp
-                pos
+            model |> Update.EndResizeOp.update resizeOp pos
 
         GotColumnWidth attribute result ->
             ( setColumnWidth model attribute result, Cmd.none )
@@ -78,14 +71,36 @@ update msg model =
             model |> Update.ProcessWebsocketStatusUpdated.update result
 
 
-setColumnWidth : Model -> Model.ResizeOp.Attribute -> Result Browser.Dom.Error Browser.Dom.Element -> Model
+handleMouseDown : Model.Table.Attribute -> Model.Table.MousePosition -> Mouse.Button -> Mouse.Keys -> Model -> ( Model, Cmd Msg )
+handleMouseDown attribute mousePosition mouseButton mouseKeys model =
+    if mouseKeys.alt then
+        -- should be in right click menu
+        Update.SetColumnAutoWidth.update attribute model
+
+    else
+        case mouseButton of
+            Mouse.MainButton ->
+                Update.StartResizeOp.update attribute mousePosition model
+
+            _ ->
+                ( model, Cmd.none )
+
+
+setColumnWidth : Model -> Model.Table.Attribute -> Result Browser.Dom.Error Browser.Dom.Element -> Model
 setColumnWidth model attribute result =
+    --- rename this to something better
     case result of
         Ok r ->
-            Model.Shared.setColumnWidth
+            Model.setConfig
+                (Model.Config.setTorrentTable
+                    (Model.Table.setColumnWidth
+                        attribute
+                        { px = r.element.width, auto = False }
+                        model.config.torrentTable
+                    )
+                    model.config
+                )
                 model
-                attribute
-                { px = r.element.width, auto = False }
 
         Err r ->
             let

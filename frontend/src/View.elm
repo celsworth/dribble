@@ -6,7 +6,7 @@ import Html.Events exposing (onClick)
 import Html.Events.Extra.Mouse
 import Model exposing (..)
 import Model.Message exposing (Message)
-import Model.ResizeOp exposing (ResizeOp)
+import Model.Table
 import Model.Torrent
 import View.Preferences
 import View.SpeedChart
@@ -37,7 +37,7 @@ viewAttributes model =
     List.append [] resizingAttributes
 
 
-viewAttributesForResizeOp : ResizeOp -> List (Attribute Msg)
+viewAttributesForResizeOp : Model.Table.ResizeOp -> List (Attribute Msg)
 viewAttributesForResizeOp resizeOp =
     [ class "resizing-x"
     , Html.Events.Extra.Mouse.onUp
@@ -47,7 +47,7 @@ viewAttributesForResizeOp resizeOp =
     ]
 
 
-reconstructClientPos : { e | clientPos : ( Float, Float ) } -> Model.ResizeOp.MousePosition
+reconstructClientPos : { e | clientPos : ( Float, Float ) } -> Model.Table.MousePosition
 reconstructClientPos event =
     {- this mess converts (x, y) to { x: x, y: y } -}
     let

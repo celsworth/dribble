@@ -1,6 +1,5 @@
 module Model.Config exposing (..)
 
-import Dict exposing (Dict)
 import Json.Decode as D
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as E
@@ -9,23 +8,12 @@ import Model.Torrent
 import Utils.Filesize
 
 
-type alias ColumnWidths =
-    Dict String ColumnWidth
-
-
-type alias ColumnWidth =
-    { px : Float
-    , auto : Bool
-    }
-
-
 type alias Config =
     { refreshDelay : Int
     , sortBy : Model.Torrent.Sort
     , torrentTable : Model.Table.Config
     , visibleTorrentAttributes : List Model.Torrent.Attribute
     , torrentAttributeOrder : List Model.Torrent.Attribute
-    , columnWidths : ColumnWidths
     , hSizeSettings : Utils.Filesize.Settings
     , hSpeedSettings : Utils.Filesize.Settings
     , timezone : String
@@ -35,6 +23,11 @@ type alias Config =
 setSortBy : Model.Torrent.Sort -> Config -> Config
 setSortBy new config =
     { config | sortBy = new }
+
+
+setTorrentTable : Model.Table.Config -> Config -> Config
+setTorrentTable new config =
+    { config | torrentTable = new }
 
 
 setVisibleTorrentAttributes : List Model.Torrent.Attribute -> Config -> Config
@@ -53,7 +46,6 @@ default =
     , torrentTable = Model.Table.defaultConfig
     , visibleTorrentAttributes = defaultTorrentAttributes
     , torrentAttributeOrder = defaultTorrentAttributes
-    , columnWidths = defaultColumnWidths
     , hSizeSettings = { units = Utils.Filesize.Base2, decimalPlaces = 2, decimalSeparator = "." }
     , hSpeedSettings = { units = Utils.Filesize.Base10, decimalPlaces = 1, decimalSeparator = "." }
     , timezone = "Europe/London"
@@ -85,18 +77,6 @@ defaultTorrentAttributes =
     ]
 
 
-defaultColumnWidths : ColumnWidths
-defaultColumnWidths =
-    Dict.fromList <|
-        List.map defaultColumnWidth defaultTorrentAttributes
-
-
-defaultColumnWidth : Model.Torrent.Attribute -> ( String, ColumnWidth )
-defaultColumnWidth attribute =
-    -- naive, TODO: set some better defaults per column
-    ( Model.Torrent.attributeToKey attribute, { px = 50, auto = False } )
-
-
 
 --- JSON ENCODER
 
@@ -109,7 +89,6 @@ encode config =
         , ( "torrentTable", Model.Table.encode config.torrentTable )
         , ( "visibleTorrentAttributes", encodeTorrentAttributeList config.visibleTorrentAttributes )
         , ( "torrentAttributeOrder", encodeTorrentAttributeList config.torrentAttributeOrder )
-        , ( "columnWidths", encodeColumnWidths config.columnWidths )
         , ( "hSizeSettings", Utils.Filesize.encode config.hSizeSettings )
         , ( "hSpeedSettings", Utils.Filesize.encode config.hSpeedSettings )
         , ( "timezone", E.string config.timezone )
@@ -144,21 +123,6 @@ encodeTorrentAttributeList torrentAttributes =
 encodeTorrentAttribute : Model.Torrent.Attribute -> E.Value
 encodeTorrentAttribute attribute =
     E.string <| Model.Torrent.attributeToKey attribute
-
-
-encodeColumnWidths : ColumnWidths -> E.Value
-encodeColumnWidths columnWidths =
-    Dict.toList columnWidths
-        |> List.map (\( k, v ) -> ( k, encodeColumnWidth v ))
-        |> E.object
-
-
-encodeColumnWidth : ColumnWidth -> E.Value
-encodeColumnWidth columnWidth =
-    E.object
-        [ ( "px", E.float columnWidth.px )
-        , ( "auto", E.bool columnWidth.auto )
-        ]
 
 
 
@@ -213,9 +177,6 @@ decoder =
         |> optional "torrentAttributeOrder"
             torrentAttributeListDecoder
             default.torrentAttributeOrder
-        |> optional "columnWidths"
-            columnWidthsDecoder
-            default.columnWidths
         |> optional "hSizeSettings"
             Utils.Filesize.decoder
             default.hSizeSettings
@@ -261,15 +222,3 @@ torrentAttributeDecoder =
             (\input ->
                 D.succeed <| Model.Torrent.keyToAttribute input
             )
-
-
-columnWidthsDecoder : D.Decoder ColumnWidths
-columnWidthsDecoder =
-    D.dict columnWidthDecoder
-
-
-columnWidthDecoder : D.Decoder ColumnWidth
-columnWidthDecoder =
-    D.succeed ColumnWidth
-        |> required "px" D.float
-        |> required "auto" D.bool

@@ -78,6 +78,31 @@ type alias Torrent =
     }
 
 
+defaultAttributes : List Attribute
+defaultAttributes =
+    [ Status
+    , Name
+    , Size
+    , DonePercent
+    , CreationTime
+    , StartedTime
+    , FinishedTime
+    , DownloadedBytes
+    , DownloadRate
+    , UploadedBytes
+    , UploadRate
+    , Seeders
+
+    --, SeedersConnected
+    --, SeedersTotal
+    , Peers
+
+    --, PeersConnected
+    --, PeersTotal
+    , Label
+    ]
+
+
 
 -- SORTING
 

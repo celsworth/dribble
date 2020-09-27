@@ -6,8 +6,8 @@ import Html.Events.Extra.Mouse as Mouse
 import Json.Decode as JD
 import Model.Config exposing (Config)
 import Model.Message exposing (Message)
-import Model.ResizeOp exposing (ResizeOp)
 import Model.SpeedChart
+import Model.Table
 import Model.Torrent exposing (Torrent)
 import Model.Traffic exposing (Traffic)
 import Model.WebsocketData
@@ -15,10 +15,10 @@ import Time
 
 
 type Msg
-    = TorrentAttributeResizeStarted Model.ResizeOp.Attribute Model.ResizeOp.MousePosition Mouse.Button Mouse.Keys
-    | TorrentAttributeResized ResizeOp Model.ResizeOp.MousePosition
-    | TorrentAttributeResizeEnded ResizeOp Model.ResizeOp.MousePosition
-    | GotColumnWidth Model.ResizeOp.Attribute (Result Browser.Dom.Error Browser.Dom.Element)
+    = MouseDown Model.Table.Attribute Model.Table.MousePosition Mouse.Button Mouse.Keys
+    | TorrentAttributeResized Model.Table.ResizeOp Model.Table.MousePosition
+    | TorrentAttributeResizeEnded Model.Table.ResizeOp Model.Table.MousePosition
+    | GotColumnWidth Model.Table.Attribute (Result Browser.Dom.Error Browser.Dom.Element)
     | RefreshClicked
     | SaveConfigClicked
     | ShowPreferencesClicked
@@ -42,7 +42,7 @@ type alias Model =
     , speedChartHover : List Model.SpeedChart.DataSeries
     , messages : List Message
     , preferencesVisible : Bool
-    , torrentAttributeResizeOp : Maybe ResizeOp
+    , torrentAttributeResizeOp : Maybe Model.Table.ResizeOp
     , timezone : Time.Zone
     }
 
@@ -75,6 +75,11 @@ setSpeedChartHover new model =
 setPreferencesVisible : Bool -> Model -> Model
 setPreferencesVisible new model =
     { model | preferencesVisible = new }
+
+
+setTorrentAttributeResizeOp : Maybe Model.Table.ResizeOp -> Model -> Model
+setTorrentAttributeResizeOp new model =
+    { model | torrentAttributeResizeOp = new }
 
 
 addCmd : Cmd Msg -> Model -> ( Model, Cmd Msg )
