@@ -75,9 +75,13 @@ errorDecoder =
 
 torrentListDecoder : D.Decoder Model.WebsocketData.Data
 torrentListDecoder =
-    D.map Model.WebsocketData.TorrentsReceived <| Model.Torrent.listDecoder
+    D.map Model.WebsocketData.TorrentsReceived <|
+        D.field "data" <|
+            Model.Torrent.listDecoder
 
 
 trafficDecoder : D.Decoder Model.WebsocketData.Data
 trafficDecoder =
-    D.map Model.WebsocketData.TrafficReceived Model.Traffic.decoder
+    D.map Model.WebsocketData.TrafficReceived <|
+        D.field "data" <|
+            Model.Traffic.decoder

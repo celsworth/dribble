@@ -227,8 +227,7 @@ maybeReverse direction order =
 
 listDecoder : D.Decoder (List Torrent)
 listDecoder =
-    D.field "data" <|
-        D.list decoder
+    D.list decoder
 
 
 decoder : D.Decoder Torrent
