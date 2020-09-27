@@ -2,6 +2,7 @@ module Update.ProcessWebsocketStatusUpdated exposing (update)
 
 import Json.Decode as JD
 import Model exposing (..)
+import Model.Message
 import Ports
 
 
@@ -30,7 +31,7 @@ update result model =
                 newMessages =
                     List.append model.messages
                         [ { message = JD.errorToString errStr
-                          , severity = ErrorSeverity
+                          , severity = Model.Message.Error
                           }
                         ]
             in

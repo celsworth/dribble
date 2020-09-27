@@ -1,19 +1,56 @@
-module Coders.Config exposing (..)
+module Model.Config exposing (..)
 
-import Coders.FilesizeSettings
-import Dict
+import Dict exposing (Dict)
 import Json.Decode as D
-import Json.Decode.Pipeline as Pipeline exposing (optional, required)
+import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as E
-import Model exposing (..)
-import Model.Utils.TorrentAttribute
+import Model.Table
+import Model.Torrent
 import Utils.Filesize
+
+
+type alias ColumnWidths =
+    Dict String ColumnWidth
+
+
+type alias ColumnWidth =
+    { px : Float
+    , auto : Bool
+    }
+
+
+type alias Config =
+    { refreshDelay : Int
+    , sortBy : Model.Torrent.Sort
+    , torrentTable : Model.Table.Config
+    , visibleTorrentAttributes : List Model.Torrent.Attribute
+    , torrentAttributeOrder : List Model.Torrent.Attribute
+    , columnWidths : ColumnWidths
+    , hSizeSettings : Utils.Filesize.Settings
+    , hSpeedSettings : Utils.Filesize.Settings
+    , timezone : String
+    }
+
+
+setSortBy : Model.Torrent.Sort -> Config -> Config
+setSortBy new config =
+    { config | sortBy = new }
+
+
+setVisibleTorrentAttributes : List Model.Torrent.Attribute -> Config -> Config
+setVisibleTorrentAttributes new config =
+    { config | visibleTorrentAttributes = new }
+
+
+
+-- JSON
 
 
 default : Config
 default =
     { refreshDelay = 5
-    , sortBy = SortBy UploadRate Desc
+    , sortBy = Model.Torrent.SortBy Model.Torrent.UploadRate Model.Torrent.Desc
+    , torrentTable = Model.Table.defaultConfig
     , visibleTorrentAttributes = defaultTorrentAttributes
     , torrentAttributeOrder = defaultTorrentAttributes
     , columnWidths = defaultColumnWidths
@@ -23,28 +60,28 @@ default =
     }
 
 
-defaultTorrentAttributes : List TorrentAttribute
+defaultTorrentAttributes : List Model.Torrent.Attribute
 defaultTorrentAttributes =
-    [ TorrentStatus
-    , Name
-    , Size
-    , DonePercent
-    , CreationTime
-    , StartedTime
-    , FinishedTime
-    , DownloadedBytes
-    , DownloadRate
-    , UploadedBytes
-    , UploadRate
-    , Seeders
+    [ Model.Torrent.Status
+    , Model.Torrent.Name
+    , Model.Torrent.Size
+    , Model.Torrent.DonePercent
+    , Model.Torrent.CreationTime
+    , Model.Torrent.StartedTime
+    , Model.Torrent.FinishedTime
+    , Model.Torrent.DownloadedBytes
+    , Model.Torrent.DownloadRate
+    , Model.Torrent.UploadedBytes
+    , Model.Torrent.UploadRate
+    , Model.Torrent.Seeders
 
     --, SeedersConnected
     --, SeedersTotal
-    , Peers
+    , Model.Torrent.Peers
 
     --, PeersConnected
     --, PeersTotal
-    , Label
+    , Model.Torrent.Label
     ]
 
 
@@ -54,17 +91,14 @@ defaultColumnWidths =
         List.map defaultColumnWidth defaultTorrentAttributes
 
 
-defaultColumnWidth : TorrentAttribute -> ( String, ColumnWidth )
+defaultColumnWidth : Model.Torrent.Attribute -> ( String, ColumnWidth )
 defaultColumnWidth attribute =
     -- naive, TODO: set some better defaults per column
-    ( Model.Utils.TorrentAttribute.attributeToKey
-        attribute
-    , { px = 50, auto = False }
-    )
+    ( Model.Torrent.attributeToKey attribute, { px = 50, auto = False } )
 
 
 
---- ENODERS
+--- JSON ENCODER
 
 
 encode : Config -> E.Value
@@ -72,43 +106,44 @@ encode config =
     E.object
         [ ( "refreshDelay", E.int config.refreshDelay )
         , ( "sortBy", encodeSortBy config.sortBy )
+        , ( "torrentTable", Model.Table.encode config.torrentTable )
         , ( "visibleTorrentAttributes", encodeTorrentAttributeList config.visibleTorrentAttributes )
         , ( "torrentAttributeOrder", encodeTorrentAttributeList config.torrentAttributeOrder )
         , ( "columnWidths", encodeColumnWidths config.columnWidths )
-        , ( "hSizeSettings", Coders.FilesizeSettings.encode config.hSizeSettings )
-        , ( "hSpeedSettings", Coders.FilesizeSettings.encode config.hSpeedSettings )
+        , ( "hSizeSettings", Utils.Filesize.encode config.hSizeSettings )
+        , ( "hSpeedSettings", Utils.Filesize.encode config.hSpeedSettings )
         , ( "timezone", E.string config.timezone )
         ]
 
 
-encodeSortBy : Sort -> E.Value
+encodeSortBy : Model.Torrent.Sort -> E.Value
 encodeSortBy sortBy =
     case sortBy of
-        SortBy column direction ->
+        Model.Torrent.SortBy column direction ->
             E.object
                 [ ( "column", encodeTorrentAttribute column )
                 , ( "direction", encodeSortDirection direction )
                 ]
 
 
-encodeSortDirection : SortDirection -> E.Value
+encodeSortDirection : Model.Torrent.SortDirection -> E.Value
 encodeSortDirection direction =
     case direction of
-        Asc ->
+        Model.Torrent.Asc ->
             E.string "asc"
 
-        Desc ->
+        Model.Torrent.Desc ->
             E.string "desc"
 
 
-encodeTorrentAttributeList : List TorrentAttribute -> E.Value
+encodeTorrentAttributeList : List Model.Torrent.Attribute -> E.Value
 encodeTorrentAttributeList torrentAttributes =
     E.list encodeTorrentAttribute torrentAttributes
 
 
-encodeTorrentAttribute : TorrentAttribute -> E.Value
+encodeTorrentAttribute : Model.Torrent.Attribute -> E.Value
 encodeTorrentAttribute attribute =
-    E.string <| Model.Utils.TorrentAttribute.attributeToKey attribute
+    E.string <| Model.Torrent.attributeToKey attribute
 
 
 encodeColumnWidths : ColumnWidths -> E.Value
@@ -148,7 +183,7 @@ encodeColumnWidth columnWidth =
            ]
 
 -}
---- DECODERS
+--- JSON DECODERS
 
 
 decodeOrDefault : D.Value -> Config
@@ -171,6 +206,7 @@ decoder =
     D.succeed Config
         |> optional "refreshDelay" D.int default.refreshDelay
         |> optional "sortBy" sortByDecoder default.sortBy
+        |> optional "torrentTable" Model.Table.decoder default.torrentTable
         |> optional "visibleTorrentAttributes"
             torrentAttributeListDecoder
             default.visibleTorrentAttributes
@@ -181,49 +217,49 @@ decoder =
             columnWidthsDecoder
             default.columnWidths
         |> optional "hSizeSettings"
-            Coders.FilesizeSettings.decoder
+            Utils.Filesize.decoder
             default.hSizeSettings
         |> optional "hSpeedSettings"
-            Coders.FilesizeSettings.decoder
+            Utils.Filesize.decoder
             default.hSpeedSettings
         |> optional "timezone" D.string default.timezone
 
 
-torrentAttributeListDecoder : D.Decoder (List TorrentAttribute)
+torrentAttributeListDecoder : D.Decoder (List Model.Torrent.Attribute)
 torrentAttributeListDecoder =
     D.list torrentAttributeDecoder
 
 
-sortByDecoder : D.Decoder Sort
+sortByDecoder : D.Decoder Model.Torrent.Sort
 sortByDecoder =
-    D.succeed SortBy
+    D.succeed Model.Torrent.SortBy
         |> required "column" torrentAttributeDecoder
         |> required "direction" sortDirectionDecoder
 
 
-sortDirectionDecoder : D.Decoder SortDirection
+sortDirectionDecoder : D.Decoder Model.Torrent.SortDirection
 sortDirectionDecoder =
     D.string
         |> D.andThen
             (\input ->
                 case input of
                     "asc" ->
-                        D.succeed Asc
+                        D.succeed Model.Torrent.Asc
 
                     "desc" ->
-                        D.succeed Desc
+                        D.succeed Model.Torrent.Desc
 
                     _ ->
                         D.fail <| "unknown direction" ++ input
             )
 
 
-torrentAttributeDecoder : D.Decoder TorrentAttribute
+torrentAttributeDecoder : D.Decoder Model.Torrent.Attribute
 torrentAttributeDecoder =
     D.string
         |> D.andThen
             (\input ->
-                D.succeed <| Model.Utils.TorrentAttribute.keyToAttribute input
+                D.succeed <| Model.Torrent.keyToAttribute input
             )
 
 

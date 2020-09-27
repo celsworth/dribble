@@ -12,7 +12,6 @@ import LineChart.Axis.Range
 import LineChart.Axis.Tick
 import LineChart.Axis.Ticks
 import LineChart.Axis.Title
-import LineChart.Axis.Values
 import LineChart.Colors
 import LineChart.Container
 import LineChart.Coordinate
@@ -25,6 +24,8 @@ import LineChart.Legends
 import LineChart.Line
 import List.Extra
 import Model exposing (..)
+import Model.SpeedChart exposing (..)
+import Model.Traffic exposing (Traffic)
 import Time
 import Utils.Filesize
 
@@ -79,7 +80,7 @@ newerThan limit traffic =
         Nothing
 
 
-toSpeedChartDataSeries : (Traffic -> Int) -> Traffic -> SpeedChartDataSeries
+toSpeedChartDataSeries : (Traffic -> Int) -> Traffic -> DataSeries
 toSpeedChartDataSeries method traffic =
     { speed = method traffic
 
@@ -93,7 +94,7 @@ filesizeSettings model =
     model.config.hSpeedSettings
 
 
-config : Model -> LineChart.Config SpeedChartDataSeries Msg
+config : Model -> LineChart.Config DataSeries Msg
 config model =
     { y = yAxisConfig model
     , x = xAxisConfig model
@@ -114,12 +115,12 @@ config model =
     }
 
 
-formatHoverX : Model -> SpeedChartDataSeries -> String
+formatHoverX : Model -> DataSeries -> String
 formatHoverX model ds =
     formatTime model (Time.millisToPosix ds.time)
 
 
-formatHoverY : Model -> SpeedChartDataSeries -> String
+formatHoverY : Model -> DataSeries -> String
 formatHoverY model ds =
     Utils.Filesize.formatWith (filesizeSettings model) ds.speed ++ "/s"
 
@@ -139,7 +140,7 @@ containerConfig =
 --- Y AXIS
 
 
-yAxisConfig : Model -> LineChart.Axis.Config SpeedChartDataSeries msg
+yAxisConfig : Model -> LineChart.Axis.Config DataSeries msg
 yAxisConfig model =
     LineChart.Axis.custom
         { title = LineChart.Axis.Title.default ""
@@ -152,12 +153,7 @@ yAxisConfig model =
 
 
 yAxisRange : Model -> LineChart.Coordinate.Range -> LineChart.Coordinate.Range
-yAxisRange model { min, max } =
-    {-
-       Doesn't work very well, ticks drawn do not account for the updated
-       range, and working out tick spacing manually looks difficult.
-       One to try later.
-    -}
+yAxisRange model { max } =
     let
         max2 =
             if max < 5000 then
@@ -172,7 +168,7 @@ yAxisRange model { min, max } =
 yTicksConfig : Model -> LineChart.Axis.Ticks.Config msg
 yTicksConfig model =
     LineChart.Axis.Ticks.custom <|
-        \dataRange axisRange ->
+        \dataRange _ ->
             List.map (yTickConfig model) (yTicks model dataRange)
 
 
@@ -250,7 +246,7 @@ yTickConfig model speed =
 --- X AXIS
 
 
-xAxisConfig : Model -> LineChart.Axis.Config SpeedChartDataSeries msg
+xAxisConfig : Model -> LineChart.Axis.Config DataSeries msg
 xAxisConfig model =
     LineChart.Axis.custom
         { title = LineChart.Axis.Title.default ""

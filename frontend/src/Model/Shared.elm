@@ -2,7 +2,8 @@ module Model.Shared exposing (..)
 
 import Dict
 import Model exposing (..)
-import Model.Utils.TorrentAttribute
+import Model.Config exposing (ColumnWidth, ColumnWidths)
+import Model.Torrent
 
 
 minimumColumnPx : Float
@@ -10,11 +11,11 @@ minimumColumnPx =
     30
 
 
-getColumnWidth : ColumnWidths -> TorrentAttribute -> ColumnWidth
+getColumnWidth : ColumnWidths -> Model.Torrent.Attribute -> ColumnWidth
 getColumnWidth columnWidths attribute =
     let
         key =
-            Model.Utils.TorrentAttribute.attributeToKey attribute
+            Model.Torrent.attributeToKey attribute
     in
     case Dict.get key columnWidths of
         Just width ->
@@ -25,11 +26,11 @@ getColumnWidth columnWidths attribute =
             { px = minimumColumnPx, auto = False }
 
 
-setColumnWidth : Model -> TorrentAttribute -> ColumnWidth -> Model
+setColumnWidth : Model -> Model.Torrent.Attribute -> ColumnWidth -> Model
 setColumnWidth model attribute newWidth =
     let
         key =
-            Model.Utils.TorrentAttribute.attributeToKey attribute
+            Model.Torrent.attributeToKey attribute
 
         newDict =
             Dict.insert key newWidth model.config.columnWidths
@@ -43,11 +44,11 @@ setColumnWidth model attribute newWidth =
     { model | config = newConfig }
 
 
-setColumnWidthAuto : Model -> TorrentAttribute -> Model
+setColumnWidthAuto : Model -> Model.Torrent.Attribute -> Model
 setColumnWidthAuto model attribute =
     let
         key =
-            Model.Utils.TorrentAttribute.attributeToKey attribute
+            Model.Torrent.attributeToKey attribute
 
         oldWidth =
             getColumnWidth model.config.columnWidths attribute

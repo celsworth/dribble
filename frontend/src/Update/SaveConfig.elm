@@ -1,11 +1,11 @@
 module Update.SaveConfig exposing (update)
 
-import Coders.Config
 import Model exposing (..)
+import Model.Config
 import Ports
 
 
 update : Model -> ( Model, Cmd Msg )
 update model =
     model
-        |> addCmd (Coders.Config.encode model.config |> Ports.storeConfig)
+        |> addCmd (Model.Config.encode model.config |> Ports.storeConfig)

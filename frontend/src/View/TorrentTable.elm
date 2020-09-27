@@ -3,18 +3,20 @@ module View.TorrentTable exposing (..)
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onMouseDown)
+import Html.Events exposing (onClick)
 import Html.Events.Extra.Mouse
 import Html.Keyed as Keyed
 import Html.Lazy
 import List
 import Model exposing (..)
+import Model.Config exposing (ColumnWidths, Config)
 import Model.Shared
-import Model.Utils.TorrentAttribute
+import Model.Table
+import Model.Torrent exposing (Torrent)
 import Round
 import Time
-import Utils.Filesize
 import View.DragBar
+import View.Torrent
 
 
 view : Model -> Html Msg
@@ -33,6 +35,11 @@ view model =
             ]
 
 
+fixedOrFluid : Config -> Model.Table.Layout
+fixedOrFluid config =
+    config.torrentTable.layout
+
+
 header : Model -> Html Msg
 header model =
     let
@@ -46,22 +53,32 @@ header model =
         ]
 
 
-headerCell : Model -> TorrentAttribute -> Html Msg
+headerCell : Model -> Model.Torrent.Attribute -> Html Msg
 headerCell model attribute =
     let
         attrString =
-            Model.Utils.TorrentAttribute.attributeToTableHeaderString
+            View.Torrent.attributeToTableHeaderString
                 attribute
+
+        maybeResizeDiv =
+            case fixedOrFluid model.config of
+                Model.Table.Fixed ->
+                    Just <| div (headerCellResizeHandleAttributes model attribute) []
+
+                Model.Table.Fluid ->
+                    Nothing
     in
     th (headerCellAttributes model attribute)
-        [ div (headerCellContentDivAttributes model attribute)
-            [ div [ class "content" ] [ text <| attrString ] ]
-        , div (headerCellResizeHandleAttributes model attribute)
-            []
-        ]
+        (List.filterMap identity <|
+            [ Just <|
+                div (headerCellContentDivAttributes model attribute)
+                    [ div [ class "content" ] [ text <| attrString ] ]
+            , maybeResizeDiv
+            ]
+        )
 
 
-headerCellAttributes : Model -> TorrentAttribute -> List (Attribute Msg)
+headerCellAttributes : Model -> Model.Torrent.Attribute -> List (Attribute Msg)
 headerCellAttributes model attribute =
     List.filterMap identity <|
         [ headerCellIdAttribute attribute
@@ -70,23 +87,31 @@ headerCellAttributes model attribute =
         ]
 
 
-headerCellIdAttribute : TorrentAttribute -> Maybe (Attribute Msg)
+headerCellIdAttribute : Model.Torrent.Attribute -> Maybe (Attribute Msg)
 headerCellIdAttribute attribute =
     Just <|
         id <|
-            Model.Utils.TorrentAttribute.attributeToTableHeaderId attribute
+            View.Torrent.attributeToTableHeaderId attribute
 
 
-headerCellContentDivAttributes : Model -> TorrentAttribute -> List (Attribute Msg)
+headerCellContentDivAttributes : Model -> Model.Torrent.Attribute -> List (Attribute Msg)
 headerCellContentDivAttributes model attribute =
+    let
+        maybeWidthAttr =
+            case fixedOrFluid model.config of
+                Model.Table.Fixed ->
+                    thWidthAttribute model.config.columnWidths attribute
+
+                Model.Table.Fluid ->
+                    Nothing
+    in
     List.filterMap identity <|
-        [ Just <| class "size"
-        , thWidthAttribute model.config.columnWidths attribute
+        [ maybeWidthAttr
         , Just <| onClick (SetSortBy attribute)
         ]
 
 
-headerCellResizeHandleAttributes : Model -> TorrentAttribute -> List (Attribute Msg)
+headerCellResizeHandleAttributes : Model -> Model.Torrent.Attribute -> List (Attribute Msg)
 headerCellResizeHandleAttributes _ attribute =
     let
         {- this mess converts (x, y) to { x: x, y: y } -}
@@ -104,18 +129,18 @@ headerCellResizeHandleAttributes _ attribute =
     ]
 
 
-headerCellSortClass : Model -> TorrentAttribute -> Maybe (Attribute Msg)
+headerCellSortClass : Model -> Model.Torrent.Attribute -> Maybe (Attribute Msg)
 headerCellSortClass { config } attribute =
     let
-        (SortBy currentSortAttribute currentSortDirection) =
+        (Model.Torrent.SortBy currentSortAttribute currentSortDirection) =
             config.sortBy
     in
     if currentSortAttribute == attribute then
         case currentSortDirection of
-            Asc ->
+            Model.Torrent.Asc ->
                 Just <| class "sorted ascending"
 
-            Desc ->
+            Model.Torrent.Desc ->
                 Just <| class "sorted descending"
 
     else
@@ -167,50 +192,59 @@ row config timezone torrent =
         (List.map (cell config timezone torrent) visibleOrder)
 
 
-isVisible : List TorrentAttribute -> TorrentAttribute -> Bool
+isVisible : List Model.Torrent.Attribute -> Model.Torrent.Attribute -> Bool
 isVisible visibleTorrentAttributes attribute =
     List.member attribute visibleTorrentAttributes
 
 
-cell : Config -> Time.Zone -> Torrent -> TorrentAttribute -> Html Msg
+cell : Config -> Time.Zone -> Torrent -> Model.Torrent.Attribute -> Html Msg
 cell config timezone torrent attribute =
     td []
-        [ div (cellAttributes config.columnWidths attribute)
+        [ div (cellAttributes config attribute)
             [ cellContent config timezone torrent attribute
             ]
         ]
 
 
-cellAttributes : ColumnWidths -> TorrentAttribute -> List (Attribute Msg)
-cellAttributes columnWidths attribute =
+cellAttributes : Config -> Model.Torrent.Attribute -> List (Attribute Msg)
+cellAttributes config attribute =
+    let
+        maybeWidthAttr =
+            case fixedOrFluid config of
+                Model.Table.Fixed ->
+                    tdWidthAttribute config.columnWidths attribute
+
+                Model.Table.Fluid ->
+                    Nothing
+    in
     List.filterMap identity <|
-        [ tdWidthAttribute columnWidths attribute
+        [ maybeWidthAttr
         , cellTextAlign attribute
         ]
 
 
-cellTextAlign : TorrentAttribute -> Maybe (Attribute Msg)
+cellTextAlign : Model.Torrent.Attribute -> Maybe (Attribute Msg)
 cellTextAlign attribute =
-    case Model.Utils.TorrentAttribute.textAlignment attribute of
-        Just str ->
+    case View.Torrent.textAlignment attribute of
+        Just _ ->
             Just <| class "text-right"
 
         Nothing ->
             Nothing
 
 
-cellContent : Config -> Time.Zone -> Torrent -> TorrentAttribute -> Html Msg
+cellContent : Config -> Time.Zone -> Torrent -> Model.Torrent.Attribute -> Html Msg
 cellContent config timezone torrent attribute =
     case attribute of
-        TorrentStatus ->
+        Model.Torrent.Status ->
             torrentStatusCell torrent
 
-        DonePercent ->
+        Model.Torrent.DonePercent ->
             donePercentCell torrent
 
         _ ->
             text <|
-                Model.Utils.TorrentAttribute.attributeAccessor
+                View.Torrent.attributeAccessor
                     config
                     timezone
                     torrent
@@ -220,19 +254,19 @@ cellContent config timezone torrent attribute =
 torrentStatusCell : Torrent -> Html Msg
 torrentStatusCell torrent =
     case torrent.status of
-        Seeding ->
+        Model.Torrent.Seeding ->
             torrentStatusIcon "seeding" "fa-arrow-up"
 
-        Downloading ->
+        Model.Torrent.Downloading ->
             torrentStatusIcon "downloading" "fa-arrow-down"
 
-        Paused ->
+        Model.Torrent.Paused ->
             torrentStatusIcon "paused" "fa-pause"
 
-        Stopped ->
+        Model.Torrent.Stopped ->
             torrentStatusIcon "stopped" ""
 
-        Hashing ->
+        Model.Torrent.Hashing ->
             torrentStatusIcon "hashing" "fa-sync"
 
 
@@ -279,17 +313,17 @@ donePercentCell torrent =
 -}
 
 
-thWidthAttribute : ColumnWidths -> TorrentAttribute -> Maybe (Attribute Msg)
+thWidthAttribute : ColumnWidths -> Model.Torrent.Attribute -> Maybe (Attribute Msg)
 thWidthAttribute columnWidths attribute =
     widthAttribute columnWidths attribute 10
 
 
-tdWidthAttribute : ColumnWidths -> TorrentAttribute -> Maybe (Attribute Msg)
+tdWidthAttribute : ColumnWidths -> Model.Torrent.Attribute -> Maybe (Attribute Msg)
 tdWidthAttribute columnWidths attribute =
     widthAttribute columnWidths attribute 8
 
 
-widthAttribute : ColumnWidths -> TorrentAttribute -> Float -> Maybe (Attribute Msg)
+widthAttribute : ColumnWidths -> Model.Torrent.Attribute -> Float -> Maybe (Attribute Msg)
 widthAttribute columnWidths attribute subtract =
     let
         width =

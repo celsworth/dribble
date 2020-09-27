@@ -2,6 +2,7 @@ module Update.ProcessTraffic exposing (update)
 
 import List.Extra
 import Model exposing (..)
+import Model.Traffic exposing (Traffic)
 
 
 update : Traffic -> Model -> Model

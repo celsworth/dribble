@@ -1,8 +1,8 @@
 port module Ports exposing (..)
 
-import Coders.Base
 import Json.Encode as JE
 import Model exposing (..)
+import Model.Rtorrent
 
 
 
@@ -23,14 +23,14 @@ port messageReceiver : (String -> msg) -> Sub msg
 
 getFullTorrents : Cmd Msg
 getFullTorrents =
-    sendMessage Coders.Base.getFullTorrents
+    sendMessage Model.Rtorrent.getFullTorrents
 
 
 getUpdatedTorrents : Cmd Msg
 getUpdatedTorrents =
-    sendMessage Coders.Base.getUpdatedTorrents
+    sendMessage Model.Rtorrent.getUpdatedTorrents
 
 
 getTraffic : Cmd Msg
 getTraffic =
-    sendMessage Coders.Base.getTraffic
+    sendMessage Model.Rtorrent.getTraffic

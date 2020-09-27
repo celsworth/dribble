@@ -1,25 +1,28 @@
-module Coders.Traffic exposing (decoder)
+module Model.Traffic exposing (..)
 
 import Json.Decode as D
-import Json.Decode.Pipeline as Pipeline exposing (custom, hardcoded)
-import Model exposing (..)
+import Json.Decode.Pipeline exposing (custom, hardcoded)
+
+
+type alias Traffic =
+    { time : Int
+    , upDiff : Int
+    , downDiff : Int
+    , upTotal : Int
+    , downTotal : Int
+    }
 
 
 
+-- JSON DECODER
 {-
    time, up, down
    {"data":[[1600958252],[61463171320],[52765651306]]}
 -}
 
 
-decoder : D.Decoder DecodedData
+decoder : D.Decoder Traffic
 decoder =
-    D.map TrafficReceived <|
-        D.field "data" trafficDecoder
-
-
-trafficDecoder : D.Decoder Traffic
-trafficDecoder =
     D.succeed Traffic
         |> custom (D.index 0 intFromArrayDecoder)
         |> hardcoded 0

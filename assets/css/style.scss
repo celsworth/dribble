@@ -111,8 +111,8 @@ body {
 
 .navigation {
   border-bottom: 1px solid $table-border-colour;
-  height: 30px;
   background: #eee;
+  height: 30px;
 }
 
 .torrents { // section
@@ -128,16 +128,16 @@ body {
 }
 
 .footer {
-  position: relative;
   display: flex;
-  justify-content: space-between;
-  align-items: stretch;
+  position: relative;
   bottom: 0;
+  align-items: stretch;
+  justify-content: space-between;
   border-top: 1px solid $table-border-colour;
   background: #eee;
+  padding: 5px;
   width: 100%;
   height: 200px;
-  padding: 5px;
 }
 
 .speed-chart {
@@ -146,12 +146,11 @@ body {
   border: 1px solid #888;
 
   &:hover {
+    position: absolute;
+    right: 5px;
+    bottom: 5px;
     width: 90%;
     height: auto;
-
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
   }
 }
 
@@ -199,8 +198,15 @@ table {
   @include unselectable;
 
   position: relative;
-  //table-layout: fixed;
   border-spacing: 0;
+
+  &.fixed {
+    table-layout: fixed;
+  }
+
+  &.fluid {
+    width: 100%;
+  }
 }
 
 thead {

@@ -3,7 +3,10 @@ module Update exposing (update)
 import Browser.Dom
 import Json.Decode as JD
 import Model exposing (..)
+import Model.Message
 import Model.Shared
+import Model.Torrent
+import Model.WebsocketData
 import Ports
 import Update.MouseHandlers
 import Update.ProcessTorrents
@@ -74,7 +77,7 @@ update msg model =
             model |> Update.ProcessWebsocketStatusUpdated.update result
 
 
-setColumnWidth : Model -> TorrentAttribute -> Result Browser.Dom.Error Browser.Dom.Element -> Model
+setColumnWidth : Model -> Model.Torrent.Attribute -> Result Browser.Dom.Error Browser.Dom.Element -> Model
 setColumnWidth model attribute result =
     case result of
         Ok r ->
@@ -91,7 +94,7 @@ setColumnWidth model attribute result =
             model
 
 
-processWebsocketResponse : Result JD.Error DecodedData -> Model -> ( Model, Cmd Msg )
+processWebsocketResponse : Result JD.Error Model.WebsocketData.Data -> Model -> ( Model, Cmd Msg )
 processWebsocketResponse result model =
     case result of
         Ok data ->
@@ -101,34 +104,36 @@ processWebsocketResponse result model =
             -- meh it'll do for now. this is used when we get invalid JSON
             let
                 newMessages =
-                    List.append model.messages
-                        [ { message = JD.errorToString errStr, severity = ErrorSeverity }
-                        ]
+                    model.messages
+                        |> Model.Message.addMessage
+                            { message = JD.errorToString errStr
+                            , severity = Model.Message.Error
+                            }
             in
             model
                 |> setMessages newMessages
                 |> addCmd Cmd.none
 
 
-processWebsocketData : Model -> DecodedData -> ( Model, Cmd Msg )
+processWebsocketData : Model -> Model.WebsocketData.Data -> ( Model, Cmd Msg )
 processWebsocketData model data =
     case data of
-        TorrentsReceived torrents ->
+        Model.WebsocketData.TorrentsReceived torrents ->
             model
                 |> Update.ProcessTorrents.update torrents
                 |> addCmd Cmd.none
 
-        TrafficReceived traffic ->
+        Model.WebsocketData.TrafficReceived traffic ->
             model
                 |> Update.ProcessTraffic.update traffic
                 |> addCmd Cmd.none
 
-        Error errStr ->
+        Model.WebsocketData.Error errStr ->
             let
                 newMessages =
-                    List.append model.messages
-                        [ { message = errStr, severity = ErrorSeverity }
-                        ]
+                    model.messages
+                        |> Model.Message.addMessage
+                            { message = errStr, severity = Model.Message.Error }
             in
             model
                 |> setMessages newMessages

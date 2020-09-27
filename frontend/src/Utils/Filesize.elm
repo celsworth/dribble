@@ -1,4 +1,7 @@
-module Utils.Filesize exposing (format, formatSplit, formatBase2, formatBase2Split, formatWith, formatWithSplit, defaultSettings, Settings, Units(..))
+module Utils.Filesize exposing
+    ( format, formatSplit, formatBase2, formatBase2Split, formatWith, formatWithSplit, defaultSettings, Settings, Units(..)
+    , decoder, encode
+    )
 
 {-| This library converts a file size in bytes into a human readable string.
 
@@ -55,6 +58,7 @@ Originally from <https://github.com/basti1302/elm-human-readable-filesize> v1.2.
       - keep trailing zeroes
       - remove bytes suffix, lowest unit is now KB/KiB
       - default unit is Base2
+      - added JSON encoding/decoding
 
 Original license as per <https://github.com/basti1302/elm-human-readable-filesize/blob/master/LICENSE>
 
@@ -88,6 +92,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --}
 
+import Json.Decode as D
+import Json.Decode.Pipeline exposing (optional)
+import Json.Encode as E
 import Regex exposing (Regex, replaceAtMost)
 import Round
 
@@ -299,3 +306,55 @@ roundToDecimalPlaces settings num =
             decimalSeparatorRegex
             (\_ -> settings.decimalSeparator)
             withoutTrailingDot
+
+
+
+-- JSON ENCODING
+
+
+encode : Settings -> E.Value
+encode settings =
+    E.object
+        [ ( "units", encodeUnits settings.units )
+        , ( "decimalPlaces", E.int settings.decimalPlaces )
+        , ( "decimalSeparator", E.string settings.decimalSeparator )
+        ]
+
+
+encodeUnits : Units -> E.Value
+encodeUnits units =
+    case units of
+        Base2 ->
+            E.string "Base2"
+
+        Base10 ->
+            E.string "Base10"
+
+
+
+-- JSON DECODING
+
+
+decoder : D.Decoder Settings
+decoder =
+    D.succeed Settings
+        |> optional "units" unitsDecoder defaultSettings.units
+        |> optional "decimalPlaces" D.int defaultSettings.decimalPlaces
+        |> optional "decimalSeparator" D.string defaultSettings.decimalSeparator
+
+
+unitsDecoder : D.Decoder Units
+unitsDecoder =
+    D.string
+        |> D.andThen
+            (\input ->
+                case input of
+                    "Base2" ->
+                        D.succeed Base2
+
+                    "Base10" ->
+                        D.succeed Base10
+
+                    _ ->
+                        D.fail <| "unknown units" ++ input
+            )

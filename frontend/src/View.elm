@@ -5,9 +5,11 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Html.Events.Extra.Mouse
 import Model exposing (..)
-import Model.Utils.TorrentAttribute
+import Model.Message exposing (Message)
+import Model.Torrent
 import View.Preferences
 import View.SpeedChart
+import View.Torrent
 import View.TorrentTable
 
 
@@ -60,18 +62,18 @@ navigation model =
         [ button [ onClick RefreshClicked ] [ text "Refresh" ]
         , button [ onClick SaveConfigClicked ] [ text "Save Config" ]
         , button [ onClick ShowPreferencesClicked ] [ text "Preferences" ]
-        , toggleTorrentAttributeVisibilityButton CreationTime
-        , toggleTorrentAttributeVisibilityButton StartedTime
+        , toggleTorrentAttributeVisibilityButton Model.Torrent.CreationTime
+        , toggleTorrentAttributeVisibilityButton Model.Torrent.StartedTime
         , div [] [ p [] [ messages model ] ]
         ]
 
 
-toggleTorrentAttributeVisibilityButton : TorrentAttribute -> Html Msg
+toggleTorrentAttributeVisibilityButton : Model.Torrent.Attribute -> Html Msg
 toggleTorrentAttributeVisibilityButton attribute =
     let
         str =
             "Toggle "
-                ++ Model.Utils.TorrentAttribute.attributeToString attribute
+                ++ View.Torrent.attributeToString attribute
     in
     button [ onClick <| ToggleTorrentAttributeVisibility attribute ]
         [ text str ]
@@ -87,13 +89,13 @@ message msg =
     let
         severity =
             case msg.severity of
-                InfoSeverity ->
+                Model.Message.Info ->
                     Nothing
 
-                WarningSeverity ->
+                Model.Message.Warning ->
                     Just "WARNING: "
 
-                ErrorSeverity ->
+                Model.Message.Error ->
                     Just "ERROR: "
     in
     p [] [ text <| Maybe.withDefault "" severity ++ msg.message ]

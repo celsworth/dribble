@@ -3,9 +3,11 @@ module Update.ToggleTorrentAttributeVisibility exposing (update)
 import List
 import List.Extra
 import Model exposing (..)
+import Model.Config
+import Model.Torrent
 
 
-update : TorrentAttribute -> Model -> ( Model, Cmd Msg )
+update : Model.Torrent.Attribute -> Model -> ( Model, Cmd Msg )
 update attr model =
     let
         newVTA =
@@ -17,7 +19,7 @@ update attr model =
                 attr :: model.config.visibleTorrentAttributes
 
         config =
-            model.config |> setVisibleTorrentAttributes newVTA
+            model.config |> Model.Config.setVisibleTorrentAttributes newVTA
     in
     model
         |> setConfig config

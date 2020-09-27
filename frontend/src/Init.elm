@@ -1,9 +1,9 @@
 module Init exposing (init)
 
-import Coders.Config
 import Dict
 import Json.Decode as JD
 import Model exposing (..)
+import Model.Config exposing (Config)
 import Time
 import TimeZone
 
@@ -12,7 +12,7 @@ init : JD.Value -> ( Model, Cmd Msg )
 init flags =
     let
         config =
-            Coders.Config.decodeOrDefault flags
+            Model.Config.decodeOrDefault flags
     in
     ( { config = config
       , websocketConnected = False

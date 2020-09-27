@@ -4,15 +4,16 @@ import Browser.Dom
 import Html.Events.Extra.Mouse as Mouse
 import Model exposing (..)
 import Model.Shared
-import Model.Utils.TorrentAttribute
+import Model.Torrent
 import Task
+import View.Torrent
 
 
 
 {- maybe these are TorrentResizeHandlers really? the mouse is irrelevant -}
 
 
-processTorrentAttributeResizeStarted : Model -> TorrentAttribute -> MousePosition -> Mouse.Button -> Mouse.Keys -> ( Model, Cmd Msg )
+processTorrentAttributeResizeStarted : Model -> Model.Torrent.Attribute -> MousePosition -> Mouse.Button -> Mouse.Keys -> ( Model, Cmd Msg )
 processTorrentAttributeResizeStarted model attribute pos button keys =
     case button of
         Mouse.MainButton ->
@@ -22,11 +23,11 @@ processTorrentAttributeResizeStarted model attribute pos button keys =
             ( model, Cmd.none )
 
 
-processMouseDownMainButton : Model -> TorrentAttribute -> MousePosition -> Mouse.Keys -> ( Model, Cmd Msg )
+processMouseDownMainButton : Model -> Model.Torrent.Attribute -> MousePosition -> Mouse.Keys -> ( Model, Cmd Msg )
 processMouseDownMainButton model attribute pos keys =
     let
         id =
-            Model.Utils.TorrentAttribute.attributeToTableHeaderId attribute
+            View.Torrent.attributeToTableHeaderId attribute
 
         resizeOp =
             { attribute = attribute, startPosition = pos, currentPosition = pos }

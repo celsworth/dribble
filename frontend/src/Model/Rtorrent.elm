@@ -1,48 +1,17 @@
-module Coders.Base exposing (..)
+module Model.Rtorrent exposing (getFullTorrents, getTraffic, getUpdatedTorrents)
 
-import Coders.Torrent
-import Coders.Traffic
-import Json.Decode as D
 import Json.Encode as E
-import Model exposing (..)
+import Model.Traffic exposing (Traffic)
+
+
+type alias State =
+    { traffic : List Traffic
+    , version : String
+    }
 
 
 
--- Generic Decoders
-
-
-decodeString : String -> Result D.Error DecodedData
-decodeString =
-    D.decodeString websocketMessageDecoder
-
-
-decodeStatus : E.Value -> Result D.Error Bool
-decodeStatus =
-    D.decodeValue websocketStatusDecoder
-
-
-websocketStatusDecoder : D.Decoder Bool
-websocketStatusDecoder =
-    D.field "connected" D.bool
-
-
-websocketMessageDecoder : D.Decoder DecodedData
-websocketMessageDecoder =
-    D.oneOf
-        [ errorDecoder
-        , Coders.Torrent.listDecoder
-        , Coders.Traffic.decoder
-        ]
-
-
-errorDecoder : D.Decoder DecodedData
-errorDecoder =
-    D.map Error <|
-        D.field "error" D.string
-
-
-
--- Generic Encoders
+-- WEBSOCKET REQUESTS; TRAFFIC
 
 
 getTraffic : String
@@ -66,12 +35,8 @@ getTrafficFields =
         ]
 
 
-encodeMethodWithParams : String -> List String -> E.Value
-encodeMethodWithParams methodName params =
-    E.object
-        [ ( "methodName", E.string methodName )
-        , ( "params", E.list E.string params )
-        ]
+
+-- WEBSOCKET; TORRENTS
 
 
 getFullTorrents : String
@@ -97,7 +62,7 @@ getTorrentFields =
     --
     -- probably don't need everything immediately, some can wait..
     --
-    -- this order MUST match TorrentDecoder.elm#decoder
+    -- this order MUST match Model/Torrent.elm #decoder
     -- and Torrent model definition!
     E.list E.string
         [ "d.multicall2"
@@ -131,4 +96,12 @@ getTorrentFields =
 
         -- label
         , "d.custom1="
+        ]
+
+
+encodeMethodWithParams : String -> List String -> E.Value
+encodeMethodWithParams methodName params =
+    E.object
+        [ ( "methodName", E.string methodName )
+        , ( "params", E.list E.string params )
         ]

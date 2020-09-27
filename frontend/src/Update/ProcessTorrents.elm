@@ -2,7 +2,7 @@ module Update.ProcessTorrents exposing (update)
 
 import Dict exposing (Dict)
 import Model exposing (..)
-import Model.TorrentSorter exposing (sort)
+import Model.Torrent exposing (Torrent)
 
 
 update : List Torrent -> Model -> Model
@@ -12,7 +12,7 @@ update torrents model =
             torrentsByHash model torrents
 
         sortedTorrents =
-            Model.TorrentSorter.sort model.config.sortBy
+            Model.Torrent.sort model.config.sortBy
                 (Dict.values byHash)
     in
     { model | sortedTorrents = sortedTorrents, torrentsByHash = byHash }

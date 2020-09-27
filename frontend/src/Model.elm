@@ -4,25 +4,30 @@ import Browser.Dom
 import Dict exposing (Dict)
 import Html.Events.Extra.Mouse as Mouse
 import Json.Decode as JD
+import Model.Config exposing (Config)
+import Model.Message exposing (Message)
+import Model.SpeedChart
+import Model.Torrent exposing (Torrent)
+import Model.Traffic exposing (Traffic)
+import Model.WebsocketData
 import Time
-import Utils.Filesize
 
 
 type Msg
-    = TorrentAttributeResizeStarted TorrentAttribute MousePosition Mouse.Button Mouse.Keys
+    = TorrentAttributeResizeStarted Model.Torrent.Attribute MousePosition Mouse.Button Mouse.Keys
     | TorrentAttributeResized TorrentAttributeResizeOp MousePosition
     | TorrentAttributeResizeEnded TorrentAttributeResizeOp MousePosition
-    | GotColumnWidth TorrentAttribute (Result Browser.Dom.Error Browser.Dom.Element)
+    | GotColumnWidth Model.Torrent.Attribute (Result Browser.Dom.Error Browser.Dom.Element)
     | RefreshClicked
     | SaveConfigClicked
     | ShowPreferencesClicked
-    | ToggleTorrentAttributeVisibility TorrentAttribute
-    | SetSortBy TorrentAttribute
-    | SpeedChartHover (List SpeedChartDataSeries)
+    | ToggleTorrentAttributeVisibility Model.Torrent.Attribute
+    | SetSortBy Model.Torrent.Attribute
+    | SpeedChartHover (List Model.SpeedChart.DataSeries)
     | RequestFullTorrents
     | RequestUpdatedTorrents Time.Posix
     | RequestUpdatedTraffic Time.Posix
-    | WebsocketData (Result JD.Error DecodedData)
+    | WebsocketData (Result JD.Error Model.WebsocketData.Data)
     | WebsocketStatusUpdated (Result JD.Error Bool)
 
 
@@ -30,38 +35,11 @@ type Msg
 -- TODO: add lists of trackers, peers, etc?
 
 
-type DecodedData
-    = TorrentsReceived (List Torrent)
-    | TrafficReceived Traffic
-    | Error String
-
-
-type alias Traffic =
-    { time : Int
-    , upDiff : Int
-    , downDiff : Int
-    , upTotal : Int
-    , downTotal : Int
-    }
-
-
-type MessageSeverity
-    = InfoSeverity
-    | WarningSeverity
-    | ErrorSeverity
-
-
-type alias Message =
-    { message : String
-    , severity : MessageSeverity
-    }
-
-
 type alias TorrentAttributeResizeOp =
     {- Dragging a TorrentAttribute resize bar
        Could possibly extend to other table types in future
     -}
-    { attribute : TorrentAttribute
+    { attribute : Model.Torrent.Attribute
     , startPosition : MousePosition
     , currentPosition : MousePosition
     }
@@ -73,31 +51,6 @@ type alias MousePosition =
     }
 
 
-type alias ColumnWidths =
-    Dict String ColumnWidth
-
-
-type alias ColumnWidth =
-    { px : Float
-    , auto : Bool
-    }
-
-
-type SortDirection
-    = Asc
-    | Desc
-
-
-type Sort
-    = SortBy TorrentAttribute SortDirection
-
-
-type alias SpeedChartDataSeries =
-    { time : Int
-    , speed : Int
-    }
-
-
 type alias Model =
     { config : Config
     , websocketConnected : Bool
@@ -105,7 +58,7 @@ type alias Model =
     , torrentsByHash : Dict String Torrent
     , traffic : List Traffic
     , firstTraffic : Maybe Traffic
-    , speedChartHover : List SpeedChartDataSeries
+    , speedChartHover : List Model.SpeedChart.DataSeries
     , messages : List Message
     , preferencesVisible : Bool
     , torrentAttributeResizeOp : Maybe TorrentAttributeResizeOp
@@ -133,7 +86,7 @@ setMessages new model =
     { model | messages = new }
 
 
-setSpeedChartHover : List SpeedChartDataSeries -> Model -> Model
+setSpeedChartHover : List Model.SpeedChart.DataSeries -> Model -> Model
 setSpeedChartHover new model =
     { model | speedChartHover = new }
 
@@ -141,90 +94,6 @@ setSpeedChartHover new model =
 setPreferencesVisible : Bool -> Model -> Model
 setPreferencesVisible new model =
     { model | preferencesVisible = new }
-
-
-type alias Config =
-    { refreshDelay : Int
-    , sortBy : Sort
-    , visibleTorrentAttributes : List TorrentAttribute
-    , torrentAttributeOrder : List TorrentAttribute
-    , columnWidths : ColumnWidths
-    , hSizeSettings : Utils.Filesize.Settings
-    , hSpeedSettings : Utils.Filesize.Settings
-    , timezone : String
-    }
-
-
-setSortBy : Sort -> Config -> Config
-setSortBy new config =
-    { config | sortBy = new }
-
-
-setVisibleTorrentAttributes : List TorrentAttribute -> Config -> Config
-setVisibleTorrentAttributes new config =
-    { config | visibleTorrentAttributes = new }
-
-
-type TorrentAttribute
-    = TorrentStatus
-    | Name
-    | Size
-    | CreationTime
-    | StartedTime
-    | FinishedTime
-    | DownloadedBytes
-    | DownloadRate
-    | UploadedBytes
-    | UploadRate
-    | Seeders
-    | SeedersConnected
-    | SeedersTotal
-    | Peers
-    | PeersConnected
-    | PeersTotal
-    | Label
-    | DonePercent
-
-
-type TorrentStatus
-    = Seeding
-    | Downloading
-    | Paused
-    | Stopped
-    | Hashing
-
-
-type HashingStatus
-    = NotHashing
-    | InitialHash
-    | FinishHash
-    | Rehash
-
-
-type alias Torrent =
-    { status : TorrentStatus
-    , hash : String
-    , name : String
-    , size : Int
-    , creationTime : Int
-    , startedTime : Int
-    , finishedTime : Int
-    , downloadedBytes : Int
-    , downloadRate : Int
-    , uploadedBytes : Int
-    , uploadRate : Int
-    , isOpen : Bool
-    , isActive : Bool
-    , hashing : HashingStatus
-    , seedersConnected : Int
-    , seedersTotal : Int
-    , peersConnected : Int
-    , peersTotal : Int
-    , label : String
-
-    -- custom local vars, not from JSON
-    , donePercent : Float
-    }
 
 
 addCmd : Cmd Msg -> Model -> ( Model, Cmd Msg )

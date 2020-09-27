@@ -1,19 +1,19 @@
 module Update.SetSortBy exposing (update)
 
-import Coders.Base
 import Dict
 import Model exposing (..)
-import Model.TorrentSorter exposing (sort)
+import Model.Config exposing (Config)
+import Model.Torrent
 
 
-update : TorrentAttribute -> Model -> ( Model, Cmd Msg )
+update : Model.Torrent.Attribute -> Model -> ( Model, Cmd Msg )
 update attribute model =
     let
         newConfig =
             updateConfig attribute model.config
 
         sortedTorrents =
-            Model.TorrentSorter.sort newConfig.sortBy
+            Model.Torrent.sort newConfig.sortBy
                 (Dict.values model.torrentsByHash)
     in
     model
@@ -22,10 +22,10 @@ update attribute model =
         |> addCmd Cmd.none
 
 
-updateConfig : TorrentAttribute -> Config -> Config
+updateConfig : Model.Torrent.Attribute -> Config -> Config
 updateConfig attr config =
     let
-        (SortBy currentAttr currentDirection) =
+        (Model.Torrent.SortBy currentAttr currentDirection) =
             config.sortBy
 
         currentSortMatchesAttr =
@@ -34,13 +34,13 @@ updateConfig attr config =
         newSort =
             if currentSortMatchesAttr then
                 case currentDirection of
-                    Asc ->
-                        SortBy attr Desc
+                    Model.Torrent.Asc ->
+                        Model.Torrent.SortBy attr Model.Torrent.Desc
 
-                    Desc ->
-                        SortBy attr Asc
+                    Model.Torrent.Desc ->
+                        Model.Torrent.SortBy attr Model.Torrent.Asc
 
             else
-                SortBy attr currentDirection
+                Model.Torrent.SortBy attr currentDirection
     in
-    config |> setSortBy newSort
+    config |> Model.Config.setSortBy newSort
