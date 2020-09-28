@@ -10,28 +10,45 @@ May never do anything useful.
 
 ## Running
 
-There's a release/Dockerfile that makes it easy:
+Via Docker:
 
 ```
-docker build -t dribble -f release/Dockerfile .
-docker run --rm -i -t -p 127.0.0.1:3000:3000 dribble
+# only pre tag is available for now (built on each commit), no stable release yet
+docker pull celsworth/dribble:pre
+docker run --rm -it -p 127.0.0.1:3000:3000 celsworth/dribble:pre
 ```
 
-## Development Server
+This will expose the webserver that runs on port 3000 to localhost only.
 
-The easy way is to use docker-compose:
+You'll need to give it some access to an rtorrent socket to be useful. UNIX sockets are recommended as they're easier to get access to inside a Docker container, as follows:
+
+```
+# assuming rtorrent is listening at /var/run/rtorrent.sock
+docker run --rm -it -p 127.0.0.1:3000:3000 \
+  -e RTORRENT=/var/run/rtorrent.sock
+  -v /var/run/rtorrent.sock:/var/run/rtorrent.sock
+  celsworth/dribble:pre
+```
+
+The `RTORRENT` environment variable tells the app where the socket is, and `-v` bind-mounts your socket into the container. Note that `RTORRENT` must start with a slash or a dot to be recognised as a path rather than a host/IP.
+
+There is support for talking to rtorrent over TCP, but you'll need to work out a way to give the container access to the host/port. Use `-e` to set`RTORRENT` to set the host or IP rtorrent is at, and `RTORRENT_PORT` to the port (defaults to 5000).
+
+## Development
+
+### Docker
+
+The easy way is to use docker-compose which will start a Ruby webserver and elm compiler which should pick up changes and rebuild automatically:
 
 ```
 docker-compose up
 ```
 
+### Native
+
 If you want to run it natively, you'll need Ruby with bundler, and elm.
 
 To compile the elm into JavaScript:
-
-```
-rake elm:build
-```
 
 Install the Ruby packages:
 
@@ -39,10 +56,14 @@ Install the Ruby packages:
 bundle install
 ```
 
+```
+bundle exec rake elm:build
+```
+
 Start the webserver on localhost port 3000:
 
 ```
-thin start -a 127.0.0.1 -p 3000
+bundle exec thin start -a 127.0.0.1 -p 3000
 ```
 
 
