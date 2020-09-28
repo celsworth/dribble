@@ -3,9 +3,10 @@
 require 'xmlrpc/rtorrent'
 
 class Rtorrent
-  def initialize(host, port)
+  # port is unused if host is actually a path to a unix socket
+  def initialize(host, port = nil)
     @host = host
-    @port = port
+    @port = port || 5000
   end
 
   # example: rtorrent.call('d.multicall2', '', 'main', 'd.name=', 'd.hash=')
