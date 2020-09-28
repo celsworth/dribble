@@ -6,7 +6,7 @@ namespace :elm do
   desc 'Build elm.js'
   task :build do
     Dir.chdir('frontend') do
-      system('elm make src/Main.elm --debug --output ../public/elm.js')
+      system('elm make src/Main.elm --debug --output ../public/dribble.js')
     end
   end
 
