@@ -9,7 +9,7 @@ class XMLRPC::RTorrent < XMLRPC::Client
     header = headers.to_a.flatten.join("\x00").to_s
     request = "#{header.size}:#{header},#{xml}"
 
-    if @host.start_with? '/' || @host.start_with? '.'
+    if @host.start_with?('/') || @host.start_with?('.')
       UNIXSocket.open(@host) { |s| do_request(s, request) }
     else
       TCPSocket.open(@host, @port) { |s| do_request(s, request) }
