@@ -1,35 +1,38 @@
 module Update.ProcessTraffic exposing (update)
 
-import List.Extra
 import Model exposing (..)
 import Model.Traffic exposing (Traffic)
+
+
+
+{- At app bootup, we get a traffic reading, then another one every 10 seconds.
+
+   Each one we receive is stored in prevTraffic which will be used on the next
+   iteration. The first iteration does no diffing.
+
+   Subsequent traffics are then diffed against the previous traffic
+   which is then appended to model.traffic.
+-}
 
 
 update : Traffic -> Model -> Model
 update traffic model =
     let
-        {- get diffs from firstTraffic if it exists. If it doesn't, store this as firstTraffic only -}
-        ( firstTraffic, newTraffic ) =
-            case model.firstTraffic of
-                Nothing ->
-                    ( traffic, [] )
-
-                Just ft ->
-                    ( ft, List.append model.traffic [ trafficDiff model traffic ] )
+        newTraffic =
+            Maybe.map (appendTrafficDiff model traffic) model.prevTraffic
+                |> Maybe.withDefault []
     in
-    { model | firstTraffic = Just firstTraffic, traffic = newTraffic }
+    { model | prevTraffic = Just traffic, traffic = newTraffic }
 
 
-trafficDiff : Model -> Traffic -> Traffic
-trafficDiff model traffic =
+appendTrafficDiff : Model -> Traffic -> Traffic -> List Traffic
+appendTrafficDiff model traffic prevTraffic =
+    List.append model.traffic [ trafficDiff traffic prevTraffic ]
+
+
+trafficDiff : Traffic -> Traffic -> Traffic
+trafficDiff traffic prevTraffic =
     let
-        firstTraffic =
-            Maybe.withDefault { time = 0, upDiff = 0, downDiff = 0, upTotal = 0, downTotal = 0 }
-                model.firstTraffic
-
-        prevTraffic =
-            Maybe.withDefault firstTraffic (List.Extra.last model.traffic)
-
         timeDiff =
             traffic.time - prevTraffic.time
     in

@@ -48,13 +48,14 @@ docker-compose up
 
 If you want to run it natively, you'll need Ruby with bundler, and elm.
 
-To compile the elm into JavaScript:
 
 Install the Ruby packages:
 
 ```
 bundle install
 ```
+
+Compile the elm into JavaScript:
 
 ```
 bundle exec rake elm:build

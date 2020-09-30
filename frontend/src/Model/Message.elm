@@ -1,11 +1,13 @@
 module Model.Message exposing (..)
 
-{- info/warning/error messages to display -}
+import Time
 
 
 type alias Message =
-    { message : String
+    { summary : Maybe String
+    , detail : Maybe String
     , severity : Severity
+    , time : Time.Posix
     }
 
 
@@ -17,4 +19,12 @@ type Severity
 
 addMessage : Message -> List Message -> List Message
 addMessage newMessage messages =
-    List.append messages [ newMessage ]
+    addMessages messages [ newMessage ]
+
+
+addMessages : List Message -> List Message -> List Message
+addMessages newMessages messages =
+    {- this feels like the args are the wrong way around, but having them
+       this way ends up with newer messages at the end of model.messages *shrug*
+    -}
+    List.append newMessages messages

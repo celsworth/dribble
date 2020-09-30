@@ -193,22 +193,8 @@ comparator sortBy a b =
 
 statusCmp : Torrent -> Torrent -> Order
 statusCmp a b =
-    {- convert a.status and b.status to ints so they're comparable -}
-    let
-        a1 =
-            statusToInt a.status
-
-        b1 =
-            statusToInt b.status
-    in
-    if a1 == b1 then
-        EQ
-
-    else if a1 > b1 then
-        GT
-
-    else
-        LT
+    {- makes cmp do   a1 = statusToInt a.status -}
+    cmp a b (.status >> statusToInt)
 
 
 cmp : Torrent -> Torrent -> (Torrent -> comparable) -> Order
@@ -323,9 +309,9 @@ internalDecoder hash name size creationTime startedTime finishedTime downloadedB
             hash
             name
             size
-            creationTime
-            startedTime
-            finishedTime
+            (creationTime * 1000)
+            (startedTime * 1000)
+            (finishedTime * 1000)
             downloadedBytes
             downloadRate
             uploadedBytes
@@ -498,63 +484,62 @@ attributeToKey attribute =
             "donePercent"
 
 
-keyToAttribute : String -> Attribute
+keyToAttribute : String -> Maybe Attribute
 keyToAttribute str =
-    --- XXX: should be a Maybe so NOT DONE can return Nothing?
     case str of
         "status" ->
-            Status
+            Just Status
 
         "name" ->
-            Name
+            Just Name
 
         "size" ->
-            Size
+            Just Size
 
         "creationTime" ->
-            CreationTime
+            Just CreationTime
 
         "startedTime" ->
-            StartedTime
+            Just StartedTime
 
         "finishedTime" ->
-            FinishedTime
+            Just FinishedTime
 
         "downloadedBytes" ->
-            DownloadedBytes
+            Just DownloadedBytes
 
         "downloadRate" ->
-            DownloadRate
+            Just DownloadRate
 
         "uploadedBytes" ->
-            UploadedBytes
+            Just UploadedBytes
 
         "uploadRate" ->
-            UploadRate
+            Just UploadRate
 
         "seedersConnected" ->
-            SeedersConnected
+            Just SeedersConnected
 
         "seeders" ->
-            Seeders
+            Just Seeders
 
         "seedersTotal" ->
-            SeedersTotal
+            Just SeedersTotal
 
         "peers" ->
-            Peers
+            Just Peers
 
         "peersConnected" ->
-            PeersConnected
+            Just PeersConnected
 
         "peersTotal" ->
-            PeersTotal
+            Just PeersTotal
 
         "label" ->
-            Label
+            Just Label
 
         "donePercent" ->
-            DonePercent
+            Just DonePercent
 
         _ ->
-            Debug.todo "NOT DONE :("
+            Nothing

@@ -22,9 +22,11 @@ type Msg
     | RefreshClicked
     | SaveConfigClicked
     | ShowPreferencesClicked
+    | ToggleLogsVisible
     | ToggleTorrentAttributeVisibility Model.Torrent.Attribute
     | SetSortBy Model.Torrent.Attribute
     | SpeedChartHover (List Model.SpeedChart.DataSeries)
+    | Tick Time.Posix
     | RequestFullTorrents
     | RequestUpdatedTorrents Time.Posix
     | RequestUpdatedTraffic Time.Posix
@@ -38,11 +40,13 @@ type alias Model =
     , sortedTorrents : List String
     , torrentsByHash : Dict String Torrent
     , traffic : List Traffic
-    , firstTraffic : Maybe Traffic
+    , prevTraffic : Maybe Traffic
     , speedChartHover : List Model.SpeedChart.DataSeries
     , messages : List Message
     , preferencesVisible : Bool
+    , logsVisible : Bool
     , resizeOp : Maybe Model.Table.ResizeOp
+    , currentTime : Time.Posix
     , timezone : Time.Zone
     }
 
@@ -67,6 +71,16 @@ setMessages new model =
     { model | messages = new }
 
 
+addMessage : Message -> Model -> Model
+addMessage new model =
+    { model | messages = Model.Message.addMessage new model.messages }
+
+
+addMessages : List Message -> Model -> Model
+addMessages new model =
+    { model | messages = Model.Message.addMessages new model.messages }
+
+
 setSpeedChartHover : List Model.SpeedChart.DataSeries -> Model -> Model
 setSpeedChartHover new model =
     { model | speedChartHover = new }
@@ -77,9 +91,19 @@ setPreferencesVisible new model =
     { model | preferencesVisible = new }
 
 
+toggleLogsVisible : Model -> Model
+toggleLogsVisible model =
+    { model | logsVisible = not model.logsVisible }
+
+
 setResizeOp : Maybe Model.Table.ResizeOp -> Model -> Model
 setResizeOp new model =
     { model | resizeOp = new }
+
+
+setCurrentTime : Time.Posix -> Model -> Model
+setCurrentTime new model =
+    { model | currentTime = new }
 
 
 addCmd : Cmd Msg -> Model -> ( Model, Cmd Msg )

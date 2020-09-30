@@ -12,17 +12,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
       - name: Login to DockerHub Registry
         run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u celsworth --password-stdin
+
       - name: Get the version
         id: vars
         run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
+
       - name: Build the tagged Docker image
         run: docker build . --file release/Dockerfile --tag celsworth/dribble:${{steps.vars.outputs.tag}}
+
       - name: Push the tagged Docker image
         run: docker push celsworth/dribble:${{steps.vars.outputs.tag}}
-      - name: Build the latest Docker image
+
+      - name: Tag the latest Docker image
         run: docker tag celsworth/dribble:${{steps.vars.outputs.tag}} celsworth/dribble:latest
+
       - name: Push the latest Docker image
         run: docker push celsworth/dribble:latest
 

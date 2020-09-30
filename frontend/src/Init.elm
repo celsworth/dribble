@@ -1,33 +1,59 @@
-module Init exposing (init)
+module Init exposing (Flags, init)
 
 import Dict
 import Json.Decode as JD
-import Model exposing (..)
+import Model exposing (Model, Msg)
 import Model.Config exposing (Config)
+import Model.Message exposing (Message)
 import Time
 import TimeZone
 
 
-init : JD.Value -> ( Model, Cmd Msg )
+type alias Flags =
+    { config : JD.Value
+    , time : Int
+    }
+
+
+init : Flags -> ( Model, Cmd Msg )
 init flags =
     let
-        config =
-            Model.Config.decodeOrDefault flags
+        ( config, messages ) =
+            decodeConfig flags
     in
     ( { config = config
       , websocketConnected = False
       , sortedTorrents = []
       , torrentsByHash = Dict.empty
       , traffic = []
-      , firstTraffic = Nothing
+      , prevTraffic = Nothing
       , speedChartHover = []
-      , messages = []
+      , messages = messages
       , preferencesVisible = False
+      , logsVisible = False
       , resizeOp = Nothing
       , timezone = resolveTimezone config
+      , currentTime = Time.millisToPosix flags.time
       }
     , Cmd.none
     )
+
+
+decodeConfig : Flags -> ( Config, List Message )
+decodeConfig flags =
+    case Model.Config.decodeOrDefault flags.config of
+        Model.Config.DecodeOk config ->
+            ( config, [] )
+
+        Model.Config.DecodeError error config ->
+            ( config
+            , [ { summary = Just "Failed to load config, reverting to default"
+                , detail = Just error
+                , severity = Model.Message.Error
+                , time = Time.millisToPosix flags.time
+                }
+              ]
+            )
 
 
 resolveTimezone : Config -> Time.Zone

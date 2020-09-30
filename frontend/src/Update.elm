@@ -1,11 +1,9 @@
 module Update exposing (update)
 
-import Browser.Dom
 import Html.Events.Extra.Mouse as Mouse
 import Json.Decode as JD
 import Model exposing (..)
-import Model.Config
-import Model.Message exposing (addMessage)
+import Model.Message
 import Model.Table
 import Model.WebsocketData
 import Ports
@@ -17,6 +15,7 @@ import Update.ProcessWebsocketStatusUpdated
 import Update.ResizeOpMoved
 import Update.SaveConfig
 import Update.SetColumnAutoWidth
+import Update.SetCurrentTime
 import Update.SetSortBy
 import Update.StartResizeOp
 import Update.ToggleTorrentAttributeVisibility
@@ -46,6 +45,9 @@ update msg model =
         ShowPreferencesClicked ->
             model |> setPreferencesVisible True |> addCmd Cmd.none
 
+        ToggleLogsVisible ->
+            model |> toggleLogsVisible |> addCmd Cmd.none
+
         ToggleTorrentAttributeVisibility attribute ->
             model |> Update.ToggleTorrentAttributeVisibility.update attribute
 
@@ -54,6 +56,9 @@ update msg model =
 
         SpeedChartHover data ->
             model |> setSpeedChartHover data |> addCmd Cmd.none
+
+        Tick time ->
+            model |> Update.SetCurrentTime.update time
 
         RequestFullTorrents ->
             model |> addCmd Ports.getFullTorrents
@@ -95,15 +100,15 @@ processWebsocketResponse result model =
         Result.Err errStr ->
             -- meh it'll do for now. this is used when we get invalid JSON
             let
-                newMessages =
-                    model.messages
-                        |> addMessage
-                            { message = JD.errorToString errStr
-                            , severity = Model.Message.Error
-                            }
+                newMessage =
+                    { summary = Just "Invalid JSON received from Websocket"
+                    , detail = Just <| JD.errorToString errStr
+                    , severity = Model.Message.Error
+                    , time = model.currentTime
+                    }
             in
             model
-                |> setMessages newMessages
+                |> addMessage newMessage
                 |> addCmd Cmd.none
 
 
@@ -122,11 +127,13 @@ processWebsocketData model data =
 
         Model.WebsocketData.Error errStr ->
             let
-                newMessages =
-                    model.messages
-                        |> addMessage
-                            { message = errStr, severity = Model.Message.Error }
+                newMessage =
+                    { summary = Just "WebsocketData Error"
+                    , detail = Just errStr
+                    , severity = Model.Message.Error
+                    , time = model.currentTime
+                    }
             in
             model
-                |> setMessages newMessages
+                |> addMessage newMessage
                 |> addCmd Cmd.none

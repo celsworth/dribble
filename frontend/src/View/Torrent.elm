@@ -1,15 +1,11 @@
 module View.Torrent exposing (..)
 
+import Html exposing (Html, text)
+import Model exposing (..)
 import Model.Config exposing (Config)
 import Model.Torrent exposing (..)
-import Time
 import Utils.Filesize
-import View.Utils.DateFormatter
-
-
-
--- Given a Torrent and Model.Torrent.Attribute, return that attribute as a String.
--- This is what we need to render the data in HTML tables.
+import View.Utils.LocalTimeNode
 
 
 attributeToTableHeaderId : Attribute -> String
@@ -17,8 +13,8 @@ attributeToTableHeaderId attribute =
     "th-ta-" ++ attributeToKey attribute
 
 
-attributeAccessor : Config -> Time.Zone -> Torrent -> Attribute -> String
-attributeAccessor config timezone torrent attribute =
+attributeAccessor : Config -> Torrent -> Attribute -> Html Msg
+attributeAccessor config torrent attribute =
     let
         -- convert 0 speeds to Nothing
         humanByteSpeed =
@@ -33,81 +29,77 @@ attributeAccessor config timezone torrent attribute =
     case attribute of
         Status ->
             -- TODO
-            "NOT SUPPORTED"
+            text "NOT SUPPORTED"
 
         Name ->
-            torrent.name
+            text <| torrent.name
 
         Size ->
-            Utils.Filesize.formatWith config.hSizeSettings torrent.size
+            text <| Utils.Filesize.formatWith config.hSizeSettings torrent.size
 
         CreationTime ->
-            case torrent.creationTime of
-                0 ->
-                    ""
-
-                r ->
-                    View.Utils.DateFormatter.format timezone r
+            nonZeroLocalTimeNode torrent.creationTime
 
         StartedTime ->
-            case torrent.startedTime of
-                0 ->
-                    ""
-
-                r ->
-                    View.Utils.DateFormatter.format timezone r
+            nonZeroLocalTimeNode torrent.startedTime
 
         FinishedTime ->
-            case torrent.finishedTime of
-                0 ->
-                    ""
-
-                r ->
-                    View.Utils.DateFormatter.format timezone r
+            nonZeroLocalTimeNode torrent.finishedTime
 
         DownloadedBytes ->
-            Utils.Filesize.formatWith config.hSizeSettings torrent.downloadedBytes
+            text <| Utils.Filesize.formatWith config.hSizeSettings torrent.downloadedBytes
 
         DownloadRate ->
-            humanByteSpeed torrent.downloadRate
-                |> Maybe.withDefault ""
+            text <|
+                Maybe.withDefault "" (humanByteSpeed torrent.downloadRate)
 
         UploadedBytes ->
-            Utils.Filesize.formatWith config.hSizeSettings torrent.uploadedBytes
+            text <| Utils.Filesize.formatWith config.hSizeSettings torrent.uploadedBytes
 
         UploadRate ->
-            humanByteSpeed torrent.uploadRate
-                |> Maybe.withDefault ""
+            text <|
+                Maybe.withDefault "" (humanByteSpeed torrent.uploadRate)
 
         Seeders ->
-            String.fromInt torrent.seedersConnected
-                ++ " ("
-                ++ String.fromInt torrent.seedersTotal
-                ++ ")"
+            text <|
+                String.fromInt torrent.seedersConnected
+                    ++ " ("
+                    ++ String.fromInt torrent.seedersTotal
+                    ++ ")"
 
         SeedersConnected ->
-            String.fromInt torrent.seedersConnected
+            text <| String.fromInt torrent.seedersConnected
 
         SeedersTotal ->
-            String.fromInt torrent.seedersTotal
+            text <| String.fromInt torrent.seedersTotal
 
         Peers ->
-            String.fromInt torrent.peersConnected
-                ++ " ("
-                ++ String.fromInt torrent.peersTotal
-                ++ ")"
+            text <|
+                String.fromInt torrent.peersConnected
+                    ++ " ("
+                    ++ String.fromInt torrent.peersTotal
+                    ++ ")"
 
         PeersConnected ->
-            String.fromInt torrent.peersConnected
+            text <| String.fromInt torrent.peersConnected
 
         PeersTotal ->
-            String.fromInt torrent.peersTotal
+            text <| String.fromInt torrent.peersTotal
 
         Label ->
-            torrent.label
+            text <| torrent.label
 
         DonePercent ->
-            String.fromFloat torrent.donePercent
+            text <| String.fromFloat torrent.donePercent
+
+
+nonZeroLocalTimeNode : Int -> Html Msg
+nonZeroLocalTimeNode time =
+    if time == 0 then
+        text <| ""
+
+    else
+        View.Utils.LocalTimeNode.view time
 
 
 textAlignment : Attribute -> Maybe String

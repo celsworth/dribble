@@ -12,6 +12,11 @@ $progress-fill-color: #8d8;
 
 $white: #fff;
 
+$header-height: 40px;
+$footer-height: 200px;
+$torrents-height: calc(100vh - #{$footer-height} - #{$header-height});
+
+
 @mixin unselectable {
   -webkit-user-select: none;
   -ms-user-select: none;
@@ -28,8 +33,8 @@ $white: #fff;
   box-shadow: 0 0 15px 5px #aaa;
   background: #f2f2f2;
   padding: 5px;
-  width: 200px;
-  height: 200px;
+  width: 400px;
+  height: 600px;
 
   &.visible {
     display: block;
@@ -75,6 +80,150 @@ body {
   font-size: 11px;
 }
 
+.text-right {
+  text-align: right;
+}
+
+.resizing-x {
+  cursor: col-resize;
+
+  // bodge to override cursor: default when resizing
+  th {
+    cursor: col-resize;
+  }
+}
+
+.navigation {
+  display: flex;
+  border-bottom: 1px solid $table-border-colour;
+  background: #eee;
+  padding: 5px;
+  height: $header-height;
+
+  justify-content: space-between;
+
+  div {
+    // temporary home for buttons on left
+    display: flex;
+  }
+}
+
+.messages {
+  position: absolute;
+  top: $header-height - 10px; // 10px margin on first li
+  right: 5px;
+  z-index: 5;
+
+  li {
+    position: relative;
+    margin: 10px 0;
+    border-radius: 5px;
+    padding: 10px;
+    list-style: none;
+  }
+}
+
+.logs {
+  display: none;
+  position: absolute;
+  z-index: 1000;
+  margin: 40px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 0 15px 5px #aaa;
+  background: #f2f2f2;
+  padding: 5px;
+  width: calc(100% - 80px);
+  height: 600px;
+  overflow-y: auto;
+
+  &.visible {
+    display: block;
+  }
+
+  ol {
+    padding: 0;
+
+    li {
+      display: flex;
+      margin: 10px;
+      background-color: #fafaaf;
+      padding: 10px;
+      list-style: none;
+    }
+  }
+
+  .content {
+    margin-left: 20px;
+  }
+}
+
+.messages,
+.logs {
+  .error {
+    border: 1px solid #ecc;
+    background: #fdd;
+    color: #811;
+  }
+
+  .warning {
+    border: 1px solid #ec9;
+    background: #fda;
+    color: #761;
+  }
+
+  .info {
+    border: 1px solid #cdc;
+    background: #ded;
+    color: #484;
+  }
+}
+
+.torrents {
+  height: $torrents-height;
+  overflow: auto;
+
+  &.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10rem;
+  }
+}
+
+.footer {
+  display: flex;
+  position: relative;
+  align-items: stretch;
+  justify-content: space-between;
+  border-top: 1px solid $table-border-colour;
+  background: #eee;
+  padding: 5px;
+  width: 100%;
+  height: $footer-height;
+}
+
+.speed-chart {
+  border: 1px solid #888;
+  background: #fff;
+  // 2.4 is ratio of chart when expanded, which is determined by coordinates
+  // 1000x400 in SpeedChart.elm though this is plot area only. Margins and axes
+  // etc end up making it around 1132x474 = 2.388
+  //
+  // width must be set, height auto-calculated. Remove some footer-height
+  // to account for padding and borders etc. It's close enough tbh. If it's too wide
+  // then content disappears off the bottom of the chart.
+  width: ($footer-height - 13px) * 2.4;
+
+  &:hover {
+    position: absolute;
+    right: 5px;
+    bottom: 5px;
+    width: 90%;
+    height: auto;
+  }
+}
+
 .torrent-status {
   font-size: .5rem;
 
@@ -101,59 +250,6 @@ body {
   // hashing
   &.hashing {
     color: #777;
-  }
-}
-
-.text-right {
-  text-align: right;
-}
-
-.resizing-x {
-  cursor: col-resize;
-}
-
-.navigation {
-  border-bottom: 1px solid $table-border-colour;
-  background: #eee;
-  height: 30px;
-}
-
-.torrents { // section
-  height: calc(100vh - 230px); // combined navigation and footer height
-  overflow: auto;
-
-  &.loading {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10rem;
-  }
-}
-
-.footer {
-  display: flex;
-  position: relative;
-  bottom: 0;
-  align-items: stretch;
-  justify-content: space-between;
-  border-top: 1px solid $table-border-colour;
-  background: #eee;
-  padding: 5px;
-  width: 100%;
-  height: 200px;
-}
-
-.speed-chart {
-  background: #fff;
-  width: 450px;
-  border: 1px solid #888;
-
-  &:hover {
-    position: absolute;
-    right: 5px;
-    bottom: 5px;
-    width: 90%;
-    height: auto;
   }
 }
 
@@ -198,8 +294,6 @@ body {
 }
 
 table {
-  @include unselectable;
-
   position: relative;
   border-spacing: 0;
 
@@ -213,6 +307,8 @@ table {
 }
 
 thead {
+  @include unselectable;
+
   position: sticky; // don't scroll off top
   top: 0;
   z-index: 1; // stop progress-bars overlaying headers
@@ -227,9 +323,11 @@ th {
 
   background: $table-header-background;
 
+  cursor: default;
+
   // changing this 4px l/r padding requires a change in elm.
   // see TorrentTable widthAttribute methods
-  padding: 4px;
+  padding: 0 4px;
 
   text-align: left;
 
@@ -251,11 +349,8 @@ th {
     }
   }
 
-  .size { // width style applied by elm
-    .content { // actual content with padding in here (room for sort arrow)
-      cursor: default;
-      padding-right: 10px;
-    }
+  .content {
+    padding: 4px 10px 4px 0;
   }
 
   .resize-handle {

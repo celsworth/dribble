@@ -8,6 +8,4 @@ WORKDIR /var/app
 COPY Gemfile* ./
 RUN bundle install -j4
 
-COPY . .
-
 ENTRYPOINT ["bundle", "exec"]

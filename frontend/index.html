@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/css/normalize.css">
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/fontawesome-free-5.14.0-web/css/all.css">
+    <script type="text/javascript" src="/js/app.js"></script>
     <script type="text/javascript" src="/dribble.js"></script>
   </head>
 
@@ -24,7 +25,6 @@
       ws = new WebSocket(ws_path);
 
       ws.onopen = function(event) {
-        // send elm a message to re-get full state?
         app.ports.websocketStatusUpdated.send({connected: true});
       }
 
@@ -38,7 +38,7 @@
       };
 
       ws.onerror = function(err) {
-        console.error('Socket encountered error: ', err.message, 'Closing socket');
+        // console.error('Socket encountered error: ', err.message, 'Closing socket');
         ws.close();
       };
 
@@ -55,7 +55,7 @@
 
     app = Elm.Main.init({
       node: document.getElementById('app'),
-      flags: startingConfig
+      flags: { config: startingConfig, time: Date.now() }
     });
 
     app.ports.sendMessage.subscribe(function(message) {

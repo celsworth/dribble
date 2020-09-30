@@ -1,16 +1,16 @@
-module View.Utils.DateFormatter exposing (..)
+module View.Utils.DateFormatter exposing (format)
 
 import DateFormat
 import Model exposing (..)
-import Time exposing (Posix, Zone, utc)
+import Time
 
 
 
 --- TODO: config..
 
 
-formatter : Zone -> Posix -> String
-formatter =
+format : Time.Zone -> Time.Posix -> String
+format =
     DateFormat.format
         [ DateFormat.dayOfMonthFixed
         , DateFormat.text "."
@@ -24,18 +24,3 @@ formatter =
         , DateFormat.text ":"
         , DateFormat.secondFixed
         ]
-
-
-timezone : Zone
-timezone =
-    utc
-
-
-posixTime : Int -> Posix
-posixTime int =
-    Time.millisToPosix (int * 1000)
-
-
-format : Time.Zone -> Int -> String
-format zone input =
-    formatter zone (posixTime input)

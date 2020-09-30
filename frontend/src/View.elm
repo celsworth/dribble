@@ -5,9 +5,10 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Html.Events.Extra.Mouse
 import Model exposing (..)
-import Model.Message exposing (Message)
 import Model.Table
 import Model.Torrent
+import View.Logs
+import View.Messages
 import View.Preferences
 import View.SpeedChart
 import View.Torrent
@@ -18,9 +19,11 @@ view : Model -> Html Msg
 view model =
     div (viewAttributes model)
         [ View.Preferences.view model
+        , View.Logs.view model
+        , View.Messages.view model
         , navigation model
         , View.TorrentTable.view model
-        , footer [ class "footer" ]
+        , section [ class "footer" ]
             [ div [] [ text "test" ]
             , View.SpeedChart.view model
             ]
@@ -60,12 +63,15 @@ reconstructClientPos event =
 navigation : Model -> Html Msg
 navigation model =
     section [ class "navigation" ]
-        [ button [ onClick RefreshClicked ] [ text "Refresh" ]
-        , button [ onClick SaveConfigClicked ] [ text "Save Config" ]
-        , button [ onClick ShowPreferencesClicked ] [ text "Preferences" ]
-        , toggleTorrentAttributeVisibilityButton Model.Torrent.CreationTime
-        , toggleTorrentAttributeVisibilityButton Model.Torrent.StartedTime
-        , div [] [ p [] [ messages model ] ]
+        [ div []
+            [ button [ onClick RefreshClicked ] [ text "Refresh" ]
+            , button [ onClick SaveConfigClicked ] [ text "Save Config" ]
+            , button [ onClick ShowPreferencesClicked ] [ text "Preferences" ]
+            , toggleTorrentAttributeVisibilityButton Model.Torrent.CreationTime
+            , toggleTorrentAttributeVisibilityButton Model.Torrent.StartedTime
+            ]
+        , button [ onClick ToggleLogsVisible ]
+            [ i [ class "fas fa-bars" ] [] ]
         ]
 
 
@@ -78,25 +84,3 @@ toggleTorrentAttributeVisibilityButton attribute =
     in
     button [ onClick <| ToggleTorrentAttributeVisibility attribute ]
         [ text str ]
-
-
-messages : Model -> Html Msg
-messages model =
-    div [] (List.map message model.messages)
-
-
-message : Message -> Html Msg
-message msg =
-    let
-        severity =
-            case msg.severity of
-                Model.Message.Info ->
-                    Nothing
-
-                Model.Message.Warning ->
-                    Just "WARNING: "
-
-                Model.Message.Error ->
-                    Just "ERROR: "
-    in
-    p [] [ text <| Maybe.withDefault "" severity ++ msg.message ]

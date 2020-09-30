@@ -13,7 +13,8 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch <|
         List.filterMap identity <|
-            [ Just <| Ports.messageReceiver (WebsocketData << decodeString)
+            [ Just <| Time.every 1000 Tick
+            , Just <| Ports.messageReceiver (WebsocketData << decodeString)
             , Just <| Ports.websocketStatusUpdated (WebsocketStatusUpdated << decodeStatus)
             , updateTorrentsTicker model
             , updateTrafficTicker model

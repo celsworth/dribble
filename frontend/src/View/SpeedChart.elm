@@ -3,6 +3,7 @@ module View.SpeedChart exposing (view)
 import DateFormat
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Lazy
 import LineChart
 import LineChart.Area
 import LineChart.Axis
@@ -32,7 +33,7 @@ import Utils.Filesize
 
 view : Model -> Html Msg
 view model =
-    aside [ class "speed-chart" ] [ chart model ]
+    Html.Lazy.lazy (\m -> aside [ class "speed-chart" ] [ chart m ]) model
 
 
 chart : Model -> Html Msg

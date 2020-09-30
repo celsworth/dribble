@@ -1,4 +1,4 @@
-module View.TorrentTable exposing (..)
+module View.TorrentTable exposing (view)
 
 import Dict
 import Html exposing (..)
@@ -68,10 +68,10 @@ headerCell model attribute =
                     Nothing
     in
     th (headerCellAttributes model attribute)
-        (List.filterMap identity <|
+        (List.filterMap identity
             [ Just <|
                 div (headerCellContentDivAttributes model attribute)
-                    [ div [ class "content" ] [ text <| attrString ] ]
+                    [ div [ class "content" ] [ text attrString ] ]
             , maybeResizeDiv
             ]
         )
@@ -79,7 +79,7 @@ headerCell model attribute =
 
 headerCellAttributes : Model -> Model.Torrent.Attribute -> List (Attribute Msg)
 headerCellAttributes model attribute =
-    List.filterMap identity <|
+    List.filterMap identity
         [ headerCellIdAttribute attribute
         , cellTextAlign attribute
         , headerCellSortClass model attribute
@@ -88,9 +88,7 @@ headerCellAttributes model attribute =
 
 headerCellIdAttribute : Model.Torrent.Attribute -> Maybe (Attribute Msg)
 headerCellIdAttribute attribute =
-    Just <|
-        id <|
-            View.Torrent.attributeToTableHeaderId attribute
+    Just <| id (View.Torrent.attributeToTableHeaderId attribute)
 
 
 headerCellContentDivAttributes : Model -> Model.Torrent.Attribute -> List (Attribute Msg)
@@ -104,7 +102,7 @@ headerCellContentDivAttributes model attribute =
                 Model.Table.Fluid ->
                     Nothing
     in
-    List.filterMap identity <|
+    List.filterMap identity
         [ maybeWidthAttr
         , Just <| onClick (SetSortBy attribute)
         ]
@@ -155,34 +153,23 @@ headerCellSortClass { config } attribute =
 body : Model -> Html Msg
 body model =
     Keyed.node "tbody" [] <|
-        List.filterMap
-            identity
-            (List.map (keyedRow model) model.sortedTorrents)
+        List.filterMap identity (List.map (keyedRow model) model.sortedTorrents)
 
 
 keyedRow : Model -> String -> Maybe ( String, Html Msg )
 keyedRow model hash =
-    case Dict.get hash model.torrentsByHash of
-        Just torrent ->
-            Just
-                ( torrent.hash
-                , lazyRow model.config model.timezone torrent
-                )
-
-        Nothing ->
-            Nothing
+    Maybe.map
+        (\t -> ( t.hash, lazyRow model.config t ))
+        (Dict.get hash model.torrentsByHash)
 
 
-lazyRow : Config -> Time.Zone -> Torrent -> Html Msg
-lazyRow config timezone torrent =
-    Html.Lazy.lazy3 row
-        config
-        timezone
-        torrent
+lazyRow : Config -> Torrent -> Html Msg
+lazyRow config torrent =
+    Html.Lazy.lazy2 row config torrent
 
 
-row : Config -> Time.Zone -> Torrent -> Html Msg
-row config timezone torrent =
+row : Config -> Torrent -> Html Msg
+row config torrent =
     let
         {--
         _ =
@@ -194,7 +181,7 @@ row config timezone torrent =
     in
     tr
         []
-        (List.map (cell config timezone torrent) visibleOrder)
+        (List.map (cell config torrent) visibleOrder)
 
 
 isVisible : List Model.Torrent.Attribute -> Model.Torrent.Attribute -> Bool
@@ -202,11 +189,11 @@ isVisible visibleTorrentAttributes attribute =
     List.member attribute visibleTorrentAttributes
 
 
-cell : Config -> Time.Zone -> Torrent -> Model.Torrent.Attribute -> Html Msg
-cell config timezone torrent attribute =
+cell : Config -> Torrent -> Model.Torrent.Attribute -> Html Msg
+cell config torrent attribute =
     td []
         [ div (cellAttributes config attribute)
-            [ cellContent config timezone torrent attribute
+            [ cellContent config torrent attribute
             ]
         ]
 
@@ -222,7 +209,7 @@ cellAttributes config attribute =
                 Model.Table.Fluid ->
                     Nothing
     in
-    List.filterMap identity <|
+    List.filterMap identity
         [ maybeWidthAttr
         , cellTextAlign attribute
         ]
@@ -230,16 +217,11 @@ cellAttributes config attribute =
 
 cellTextAlign : Model.Torrent.Attribute -> Maybe (Attribute Msg)
 cellTextAlign attribute =
-    case View.Torrent.textAlignment attribute of
-        Just _ ->
-            Just <| class "text-right"
-
-        Nothing ->
-            Nothing
+    Maybe.map (\a -> class ("text-" ++ a)) (View.Torrent.textAlignment attribute)
 
 
-cellContent : Config -> Time.Zone -> Torrent -> Model.Torrent.Attribute -> Html Msg
-cellContent config timezone torrent attribute =
+cellContent : Config -> Torrent -> Model.Torrent.Attribute -> Html Msg
+cellContent config torrent attribute =
     case attribute of
         Model.Torrent.Status ->
             torrentStatusCell torrent
@@ -248,12 +230,10 @@ cellContent config timezone torrent attribute =
             donePercentCell torrent
 
         _ ->
-            text <|
-                View.Torrent.attributeAccessor
-                    config
-                    timezone
-                    torrent
-                    attribute
+            View.Torrent.attributeAccessor
+                config
+                torrent
+                attribute
 
 
 torrentStatusCell : Torrent -> Html Msg

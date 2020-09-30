@@ -8,6 +8,11 @@ import Model.Torrent
 import Utils.Filesize
 
 
+type ConfigWithResult
+    = DecodeOk Config
+    | DecodeError String Config
+
+
 type alias Config =
     { refreshDelay : Int
     , sortBy : Model.Torrent.Sort
@@ -126,43 +131,22 @@ encodeTorrentAttribute attribute =
 
 
 
-{-
-   -- for future reference..
-   -- => [ {"attribute": "name", "value": 50}, .. ]
-
-   encodeColumnWidthsAsArray : ColumnWidths -> E.Value
-   encodeColumnWidthsAsArray columnWidths =
-       E.list encodeColumnWidth (Dict.toList columnWidths)
-
-
-   encodeColumnWidth : ( String, Float ) -> E.Value
-   encodeColumnWidth tuple =
-       let
-           ( attribute, value ) =
-               tuple
-       in
-       E.object
-           [ ( "column", E.string attribute )
-           , ( "value", E.float value )
-           ]
-
--}
 --- JSON DECODERS
 
 
-decodeOrDefault : D.Value -> Config
+decodeOrDefault : D.Value -> ConfigWithResult
 decodeOrDefault flags =
     case D.decodeValue decoder flags of
         Ok config ->
-            config
+            DecodeOk config
 
-        -- not sure if this can actually be reached?
+        -- reached if anything below calls .fail
         Err err ->
             let
                 _ =
                     Debug.log "JSON Config Decoding Error:" err
             in
-            default
+            DecodeError (D.errorToString err) default
 
 
 decoder : D.Decoder Config
@@ -211,7 +195,7 @@ sortDirectionDecoder =
                         D.succeed Model.Torrent.Desc
 
                     _ ->
-                        D.fail <| "unknown direction" ++ input
+                        D.fail <| "unknown direction " ++ input
             )
 
 
@@ -220,5 +204,10 @@ torrentAttributeDecoder =
     D.string
         |> D.andThen
             (\input ->
-                D.succeed <| Model.Torrent.keyToAttribute input
+                case Model.Torrent.keyToAttribute input of
+                    Just a ->
+                        D.succeed a
+
+                    Nothing ->
+                        D.fail <| "unknown torrent key " ++ input
             )

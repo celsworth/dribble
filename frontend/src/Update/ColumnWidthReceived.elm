@@ -2,7 +2,7 @@ module Update.ColumnWidthReceived exposing (update)
 
 import Browser.Dom
 import Model exposing (..)
-import Model.Config
+import Model.Config exposing (Config)
 import Model.Table
 
 
@@ -15,26 +15,44 @@ import Model.Table
 -}
 
 
+type alias Action =
+    {- store details of how to set width for different attribute types -}
+    { setter : Model.Table.Config -> Config -> Config
+    , tableConfig : Model.Table.Config
+    }
+
+
 update : Model.Table.Attribute -> Result Browser.Dom.Error Browser.Dom.Element -> Model -> ( Model, Cmd Msg )
 update attribute result model =
     let
-        newTorrentTable =
-            \r ->
-                -- TODO: remove torrentTable assumption
+        action =
+            actionForAttribute attribute model
+
+        newTableConfig =
+            \px ->
                 Model.Table.setColumnWidth
                     attribute
-                    { px = r.element.width, auto = False }
-                    model.config.torrentTable
+                    { px = px, auto = False }
+                    action.tableConfig
 
         newConfig =
-            \r -> Model.Config.setTorrentTable (newTorrentTable r) model.config
+            \px -> action.setter (newTableConfig px) model.config
     in
     case result of
         Ok r ->
             model
-                |> Model.setConfig (newConfig r)
+                |> Model.setConfig (newConfig r.element.width)
                 |> Model.addCmd Cmd.none
 
         Err _ ->
             -- XXX: could display error message
             model |> Model.addCmd Cmd.none
+
+
+actionForAttribute : Model.Table.Attribute -> Model -> Action
+actionForAttribute attribute model =
+    case attribute of
+        Model.Table.TorrentAttribute _ ->
+            { setter = Model.Config.setTorrentTable
+            , tableConfig = model.config.torrentTable
+            }
