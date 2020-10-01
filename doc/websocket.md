@@ -5,7 +5,7 @@ Elm sends Ruby requests over a websocket. The most basic is:
 ```json
 {
   "name": "torrentList"
-  "command": ['d.multicall2', '', 'main', 'd.hash=', 'd.name='],
+  "command": ["d.multicall2", "", "main", "d.hash=", "d.name="],
 }
 ```
 
@@ -37,7 +37,7 @@ This also works for nested multicall commands:
 
 ```json
 {
-  "command": ['d.multicall2', '', 'main', 'd.hash=', 'd.name='],
+  "command": ["d.multicall2", "", "main", "d.hash=", "d.name="],
   "subscribe": "torrentList",
   "interval": 5
 }
@@ -51,7 +51,7 @@ Elm can request only changed data in subscription updates, which makes sense whe
 
 ```json
 {
-  "command": ['d.multicall2', '', 'main', 'd.hash=', 'd.name='],
+  "command": ["d.multicall2", "", "main", "d.hash=", "d.name="],
   "subscribe": "torrentList",
   "interval": 5,
   "diff": true
