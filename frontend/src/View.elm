@@ -2,7 +2,7 @@ module View exposing (view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onInput)
 import Html.Events.Extra.Mouse
 import Model exposing (..)
 import Model.Table
@@ -61,7 +61,7 @@ reconstructClientPos event =
 
 
 navigation : Model -> Html Msg
-navigation _ =
+navigation model =
     section [ class "navigation" ]
         [ div []
             [ button [ onClick SaveConfigClicked ] [ text "Save Config" ]
@@ -69,9 +69,21 @@ navigation _ =
             , toggleTorrentAttributeVisibilityButton Model.Torrent.CreationTime
             , toggleTorrentAttributeVisibilityButton Model.Torrent.StartedTime
             ]
-        , button [ onClick ToggleLogsVisible ]
-            [ i [ class "fas fa-bars" ] [] ]
+        , div []
+            [ nameFilterInput model
+            , button [ onClick ToggleLogsVisible ] [ i [ class "fas fa-bars" ] [] ]
+            ]
         ]
+
+
+nameFilterInput : Model -> Html Msg
+nameFilterInput model =
+    input
+        [ placeholder "Regex search"
+        , onInput TorrentNameFilterChanged
+        , type_ "text"
+        ]
+        []
 
 
 toggleTorrentAttributeVisibilityButton : Model.Torrent.Attribute -> Html Msg

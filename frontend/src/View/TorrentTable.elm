@@ -12,8 +12,8 @@ import Model exposing (..)
 import Model.Config exposing (Config)
 import Model.Table
 import Model.Torrent exposing (Torrent)
+import Model.TorrentFilter
 import Round
-import Time
 import View.DragBar
 import View.Torrent
 
@@ -159,22 +159,26 @@ body model =
 keyedRow : Model -> String -> Maybe ( String, Html Msg )
 keyedRow model hash =
     Maybe.map
-        (\t -> ( t.hash, lazyRow model.config t ))
+        (\t -> ( t.hash, lazyRow model t ))
         (Dict.get hash model.torrentsByHash)
 
 
-lazyRow : Config -> Torrent -> Html Msg
-lazyRow config torrent =
-    Html.Lazy.lazy2 row config torrent
+lazyRow : Model -> Torrent -> Html Msg
+lazyRow model torrent =
+    if Model.TorrentFilter.torrentMatches model.torrentFilter torrent then
+        Html.Lazy.lazy2 row model.config torrent
+
+    else
+        text ""
 
 
 row : Config -> Torrent -> Html Msg
 row config torrent =
     let
-        {--
-        _ =
-            Debug.log "rendering:" torrent
-        --}
+        {-
+           _ =
+               Debug.log "rendering:" torrent
+        -}
         visibleOrder =
             List.filter (isVisible config.visibleTorrentAttributes)
                 config.torrentAttributeOrder

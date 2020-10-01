@@ -9,6 +9,7 @@ import Model.Message exposing (Message)
 import Model.SpeedChart
 import Model.Table
 import Model.Torrent exposing (Torrent)
+import Model.TorrentFilter exposing (TorrentFilter)
 import Model.Traffic exposing (Traffic)
 import Model.WebsocketData
 import Time
@@ -21,6 +22,7 @@ type Msg
     | GotColumnWidth Model.Table.Attribute (Result Browser.Dom.Error Browser.Dom.Element)
     | SaveConfigClicked
     | ShowPreferencesClicked
+    | TorrentNameFilterChanged String
     | ToggleLogsVisible
     | ToggleTorrentAttributeVisibility Model.Torrent.Attribute
     | SetSortBy Model.Torrent.Attribute
@@ -36,6 +38,7 @@ type alias Model =
     , websocketConnected : Bool
     , sortedTorrents : List String
     , torrentsByHash : Dict String Torrent
+    , torrentFilter : TorrentFilter
     , traffic : List Traffic
     , prevTraffic : Maybe Traffic
     , speedChartHover : List Model.SpeedChart.DataSeries
@@ -61,6 +64,11 @@ setWebsocketConnected new model =
 setSortedTorrents : List String -> Model -> Model
 setSortedTorrents new model =
     { model | sortedTorrents = new }
+
+
+setTorrentFilter : TorrentFilter -> Model -> Model
+setTorrentFilter new model =
+    { model | torrentFilter = new }
 
 
 setMessages : List Message -> Model -> Model

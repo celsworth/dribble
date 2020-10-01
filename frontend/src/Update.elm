@@ -5,6 +5,7 @@ import Json.Decode as JD
 import Model exposing (..)
 import Model.Message
 import Model.Table
+import Model.TorrentFilter
 import Model.WebsocketData
 import Ports
 import Update.ColumnWidthReceived
@@ -19,6 +20,7 @@ import Update.SetCurrentTime
 import Update.SetSortBy
 import Update.StartResizeOp
 import Update.ToggleTorrentAttributeVisibility
+import Update.TorrentNameFilterChanged
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -41,6 +43,9 @@ update msg model =
 
         ShowPreferencesClicked ->
             model |> setPreferencesVisible True |> addCmd Cmd.none
+
+        TorrentNameFilterChanged value ->
+            model |> Update.TorrentNameFilterChanged.update value
 
         ToggleLogsVisible ->
             model |> toggleLogsVisible |> addCmd Cmd.none
