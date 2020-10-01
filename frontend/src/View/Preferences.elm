@@ -43,7 +43,7 @@ units model =
 
 
 unitsInputs : Model -> Html Msg
-unitsInputs model =
+unitsInputs _ =
     div [ class "control-group" ]
         [ label [ class "radio" ]
             [ input [ type_ "radio" ] []

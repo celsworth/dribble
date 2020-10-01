@@ -142,10 +142,6 @@ decodeOrDefault flags =
 
         -- reached if anything below calls .fail
         Err err ->
-            let
-                _ =
-                    Debug.log "JSON Config Decoding Error:" err
-            in
             DecodeError (D.errorToString err) default
 
 

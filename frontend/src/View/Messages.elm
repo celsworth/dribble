@@ -13,7 +13,7 @@ view model =
 
 
 sectionAttributes : Model -> List (Attribute Msg)
-sectionAttributes model =
+sectionAttributes _ =
     List.filterMap identity
         [ Just <| class "messages"
         ]
