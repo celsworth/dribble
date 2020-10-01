@@ -65,7 +65,7 @@ navigation model =
     section [ class "navigation" ]
         [ div []
             [ button [ onClick SaveConfigClicked ] [ text "Save Config" ]
-            , button [ onClick ShowPreferencesClicked ] [ text "Preferences" ]
+            , button [ onClick TogglePreferencesVisible ] [ text "Preferences" ]
             , toggleTorrentAttributeVisibilityButton Model.Torrent.CreationTime
             , toggleTorrentAttributeVisibilityButton Model.Torrent.StartedTime
             ]
@@ -79,7 +79,8 @@ navigation model =
 nameFilterInput : Model -> Html Msg
 nameFilterInput _ =
     input
-        [ placeholder "Regex search"
+        [ placeholder "Regex Filter"
+        , class "name-filter"
         , onInput TorrentNameFilterChanged
         , type_ "text"
         ]

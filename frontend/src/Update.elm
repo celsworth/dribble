@@ -40,8 +40,8 @@ update msg model =
         SaveConfigClicked ->
             model |> Update.SaveConfig.update
 
-        ShowPreferencesClicked ->
-            model |> setPreferencesVisible True |> addCmd Cmd.none
+        TogglePreferencesVisible ->
+            model |> togglePreferencesVisible |> addCmd Cmd.none
 
         TorrentNameFilterChanged value ->
             model |> Update.TorrentNameFilterChanged.update value

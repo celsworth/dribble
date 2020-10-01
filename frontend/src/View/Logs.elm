@@ -2,6 +2,7 @@ module View.Logs exposing (view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onClick)
 import Model exposing (..)
 import Model.Message exposing (Message)
 import Time
@@ -16,13 +17,13 @@ view model =
 sectionAttributes : Model -> List (Attribute Msg)
 sectionAttributes model =
     List.filterMap identity
-        [ Just <| class "logs"
-        , visibleIfLogsVisible model
+        [ Just <| class "logs window"
+        , displayClass model
         ]
 
 
-visibleIfLogsVisible : Model -> Maybe (Attribute Msg)
-visibleIfLogsVisible model =
+displayClass : Model -> Maybe (Attribute Msg)
+displayClass model =
     if model.logsVisible then
         Just <| class "visible"
 
@@ -32,7 +33,14 @@ visibleIfLogsVisible model =
 
 sectionContents : Model -> List (Html Msg)
 sectionContents model =
-    [ i [ class "fas fa-cross" ] []
+    [ div [ class "titlebar" ]
+        [ i
+            [ class "close-icon fas fa-times-circle"
+            , onClick ToggleLogsVisible
+            ]
+            []
+        , strong [] [ text <| "Logs" ]
+        ]
     , messageList model
     ]
 

@@ -8,30 +8,38 @@ import Model exposing (..)
 
 view : Model -> Html Msg
 view model =
-    section (sectionAttributes model)
-        [ h1 []
-            [ text <| "Preferences" ]
-        , div []
-            [ units model ]
-        ]
+    section (sectionAttributes model) (sectionContents model)
 
 
 sectionAttributes : Model -> List (Attribute Msg)
 sectionAttributes model =
-    List.filterMap identity <|
-        [ Just <| id "preferences"
-        , Just <| class "form"
-        , displayStyle model
+    List.filterMap identity
+        [ Just <| class "preferences window"
+        , displayClass model
         ]
 
 
-displayStyle : Model -> Maybe (Attribute Msg)
-displayStyle model =
+displayClass : Model -> Maybe (Attribute Msg)
+displayClass model =
     if model.preferencesVisible then
         Just <| class "visible"
 
     else
         Nothing
+
+
+sectionContents : Model -> List (Html Msg)
+sectionContents model =
+    [ div [ class "titlebar" ]
+        [ i
+            [ class "close-icon fas fa-times-circle"
+            , onClick TogglePreferencesVisible
+            ]
+            []
+        , strong [] [ text <| "Preferences" ]
+        ]
+    , units model
+    ]
 
 
 units : Model -> Html Msg

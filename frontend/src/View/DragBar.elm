@@ -19,6 +19,6 @@ dragbar resizeOp =
 attributes : Model.Table.ResizeOp -> List (Attribute Msg)
 attributes resizeOp =
     [ id "dragbar"
-    , class "visible"
+    , class "dragbar visible"
     , style "left" (String.fromFloat resizeOp.currentPosition.x ++ "px")
     ]

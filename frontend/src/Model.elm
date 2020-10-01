@@ -21,7 +21,7 @@ type Msg
     | TorrentAttributeResizeEnded Model.Table.ResizeOp Model.Table.MousePosition
     | GotColumnWidth Model.Table.Attribute (Result Browser.Dom.Error Browser.Dom.Element)
     | SaveConfigClicked
-    | ShowPreferencesClicked
+    | TogglePreferencesVisible
     | TorrentNameFilterChanged String
     | ToggleLogsVisible
     | ToggleTorrentAttributeVisibility Model.Torrent.Attribute
@@ -91,9 +91,9 @@ setSpeedChartHover new model =
     { model | speedChartHover = new }
 
 
-setPreferencesVisible : Bool -> Model -> Model
-setPreferencesVisible new model =
-    { model | preferencesVisible = new }
+togglePreferencesVisible : Model -> Model
+togglePreferencesVisible model =
+    { model | preferencesVisible = not model.preferencesVisible }
 
 
 toggleLogsVisible : Model -> Model
