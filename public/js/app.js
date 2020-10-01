@@ -6,11 +6,6 @@ const dtFormat = new Intl.DateTimeFormat('default', {
 	timeZoneName: 'short'
 });
 
-function localizeDate(posix)
-{
-	return dtFormat.format(new Date(parseInt(posix)));
-}
-
 // <localtime posix="1601468962000">
 customElements.define('local-time',
 	class extends HTMLElement {
@@ -22,7 +17,7 @@ customElements.define('local-time',
 		setTextContent()
 		{
 			const posix = this.getAttribute('posix');
-			this.textContent = localizeDate(posix);
+			this.textContent = dtFormat.format(posix);
 		}
 	}
 );
