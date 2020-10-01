@@ -5,7 +5,6 @@ import Json.Decode as JD
 import Model exposing (..)
 import Model.Message
 import Model.Table
-import Model.TorrentFilter
 import Model.WebsocketData
 import Ports
 import Update.ColumnWidthReceived

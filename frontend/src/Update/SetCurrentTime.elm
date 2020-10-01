@@ -1,7 +1,6 @@
 module Update.SetCurrentTime exposing (update)
 
 import Model exposing (..)
-import Model.Message exposing (Message)
 import Time
 
 

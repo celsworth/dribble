@@ -10,7 +10,7 @@ import Time
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.batch <|
         List.filterMap identity <|
             [ Just <| Time.every 1000 Tick

@@ -77,7 +77,7 @@ navigation model =
 
 
 nameFilterInput : Model -> Html Msg
-nameFilterInput model =
+nameFilterInput _ =
     input
         [ placeholder "Regex search"
         , onInput TorrentNameFilterChanged

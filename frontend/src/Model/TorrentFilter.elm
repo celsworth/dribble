@@ -9,23 +9,31 @@ type alias TorrentFilter =
     }
 
 
-setName : Maybe String -> TorrentFilter -> TorrentFilter
+setName : String -> TorrentFilter -> TorrentFilter
 setName new filter =
     {- convert from string to regex -}
     let
         nameRe =
-            Maybe.map (\s -> Regex.fromStringWith { caseInsensitive = True, multiline = False } s) new
-                |> Maybe.withDefault Nothing
+            if String.isEmpty new then
+                Nothing
+
+            else
+                stringToRegex new
     in
     { filter | name = nameRe }
+
+
+stringToRegex : String -> Maybe Regex
+stringToRegex input =
+    Regex.fromStringWith { caseInsensitive = True, multiline = False } input
 
 
 torrentMatches : TorrentFilter -> Torrent -> Bool
 torrentMatches filter torrent =
     {- return true if it matches the given filter -}
     case filter.name of
-        Just s ->
-            Regex.contains s torrent.name
+        Just re ->
+            Regex.contains re torrent.name
 
         Nothing ->
             True

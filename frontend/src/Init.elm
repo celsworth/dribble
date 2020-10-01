@@ -5,7 +5,6 @@ import Json.Decode as JD
 import Model exposing (Model, Msg)
 import Model.Config exposing (Config)
 import Model.Message exposing (Message)
-import Model.TorrentFilter exposing (TorrentFilter)
 import Time
 import TimeZone
 
