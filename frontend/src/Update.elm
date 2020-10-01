@@ -36,9 +36,6 @@ update msg model =
         GotColumnWidth attribute result ->
             model |> Update.ColumnWidthReceived.update attribute result
 
-        RefreshClicked ->
-            model |> addCmd Ports.getFullTorrents
-
         SaveConfigClicked ->
             model |> Update.SaveConfig.update
 
@@ -59,12 +56,6 @@ update msg model =
 
         Tick time ->
             model |> Update.SetCurrentTime.update time
-
-        RequestFullTorrents ->
-            model |> addCmd Ports.getFullTorrents
-
-        RequestUpdatedTorrents _ ->
-            model |> addCmd Ports.getUpdatedTorrents
 
         RequestUpdatedTraffic _ ->
             model |> addCmd Ports.getTraffic

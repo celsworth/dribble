@@ -1,6 +1,7 @@
 module Model.Rtorrent exposing (getFullTorrents, getTraffic, getUpdatedTorrents)
 
 import Json.Encode as E
+import Model exposing (Model)
 import Model.Traffic exposing (Traffic)
 
 
@@ -18,7 +19,9 @@ getTraffic : String
 getTraffic =
     E.encode 0 <|
         E.object
-            [ ( "save", E.string "trafficRate" )
+            [ ( "subscribe", E.string "trafficRate" )
+            , ( "diff", E.bool False )
+            , ( "interval", E.int 5 )
             , ( "command", getTrafficFields )
             ]
 
@@ -39,11 +42,13 @@ getTrafficFields =
 -- WEBSOCKET; TORRENTS
 
 
-getFullTorrents : String
-getFullTorrents =
+getFullTorrents : Model -> String
+getFullTorrents model =
     E.encode 0 <|
         E.object
-            [ ( "save", E.string "torrentList" )
+            [ ( "subscribe", E.string "torrentList" )
+            , ( "diff", E.bool True )
+            , ( "interval", E.int model.config.refreshDelay )
             , ( "command", getTorrentFields )
             ]
 

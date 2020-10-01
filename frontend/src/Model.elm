@@ -19,7 +19,6 @@ type Msg
     | TorrentAttributeResized Model.Table.ResizeOp Model.Table.MousePosition
     | TorrentAttributeResizeEnded Model.Table.ResizeOp Model.Table.MousePosition
     | GotColumnWidth Model.Table.Attribute (Result Browser.Dom.Error Browser.Dom.Element)
-    | RefreshClicked
     | SaveConfigClicked
     | ShowPreferencesClicked
     | ToggleLogsVisible
@@ -27,8 +26,6 @@ type Msg
     | SetSortBy Model.Torrent.Attribute
     | SpeedChartHover (List Model.SpeedChart.DataSeries)
     | Tick Time.Posix
-    | RequestFullTorrents
-    | RequestUpdatedTorrents Time.Posix
     | RequestUpdatedTraffic Time.Posix
     | WebsocketData (Result JD.Error Model.WebsocketData.Data)
     | WebsocketStatusUpdated (Result JD.Error Bool)

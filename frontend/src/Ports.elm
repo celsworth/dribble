@@ -21,9 +21,9 @@ port sendMessage : String -> Cmd msg
 port messageReceiver : (String -> msg) -> Sub msg
 
 
-getFullTorrents : Cmd Msg
-getFullTorrents =
-    sendMessage Model.Rtorrent.getFullTorrents
+getFullTorrents : Model -> Cmd Msg
+getFullTorrents model =
+    sendMessage (Model.Rtorrent.getFullTorrents model)
 
 
 getUpdatedTorrents : Cmd Msg

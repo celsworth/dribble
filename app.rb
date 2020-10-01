@@ -5,6 +5,10 @@ require 'sassc'
 
 require 'rtorrent'
 
+require 'subscription'
+require 'subscription_runner'
+require 'websocket'
+
 # Connects to rtorrent at localhost:5000 by default. eg in rtorrent:
 #    network.scgi.open_port = 127.0.0.1:5000
 #
@@ -18,6 +22,8 @@ class Dribble < Sinatra::Application
   configure do
     set :sockets, {}
 
+    set :subscription_runner, SubscriptionRunner.new.tap(&:start)
+
     # use the environment variable verbatim if set,
     # else assume localhost, but cope with running in Docker
     set :rtorrent_host, ENV['RTORRENT'] || (ENV['DOCKER'] ? 'docker-host' : 'localhost')
@@ -26,55 +32,6 @@ class Dribble < Sinatra::Application
     set :sass, style: :compact
 
     register Sinatra::Reloader
-  end
-
-  # Given some input from our WebSocket, parse it and work out what to do
-  #
-  # This is just a simple mapping from JSON to an RPC call:
-  #
-  # {
-  #   command: [
-  #     'd.multicall2', '', 'main', 'd.hash=', 'd.name='
-  #   ]
-  # }
-  #
-  # For the saved command and diffing stuff to work, d.hash must be the first arg.
-  #
-  def rtorrent_cmd(input, store:)
-    rtorrent = Rtorrent.new(settings.rtorrent_host, settings.rtorrent_port)
-
-    key = input['load'] || input['save']
-    command = input['command'] || (key && store[key][:command])
-
-    return { error: 'no command, what to do?' } unless command
-
-    data = rtorrent.call(*command)
-
-    new = if input['load']
-            diff_arrays(store[key][:data], data)
-          else
-            data
-          end
-
-    store[key] = { command: command, data: data } if key
-
-    { data: new }
-  rescue StandardError => e
-    { error: e.message }
-  end
-
-  # Given last and current are in format:
-  # [[hash1, name1], [hash2, name2]] and [[hash1, name1], [hash2, newname2]]
-  #
-  # Compare them keyed by hash, and return the members that have changed in current
-  # => [[hash2, newname2]]
-  #
-  def diff_arrays(last, current)
-    # bit of an assumption that hash is the first array value here..
-    l_hash = last.map { |l| [l[0], l] }.to_h
-    c_hash = current.map { |c| [c[0], c] }.to_h
-
-    c_hash.reject { |hash, c| c == l_hash[hash] }.values
   end
 
   get '/' do
@@ -93,19 +50,35 @@ class Dribble < Sinatra::Application
   get '/ws' do
     request.websocket do |ws|
       ws.onopen do
-        settings.sockets[ws] = { commands: {} }
+        t = settings.sockets[ws] = Websocket.new(ws)
+        settings.subscription_runner.add_websocket(t)
       end
 
       ws.onmessage do |msg|
-        # EM.next_tick { settings.sockets.each { |s| s.send(msg) } }
-
-        r = rtorrent_cmd(JSON.parse(msg), store: settings.sockets[ws])
-        ws.send(JSON.generate(r))
+        t = settings.sockets[ws]
+        process_websocket(t, JSON.parse(msg))
       end
 
       ws.onclose do
-        settings.sockets.delete(ws)
+        t = settings.sockets[ws]
+        settings.subscription_runner.remove_websocket(t)
       end
+    end
+  end
+
+  def process_websocket(websocket, data)
+    if (u = data['unsubscribe'])
+      websocket.remove_subscription(u)
+    elsif (s = data['subscribe'])
+      rtorrent = Rtorrent.new(settings.rtorrent_host, settings.rtorrent_port)
+      sub = Subscription.new(interval: data['interval'],
+                             rtorrent: rtorrent,
+                             diff: data['diff'],
+                             command: data['command'])
+      websocket.add_subscription(s, sub)
+    else
+      # TODO; non-subscribe commands
+      raise NotImplementedError
     end
   end
 end

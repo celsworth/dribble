@@ -61,11 +61,10 @@ reconstructClientPos event =
 
 
 navigation : Model -> Html Msg
-navigation model =
+navigation _ =
     section [ class "navigation" ]
         [ div []
-            [ button [ onClick RefreshClicked ] [ text "Refresh" ]
-            , button [ onClick SaveConfigClicked ] [ text "Save Config" ]
+            [ button [ onClick SaveConfigClicked ] [ text "Save Config" ]
             , button [ onClick ShowPreferencesClicked ] [ text "Preferences" ]
             , toggleTorrentAttributeVisibilityButton Model.Torrent.CreationTime
             , toggleTorrentAttributeVisibilityButton Model.Torrent.StartedTime

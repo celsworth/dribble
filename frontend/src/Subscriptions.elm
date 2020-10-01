@@ -16,19 +16,7 @@ subscriptions model =
             [ Just <| Time.every 1000 Tick
             , Just <| Ports.messageReceiver (WebsocketData << decodeString)
             , Just <| Ports.websocketStatusUpdated (WebsocketStatusUpdated << decodeStatus)
-            , updateTorrentsTicker model
-            , updateTrafficTicker model
             ]
-
-
-updateTorrentsTicker : Model -> Maybe (Sub Msg)
-updateTorrentsTicker model =
-    if model.websocketConnected then
-        Just <|
-            Time.every (toFloat model.config.refreshDelay * 1000) RequestUpdatedTorrents
-
-    else
-        Nothing
 
 
 updateTrafficTicker : Model -> Maybe (Sub Msg)
@@ -77,12 +65,12 @@ errorDecoder =
 torrentListDecoder : D.Decoder Model.WebsocketData.Data
 torrentListDecoder =
     D.map Model.WebsocketData.TorrentsReceived <|
-        D.field "data" <|
+        D.field "torrentList" <|
             Model.Torrent.listDecoder
 
 
 trafficDecoder : D.Decoder Model.WebsocketData.Data
 trafficDecoder =
     D.map Model.WebsocketData.TrafficReceived <|
-        D.field "data" <|
+        D.field "trafficRate" <|
             Model.Traffic.decoder
