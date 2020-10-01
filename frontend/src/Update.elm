@@ -25,6 +25,9 @@ import Update.TorrentNameFilterChanged
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        SetTimeZone zone ->
+            model |> setTimeZone zone |> addCmd Cmd.none
+
         MouseDown attribute pos button keys ->
             model |> handleMouseDown attribute pos button keys
 

@@ -2,11 +2,11 @@ module Init exposing (Flags, init)
 
 import Dict
 import Json.Decode as JD
-import Model exposing (Model, Msg)
+import Model exposing (Model, Msg(..))
 import Model.Config exposing (Config)
 import Model.Message exposing (Message)
+import Task
 import Time
-import TimeZone
 
 
 type alias Flags =
@@ -33,10 +33,10 @@ init flags =
       , preferencesVisible = False
       , logsVisible = False
       , resizeOp = Nothing
-      , timezone = resolveTimezone config
+      , timezone = Time.utc
       , currentTime = Time.millisToPosix flags.time
       }
-    , Cmd.none
+    , Task.perform SetTimeZone Time.here
     )
 
 
@@ -55,13 +55,3 @@ decodeConfig flags =
                 }
               ]
             )
-
-
-resolveTimezone : Config -> Time.Zone
-resolveTimezone config =
-    case Dict.get config.timezone TimeZone.zones of
-        Just zone ->
-            zone ()
-
-        Nothing ->
-            Time.utc

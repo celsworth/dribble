@@ -16,7 +16,8 @@ import Time
 
 
 type Msg
-    = MouseDown Model.Table.Attribute Model.Table.MousePosition Mouse.Button Mouse.Keys
+    = SetTimeZone Time.Zone
+    | MouseDown Model.Table.Attribute Model.Table.MousePosition Mouse.Button Mouse.Keys
     | TorrentAttributeResized Model.Table.ResizeOp Model.Table.MousePosition
     | TorrentAttributeResizeEnded Model.Table.ResizeOp Model.Table.MousePosition
     | GotColumnWidth Model.Table.Attribute (Result Browser.Dom.Error Browser.Dom.Element)
@@ -104,6 +105,11 @@ toggleLogsVisible model =
 setResizeOp : Maybe Model.Table.ResizeOp -> Model -> Model
 setResizeOp new model =
     { model | resizeOp = new }
+
+
+setTimeZone : Time.Zone -> Model -> Model
+setTimeZone new model =
+    { model | timezone = new }
 
 
 setCurrentTime : Time.Posix -> Model -> Model
