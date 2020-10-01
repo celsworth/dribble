@@ -4,7 +4,7 @@ Elm sends Ruby requests over a websocket. The most basic is:
 
 ```json
 {
-  "name": "torrentList"
+  "name": "torrentList",
   "command": ["d.multicall2", "", "main", "d.hash=", "d.name="],
 }
 ```
@@ -13,7 +13,7 @@ This runs a single command in rtorrent, returning the response wrapped in the `n
 
 ```json
 {
-  "torrentList": [ ... ]
+  "torrentList": [ ["...", "..."] ]
 }
 ```
 
