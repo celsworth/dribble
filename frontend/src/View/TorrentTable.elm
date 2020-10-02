@@ -1,6 +1,6 @@
 module View.TorrentTable exposing (view)
 
-import Dict
+import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
@@ -12,7 +12,7 @@ import Model exposing (..)
 import Model.Config exposing (Config)
 import Model.Table
 import Model.Torrent exposing (Torrent)
-import Model.TorrentFilter
+import Model.TorrentFilter exposing (TorrentFilter)
 import Round
 import View.DragBar
 import View.Torrent
@@ -26,63 +26,67 @@ view model =
 
     else
         section [ class "torrents" ]
-            [ Html.table []
-                [ View.DragBar.view model
-                , header model
-                , body model
+            [ table []
+                [ Html.Lazy.lazy View.DragBar.view model.resizeOp
+                , Html.Lazy.lazy header model.config
+                , Html.Lazy.lazy4 body
+                    model.torrentFilter
+                    model.torrentsByHash
+                    model.sortedTorrents
+                    model.config
                 ]
             ]
 
 
-fixedOrFluid : Config -> Model.Table.Layout
-fixedOrFluid config =
-    config.torrentTable.layout
+fixedOrFluid : Model.Table.Config -> Model.Table.Layout
+fixedOrFluid tableConfig =
+    tableConfig.layout
 
 
-header : Model -> Html Msg
-header model =
+header : Config -> Html Msg
+header config =
     let
         visibleOrder =
-            List.filter (isVisible model.config.visibleTorrentAttributes)
-                model.config.torrentAttributeOrder
+            List.filter (isVisible config.visibleTorrentAttributes)
+                config.torrentAttributeOrder
     in
     thead []
         [ tr []
-            (List.map (headerCell model) visibleOrder)
+            (List.map (headerCell config) visibleOrder)
         ]
 
 
-headerCell : Model -> Model.Torrent.Attribute -> Html Msg
-headerCell model attribute =
+headerCell : Config -> Model.Torrent.Attribute -> Html Msg
+headerCell config attribute =
     let
         attrString =
             View.Torrent.attributeToTableHeaderString
                 attribute
 
         maybeResizeDiv =
-            case fixedOrFluid model.config of
+            case fixedOrFluid config.torrentTable of
                 Model.Table.Fixed ->
-                    Just <| div (headerCellResizeHandleAttributes model attribute) []
+                    Just <| div (headerCellResizeHandleAttributes attribute) []
 
                 Model.Table.Fluid ->
                     Nothing
     in
-    th (headerCellAttributes model attribute)
+    th (headerCellAttributes config attribute)
         (List.filterMap identity
             [ Just <|
-                div (headerCellContentDivAttributes model attribute)
+                div (headerCellContentDivAttributes config attribute)
                     [ div [ class "content" ] [ text attrString ] ]
             , maybeResizeDiv
             ]
         )
 
 
-headerCellAttributes : Model -> Model.Torrent.Attribute -> List (Attribute Msg)
-headerCellAttributes model attribute =
+headerCellAttributes : Config -> Model.Torrent.Attribute -> List (Attribute Msg)
+headerCellAttributes config attribute =
     List.filterMap identity
         [ headerCellIdAttribute attribute
         , cellTextAlign attribute
-        , headerCellSortClass model attribute
+        , headerCellSortClass config attribute
         ]
 
 
@@ -91,13 +95,13 @@ headerCellIdAttribute attribute =
     Just <| id (View.Torrent.attributeToTableHeaderId attribute)
 
 
-headerCellContentDivAttributes : Model -> Model.Torrent.Attribute -> List (Attribute Msg)
-headerCellContentDivAttributes model attribute =
+headerCellContentDivAttributes : Config -> Model.Torrent.Attribute -> List (Attribute Msg)
+headerCellContentDivAttributes config attribute =
     let
         maybeWidthAttr =
-            case fixedOrFluid model.config of
+            case fixedOrFluid config.torrentTable of
                 Model.Table.Fixed ->
-                    thWidthAttribute model.config.torrentTable.columnWidths attribute
+                    thWidthAttribute config.torrentTable.columnWidths attribute
 
                 Model.Table.Fluid ->
                     Nothing
@@ -108,8 +112,8 @@ headerCellContentDivAttributes model attribute =
         ]
 
 
-headerCellResizeHandleAttributes : Model -> Model.Torrent.Attribute -> List (Attribute Msg)
-headerCellResizeHandleAttributes _ attribute =
+headerCellResizeHandleAttributes : Model.Torrent.Attribute -> List (Attribute Msg)
+headerCellResizeHandleAttributes attribute =
     let
         {- this mess converts (x, y) to { x: x, y: y } -}
         reconstructClientPos =
@@ -132,8 +136,8 @@ headerCellResizeHandleAttributes _ attribute =
     ]
 
 
-headerCellSortClass : Model -> Model.Torrent.Attribute -> Maybe (Attribute Msg)
-headerCellSortClass { config } attribute =
+headerCellSortClass : Config -> Model.Torrent.Attribute -> Maybe (Attribute Msg)
+headerCellSortClass config attribute =
     let
         (Model.Torrent.SortBy currentSortAttribute currentSortDirection) =
             config.sortBy
@@ -150,23 +154,24 @@ headerCellSortClass { config } attribute =
         Nothing
 
 
-body : Model -> Html Msg
-body model =
+body : TorrentFilter -> Dict String Torrent -> List String -> Config -> Html Msg
+body torrentFilter torrentsByHash sortedTorrents config =
     Keyed.node "tbody" [] <|
-        List.filterMap identity (List.map (keyedRow model) model.sortedTorrents)
+        List.filterMap identity
+            (List.map (keyedRow torrentFilter torrentsByHash config) sortedTorrents)
 
 
-keyedRow : Model -> String -> Maybe ( String, Html Msg )
-keyedRow model hash =
+keyedRow : TorrentFilter -> Dict String Torrent -> Config -> String -> Maybe ( String, Html Msg )
+keyedRow torrentFilter torrentsByHash config hash =
     Maybe.map
-        (\t -> ( t.hash, lazyRow model t ))
-        (Dict.get hash model.torrentsByHash)
+        (\t -> ( t.hash, lazyRow torrentFilter config t ))
+        (Dict.get hash torrentsByHash)
 
 
-lazyRow : Model -> Torrent -> Html Msg
-lazyRow model torrent =
-    if Model.TorrentFilter.torrentMatches model.torrentFilter torrent then
-        Html.Lazy.lazy2 row model.config torrent
+lazyRow : TorrentFilter -> Config -> Torrent -> Html Msg
+lazyRow torrentFilter config torrent =
+    if Model.TorrentFilter.torrentMatches torrentFilter torrent then
+        Html.Lazy.lazy2 row config torrent
 
     else
         text ""
@@ -196,19 +201,19 @@ isVisible visibleTorrentAttributes attribute =
 cell : Config -> Torrent -> Model.Torrent.Attribute -> Html Msg
 cell config torrent attribute =
     td []
-        [ div (cellAttributes config attribute)
+        [ div (cellAttributes config.torrentTable attribute)
             [ cellContent config torrent attribute
             ]
         ]
 
 
-cellAttributes : Config -> Model.Torrent.Attribute -> List (Attribute Msg)
-cellAttributes config attribute =
+cellAttributes : Model.Table.Config -> Model.Torrent.Attribute -> List (Attribute Msg)
+cellAttributes tableConfig attribute =
     let
         maybeWidthAttr =
-            case fixedOrFluid config of
+            case fixedOrFluid tableConfig of
                 Model.Table.Fixed ->
-                    tdWidthAttribute config.torrentTable.columnWidths attribute
+                    tdWidthAttribute tableConfig.columnWidths attribute
 
                 Model.Table.Fluid ->
                     Nothing
@@ -221,7 +226,7 @@ cellAttributes config attribute =
 
 cellTextAlign : Model.Torrent.Attribute -> Maybe (Attribute Msg)
 cellTextAlign attribute =
-    Maybe.map (\a -> class ("text-" ++ a)) (View.Torrent.textAlignment attribute)
+    Maybe.map class (View.Torrent.textAlignment attribute)
 
 
 cellContent : Config -> Torrent -> Model.Torrent.Attribute -> Html Msg
