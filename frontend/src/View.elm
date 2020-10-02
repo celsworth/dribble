@@ -2,7 +2,7 @@ module View exposing (view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onInput)
+import Html.Events exposing (onClick, onInput, onMouseLeave)
 import Html.Events.Extra.Mouse
 import Model exposing (..)
 import Model.Table
@@ -63,17 +63,20 @@ reconstructClientPos event =
 navigation : Model -> Html Msg
 navigation model =
     section [ class "navigation" ]
-        [ div []
+        [ div [ class "flex-container" ]
             [ button [ onClick SaveConfigClicked ] [ text "Save Config" ]
-            , button [ onClick TogglePreferencesVisible ] [ text "Preferences" ]
             , toggleTorrentAttributeVisibilityButton Model.Torrent.CreationTime
             , toggleTorrentAttributeVisibilityButton Model.Torrent.StartedTime
             ]
-        , div []
+        , div [ class "flex-container" ]
             [ nameFilterInput model
-            , button [ onClick ToggleLogsVisible ] [ i [ class "fas fa-bars" ] [] ]
+            , hamburgerButton model
             ]
         ]
+
+
+
+-- button [ onClick ToggleLogsVisible ] [ i [ class "fas fa-bars" ] [] ]
 
 
 nameFilterInput : Model -> Html Msg
@@ -87,6 +90,22 @@ nameFilterInput _ =
         []
 
 
+hamburgerButton : Model -> Html Msg
+hamburgerButton model =
+    let
+        menu =
+            if model.hamburgerMenuVisible then
+                hamburgerMenu model
+
+            else
+                text ""
+    in
+    div [ class "hamburger-button" ]
+        [ button [ onClick (SetHamburgerMenuVisible True) ] [ i [ class "fas fa-bars" ] [] ]
+        , menu
+        ]
+
+
 toggleTorrentAttributeVisibilityButton : Model.Torrent.Attribute -> Html Msg
 toggleTorrentAttributeVisibilityButton attribute =
     let
@@ -96,3 +115,22 @@ toggleTorrentAttributeVisibilityButton attribute =
     in
     button [ onClick <| ToggleTorrentAttributeVisibility attribute ]
         [ text str ]
+
+
+hamburgerMenu : Model -> Html Msg
+hamburgerMenu model =
+    div
+        [ class "hamburger-menu"
+        , onMouseLeave (SetHamburgerMenuVisible False)
+        ]
+        [ ul []
+            [ li [ onClick TogglePreferencesVisible ]
+                [ i [ class "fas fa-cogs" ] []
+                , text "Preferences"
+                ]
+            , li [ onClick ToggleLogsVisible ]
+                [ i [ class "fas fa-bars" ] []
+                , text "Logs"
+                ]
+            ]
+        ]

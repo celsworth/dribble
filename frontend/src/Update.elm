@@ -6,6 +6,7 @@ import Model exposing (..)
 import Model.Message
 import Model.Table
 import Model.WebsocketData
+import Model.Window
 import Ports
 import Update.ColumnWidthReceived
 import Update.EndResizeOp
@@ -19,7 +20,9 @@ import Update.SetCurrentTime
 import Update.SetSortBy
 import Update.StartResizeOp
 import Update.ToggleTorrentAttributeVisibility
+import Update.ToggleWindowVisible
 import Update.TorrentNameFilterChanged
+import Update.WindowResized
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -43,14 +46,17 @@ update msg model =
         SaveConfigClicked ->
             model |> Update.SaveConfig.update
 
+        SetHamburgerMenuVisible bool ->
+            model |> setHamburgerMenuVisible bool |> addCmd Cmd.none
+
         TogglePreferencesVisible ->
-            model |> togglePreferencesVisible |> addCmd Cmd.none
+            model |> Update.ToggleWindowVisible.update Model.Window.Preferences
+
+        ToggleLogsVisible ->
+            model |> Update.ToggleWindowVisible.update Model.Window.Logs
 
         TorrentNameFilterChanged value ->
             model |> Update.TorrentNameFilterChanged.update value
-
-        ToggleLogsVisible ->
-            model |> toggleLogsVisible |> addCmd Cmd.none
 
         ToggleTorrentAttributeVisibility attribute ->
             model |> Update.ToggleTorrentAttributeVisibility.update attribute
@@ -72,6 +78,9 @@ update msg model =
 
         WebsocketStatusUpdated result ->
             model |> Update.ProcessWebsocketStatusUpdated.update result
+
+        WindowResized result ->
+            model |> Update.WindowResized.update result
 
 
 handleMouseDown : Model.Table.Attribute -> Model.Table.MousePosition -> Mouse.Button -> Mouse.Keys -> Model -> ( Model, Cmd Msg )

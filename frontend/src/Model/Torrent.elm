@@ -426,6 +426,64 @@ statusToInt status =
 -- ATTRIBUTE ACCCESSORS ETC
 
 
+attributeToDefaultWidth : Attribute -> Float
+attributeToDefaultWidth attribute =
+    case attribute of
+        Status ->
+            28
+
+        Name ->
+            300
+
+        Size ->
+            70
+
+        DonePercent ->
+            60
+
+        CreationTime ->
+            146
+
+        StartedTime ->
+            146
+
+        FinishedTime ->
+            146
+
+        DownloadedBytes ->
+            75
+
+        DownloadRate ->
+            85
+
+        UploadedBytes ->
+            75
+
+        UploadRate ->
+            85
+
+        Seeders ->
+            60
+
+        SeedersConnected ->
+            30
+
+        SeedersTotal ->
+            30
+
+        Peers ->
+            60
+
+        PeersConnected ->
+            30
+
+        PeersTotal ->
+            30
+
+        Label ->
+            60
+
+
 attributeToKey : Attribute -> String
 attributeToKey attribute =
     case attribute of

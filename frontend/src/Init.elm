@@ -5,6 +5,7 @@ import Json.Decode as JD
 import Model exposing (Model, Msg(..))
 import Model.Config exposing (Config)
 import Model.Message exposing (Message)
+import Ports
 import Task
 import Time
 
@@ -30,13 +31,16 @@ init flags =
       , prevTraffic = Nothing
       , speedChartHover = []
       , messages = messages
-      , preferencesVisible = False
-      , logsVisible = False
+      , hamburgerMenuVisible = False
       , resizeOp = Nothing
       , timezone = Time.utc
       , currentTime = Time.millisToPosix flags.time
       }
-    , Task.perform SetTimeZone Time.here
+    , Cmd.batch
+        [ Task.perform SetTimeZone Time.here
+        , Ports.addWindowResizeObserver "preferences"
+        , Ports.addWindowResizeObserver "logs"
+        ]
     )
 
 

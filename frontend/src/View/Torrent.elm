@@ -96,7 +96,7 @@ attributeAccessor config torrent attribute =
 nonZeroLocalTimeNode : Int -> Html Msg
 nonZeroLocalTimeNode time =
     if time == 0 then
-        text <| ""
+        text ""
 
     else
         View.Utils.LocalTimeNode.view time
@@ -106,37 +106,37 @@ textAlignment : Attribute -> Maybe String
 textAlignment attribute =
     case attribute of
         Size ->
-            Just "right"
+            Just "text-right"
 
         DownloadedBytes ->
-            Just "right"
+            Just "text-right"
 
         DownloadRate ->
-            Just "right"
+            Just "text-right"
 
         UploadedBytes ->
-            Just "right"
+            Just "text-right"
 
         UploadRate ->
-            Just "right"
+            Just "text-right"
 
         Seeders ->
-            Just "right"
+            Just "text-right"
 
         SeedersConnected ->
-            Just "right"
+            Just "text-right"
 
         SeedersTotal ->
-            Just "right"
+            Just "text-right"
 
         Peers ->
-            Just "right"
+            Just "text-right"
 
         PeersConnected ->
-            Just "right"
+            Just "text-right"
 
         PeersTotal ->
-            Just "right"
+            Just "text-right"
 
         _ ->
             Nothing

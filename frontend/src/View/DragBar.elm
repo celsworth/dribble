@@ -6,9 +6,9 @@ import Model exposing (..)
 import Model.Table
 
 
-view : Model -> Html Msg
-view model =
-    Maybe.map dragbar model.resizeOp |> Maybe.withDefault (text "")
+view : Maybe Model.Table.ResizeOp -> Html Msg
+view resizeOp =
+    Maybe.map dragbar resizeOp |> Maybe.withDefault (text "")
 
 
 dragbar : Model.Table.ResizeOp -> Html Msg

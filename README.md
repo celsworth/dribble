@@ -70,8 +70,16 @@ bundle exec thin start -a 127.0.0.1 -p 3000
 
 ### Limitations
 
-The entire app is view-only at the moment.
+The entire app is view-only at the moment. Ability to change things coming soonish.
+
+Redrawing the main torrent table can get a bit sluggish with more than a few hundred torrents, particularly re-ordering or clearing filters, because every single row has to be re-rendered.
 
 Torrents that are deleted in the client elsewhere will continue to be rendered as a row until you restart Dribble. This may be fixed in future.
 
-The speed chart in the bottom right stops updating shortly after you switch away from a tab. This is because the entire thing is done in Javascript and a modern browser optimisation is to pause/deprioritise Javascript in background tabs. Not sure what I can do about this if anything.  It also doesn't render binary unit (KiB/s) ticks on the y-axis very well. They work but you can get some odd looking divisions at times. Fortunately I prefer network speeds measured in metric (kB/s) so this is a minor problem.
+The speed chart in the bottom right oesn't render binary unit (KiB/s) ticks on the y-axis very well. They work but you can get some odd looking divisions at times. Fortunately I prefer network speeds measured in metric (kB/s) so this is a minor problem (for me).
+
+
+### Known Bugs
+
+* resize bar is in the wrong place when torrent table is scrolled to the right. this is cosmetic only, resizing still works as expected
+* Safari refuses to let you make a resizeable element smaller than its initial size, which becomes apparent when resizing Preferences/Logs. Silly Safari, other browsers get it right.

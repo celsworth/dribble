@@ -75,9 +75,11 @@ defaultColumnWidths =
 
 defaultColumnWidth : Model.Torrent.Attribute -> ( String, ColumnWidth )
 defaultColumnWidth attribute =
-    -- naive, TODO: set some better defaults per column,
     -- and cope with other table types
-    ( Model.Torrent.attributeToKey attribute, { px = 50, auto = False } )
+    ( Model.Torrent.attributeToKey
+        attribute
+    , { px = Model.Torrent.attributeToDefaultWidth attribute, auto = False }
+    )
 
 
 

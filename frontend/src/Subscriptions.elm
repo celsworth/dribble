@@ -5,6 +5,7 @@ import Model exposing (..)
 import Model.Torrent
 import Model.Traffic
 import Model.WebsocketData
+import Model.Window
 import Ports
 import Time
 
@@ -15,6 +16,7 @@ subscriptions _ =
         List.filterMap identity <|
             [ Just <| Time.every 1000 Tick
             , Just <| Ports.messageReceiver (WebsocketData << decodeString)
+            , Just <| Ports.windowResizeObserved (WindowResized << decodeWindowResizeDetails)
             , Just <| Ports.websocketStatusUpdated (WebsocketStatusUpdated << decodeStatus)
             ]
 
@@ -29,7 +31,12 @@ updateTrafficTicker model =
 
 
 
--- WEBSOCKET DECODING
+-- JSON DECODING
+
+
+decodeWindowResizeDetails : D.Value -> Result D.Error Model.Window.ResizeDetails
+decodeWindowResizeDetails =
+    D.decodeValue <| Model.Window.windowResizeDetailsDecoder
 
 
 decodeString : String -> Result D.Error Model.WebsocketData.Data

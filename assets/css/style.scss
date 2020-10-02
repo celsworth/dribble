@@ -58,7 +58,7 @@ html {
 body {
   margin: 0;
   overflow: hidden;
-  font-family: Tahoma;
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,sans-serif;
   font-size: 11px;
 }
 
@@ -86,6 +86,14 @@ body {
   background: #f2f2f2;
   padding: 35px 5px 5px;
   overflow-y: auto;
+
+  // works great in Firefox, not so much Safari.
+  // TODO: get updated coords to elm..
+  // https://stackoverflow.com/questions/6492683/how-to-detect-divs-dimension-changed
+  resize: both;
+  min-width: 200px;
+  min-height: 200px;
+
 
   &.visible {
     display: block;
@@ -122,13 +130,18 @@ body {
   padding: 5px;
   height: $header-height;
 
-  div {
+  .flex-container {
     // temporary home for buttons on left/right
     display: flex;
   }
 
   .name-filter {
     margin-right: 10px;
+  }
+
+  .hamburger-button {
+    display: flex;
+    position: relative;
   }
 }
 
@@ -144,6 +157,41 @@ body {
     border-radius: 5px;
     padding: 10px;
     list-style: none;
+  }
+}
+
+.hamburger-menu {
+  @include unselectable;
+
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1000;
+  border: 1px outset #555;
+  background: #fff;
+  color: #555;
+  font-size: 1.1em;
+
+  ul {
+    white-space: nowrap;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    i {
+      width: 30px;
+    }
+
+    li {
+      cursor: default;
+      padding: 10px 20px;
+
+      &:hover {
+        color: white;
+        background: #6af;
+      }
+    }
+
   }
 }
 

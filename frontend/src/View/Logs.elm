@@ -5,8 +5,10 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Model exposing (..)
 import Model.Message exposing (Message)
+import Model.Window
 import Time
 import View.Utils.DateFormatter
+import View.Window
 
 
 view : Model -> Html Msg
@@ -16,15 +18,22 @@ view model =
 
 sectionAttributes : Model -> List (Attribute Msg)
 sectionAttributes model =
+    let
+        windowConfig =
+            model.config.logs
+    in
     List.filterMap identity
         [ Just <| class "logs window"
-        , displayClass model
+        , Just <| id "logs"
+        , Just <| style "width" (View.Window.width windowConfig)
+        , Just <| style "height" (View.Window.height windowConfig)
+        , displayClass windowConfig
         ]
 
 
-displayClass : Model -> Maybe (Attribute Msg)
-displayClass model =
-    if model.logsVisible then
+displayClass : Model.Window.Config -> Maybe (Attribute Msg)
+displayClass windowConfig =
+    if windowConfig.visible then
         Just <| class "visible"
 
     else

@@ -67,6 +67,27 @@
       localStorage.setItem('app-config', JSON.stringify(config));
     });
 
+    // to add preferences and logs to resizeObserver once they're
+    // in the DOM, rendered by Elm. This is called in Init.elm then
+    // never again as the windows are only hidden, not removed from DOM.
+    app.ports.observeWindowResize.subscribe(function(id) {
+      resizeObserver.observe(document.getElementById(id));
+    });
+
     connect();
+
+    const resizeObserver = new ResizeObserver(entries => {
+      entries.forEach(entry => {
+        // for some reason a resize event of 0x0 occurs when we set
+        // display: none, so ignore those
+        if (entry.target.offsetWidth > 0 && entry.target.offsetHeight > 0) {
+          app.ports.windowResizeObserved.send({
+            id: entry.target.id,
+            width: entry.target.offsetWidth,
+            height: entry.target.offsetHeight
+          });
+        }
+      });
+    });
   </script>
 </html>

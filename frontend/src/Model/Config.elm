@@ -5,6 +5,7 @@ import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as E
 import Model.Table
 import Model.Torrent
+import Model.Window
 import Utils.Filesize
 
 
@@ -22,6 +23,8 @@ type alias Config =
     , hSizeSettings : Utils.Filesize.Settings
     , hSpeedSettings : Utils.Filesize.Settings
     , timezone : String
+    , preferences : Model.Window.Config
+    , logs : Model.Window.Config
     }
 
 
@@ -33,6 +36,16 @@ setSortBy new config =
 setTorrentTable : Model.Table.Config -> Config -> Config
 setTorrentTable new config =
     { config | torrentTable = new }
+
+
+setPreferences : Model.Window.Config -> Config -> Config
+setPreferences new config =
+    { config | preferences = new }
+
+
+setLogs : Model.Window.Config -> Config -> Config
+setLogs new config =
+    { config | logs = new }
 
 
 setVisibleTorrentAttributes : List Model.Torrent.Attribute -> Config -> Config
@@ -54,6 +67,8 @@ default =
     , hSizeSettings = { units = Utils.Filesize.Base2, decimalPlaces = 2, decimalSeparator = "." }
     , hSpeedSettings = { units = Utils.Filesize.Base10, decimalPlaces = 1, decimalSeparator = "." }
     , timezone = "Europe/London"
+    , preferences = { visible = False, width = 600, height = 400 }
+    , logs = { visible = False, width = 800, height = 400 }
     }
 
 
@@ -97,6 +112,8 @@ encode config =
         , ( "hSizeSettings", Utils.Filesize.encode config.hSizeSettings )
         , ( "hSpeedSettings", Utils.Filesize.encode config.hSpeedSettings )
         , ( "timezone", E.string config.timezone )
+        , ( "preferences", Model.Window.encode config.preferences )
+        , ( "logs", Model.Window.encode config.logs )
         ]
 
 
@@ -164,6 +181,8 @@ decoder =
             Utils.Filesize.decoder
             default.hSpeedSettings
         |> optional "timezone" D.string default.timezone
+        |> optional "preferences" Model.Window.decoder default.preferences
+        |> optional "logs" Model.Window.decoder default.logs
 
 
 torrentAttributeListDecoder : D.Decoder (List Model.Torrent.Attribute)

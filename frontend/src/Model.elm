@@ -12,6 +12,7 @@ import Model.Torrent exposing (Torrent)
 import Model.TorrentFilter exposing (TorrentFilter)
 import Model.Traffic exposing (Traffic)
 import Model.WebsocketData
+import Model.Window
 import Time
 
 
@@ -23,8 +24,9 @@ type Msg
     | GotColumnWidth Model.Table.Attribute (Result Browser.Dom.Error Browser.Dom.Element)
     | SaveConfigClicked
     | TogglePreferencesVisible
-    | TorrentNameFilterChanged String
     | ToggleLogsVisible
+    | SetHamburgerMenuVisible Bool
+    | TorrentNameFilterChanged String
     | ToggleTorrentAttributeVisibility Model.Torrent.Attribute
     | SetSortBy Model.Torrent.Attribute
     | SpeedChartHover (List Model.SpeedChart.DataSeries)
@@ -32,6 +34,7 @@ type Msg
     | RequestUpdatedTraffic Time.Posix
     | WebsocketData (Result JD.Error Model.WebsocketData.Data)
     | WebsocketStatusUpdated (Result JD.Error Bool)
+    | WindowResized (Result JD.Error Model.Window.ResizeDetails)
 
 
 type alias Model =
@@ -44,8 +47,7 @@ type alias Model =
     , prevTraffic : Maybe Traffic
     , speedChartHover : List Model.SpeedChart.DataSeries
     , messages : List Message
-    , preferencesVisible : Bool
-    , logsVisible : Bool
+    , hamburgerMenuVisible : Bool
     , resizeOp : Maybe Model.Table.ResizeOp
     , currentTime : Time.Posix
     , timezone : Time.Zone
@@ -92,14 +94,9 @@ setSpeedChartHover new model =
     { model | speedChartHover = new }
 
 
-togglePreferencesVisible : Model -> Model
-togglePreferencesVisible model =
-    { model | preferencesVisible = not model.preferencesVisible }
-
-
-toggleLogsVisible : Model -> Model
-toggleLogsVisible model =
-    { model | logsVisible = not model.logsVisible }
+setHamburgerMenuVisible : Bool -> Model -> Model
+setHamburgerMenuVisible new model =
+    { model | hamburgerMenuVisible = new }
 
 
 setResizeOp : Maybe Model.Table.ResizeOp -> Model -> Model
