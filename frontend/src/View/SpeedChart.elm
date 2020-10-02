@@ -25,7 +25,7 @@ import LineChart.Legends
 import LineChart.Line
 import List.Extra
 import Model exposing (..)
-import Model.SpeedChart exposing (..)
+import Model.SpeedChart exposing (DataSeries)
 import Model.Traffic exposing (Traffic)
 import Time
 import Utils.Filesize
@@ -33,14 +33,26 @@ import Utils.Filesize
 
 view : Model -> Html Msg
 view model =
-    Html.Lazy.lazy (\m -> aside [ class "speed-chart" ] [ chart m ]) model
+    aside
+        [ class "speed-chart" ]
+        [ lazyChart
+            model.traffic
+            model.speedChartHover
+            model.timezone
+            model.config.hSpeedSettings
+        ]
 
 
-chart : Model -> Html Msg
-chart model =
+lazyChart : List Traffic -> List DataSeries -> Time.Zone -> Utils.Filesize.Settings -> Html Msg
+lazyChart traffic hover timezone hSpeedSettings =
+    Html.Lazy.lazy4 chart traffic hover timezone hSpeedSettings
+
+
+chart : List Traffic -> List DataSeries -> Time.Zone -> Utils.Filesize.Settings -> Html Msg
+chart traffic hover timezone hSpeedSettings =
     let
         filteredTraffic =
-            filterTraffic model.traffic
+            filterTraffic traffic
 
         upload =
             List.map (toSpeedChartDataSeries .upDiff) filteredTraffic
@@ -48,7 +60,7 @@ chart model =
         download =
             List.map (toSpeedChartDataSeries .downDiff) filteredTraffic
     in
-    LineChart.viewCustom (config model)
+    LineChart.viewCustom (config hover timezone hSpeedSettings)
         [ LineChart.line LineChart.Colors.green LineChart.Dots.none "Upload" upload
         , LineChart.line LineChart.Colors.blue LineChart.Dots.none "Download" download
         ]
@@ -90,15 +102,10 @@ toSpeedChartDataSeries method traffic =
     }
 
 
-filesizeSettings : Model -> Utils.Filesize.Settings
-filesizeSettings model =
-    model.config.hSpeedSettings
-
-
-config : Model -> LineChart.Config DataSeries Msg
-config model =
-    { y = yAxisConfig model
-    , x = xAxisConfig model
+config : List DataSeries -> Time.Zone -> Utils.Filesize.Settings -> LineChart.Config DataSeries Msg
+config hover timezone hSpeedSettings =
+    { y = yAxisConfig hSpeedSettings
+    , x = xAxisConfig timezone
     , container = containerConfig
     , interpolation = LineChart.Interpolation.monotone
     , intersection = LineChart.Axis.Intersection.atOrigin
@@ -106,9 +113,9 @@ config model =
     , events = LineChart.Events.hoverMany SpeedChartHover
     , junk =
         LineChart.Junk.hoverMany
-            model.speedChartHover
-            (formatHoverX model)
-            (formatHoverY model)
+            hover
+            (formatHoverX timezone)
+            (formatHoverY hSpeedSettings)
     , grid = LineChart.Grid.default
     , area = LineChart.Area.default
     , line = LineChart.Line.wider 3
@@ -116,14 +123,14 @@ config model =
     }
 
 
-formatHoverX : Model -> DataSeries -> String
-formatHoverX model ds =
-    formatTime model (Time.millisToPosix ds.time)
+formatHoverX : Time.Zone -> DataSeries -> String
+formatHoverX timezone ds =
+    formatTime timezone (Time.millisToPosix ds.time)
 
 
-formatHoverY : Model -> DataSeries -> String
-formatHoverY model ds =
-    Utils.Filesize.formatWith (filesizeSettings model) ds.speed ++ "/s"
+formatHoverY : Utils.Filesize.Settings -> DataSeries -> String
+formatHoverY hSpeedSettings ds =
+    Utils.Filesize.formatWith hSpeedSettings ds.speed ++ "/s"
 
 
 containerConfig : LineChart.Container.Config msg
@@ -141,20 +148,20 @@ containerConfig =
 --- Y AXIS
 
 
-yAxisConfig : Model -> LineChart.Axis.Config DataSeries msg
-yAxisConfig model =
+yAxisConfig : Utils.Filesize.Settings -> LineChart.Axis.Config DataSeries msg
+yAxisConfig hSpeedSettings =
     LineChart.Axis.custom
         { title = LineChart.Axis.Title.default ""
         , variable = Just << toFloat << .speed
         , pixels = 500
-        , range = LineChart.Axis.Range.custom (yAxisRange model)
+        , range = LineChart.Axis.Range.custom (yAxisRange hSpeedSettings)
         , axisLine = LineChart.Axis.Line.default
-        , ticks = yTicksConfig model
+        , ticks = yTicksConfig hSpeedSettings
         }
 
 
-yAxisRange : Model -> LineChart.Coordinate.Range -> LineChart.Coordinate.Range
-yAxisRange model { max } =
+yAxisRange : Utils.Filesize.Settings -> LineChart.Coordinate.Range -> LineChart.Coordinate.Range
+yAxisRange hSpeedSettings { max } =
     let
         max2 =
             if max < 5000 then
@@ -163,21 +170,21 @@ yAxisRange model { max } =
             else
                 max
     in
-    { min = 0, max = nextYAxisPoint model max2 }
+    { min = 0, max = nextYAxisPoint hSpeedSettings max2 }
 
 
-yTicksConfig : Model -> LineChart.Axis.Ticks.Config msg
-yTicksConfig model =
+yTicksConfig : Utils.Filesize.Settings -> LineChart.Axis.Ticks.Config msg
+yTicksConfig hSpeedSettings =
     LineChart.Axis.Ticks.custom <|
         \dataRange _ ->
-            List.map (yTickConfig model) (yTicks model dataRange)
+            List.map (yTickConfig hSpeedSettings) (yTicks hSpeedSettings dataRange)
 
 
-yTicks : Model -> LineChart.Coordinate.Range -> List Int
-yTicks model dataRange =
+yTicks : Utils.Filesize.Settings -> LineChart.Coordinate.Range -> List Int
+yTicks hSpeedSettings dataRange =
     let
         maxTick =
-            nextYAxisPoint model dataRange.max
+            nextYAxisPoint hSpeedSettings dataRange.max
     in
     [ 0
     , round (maxTick * 0.2)
@@ -188,24 +195,24 @@ yTicks model dataRange =
     ]
 
 
-nextYAxisPoint : Model -> Float -> Float
-nextYAxisPoint model int =
+nextYAxisPoint : Utils.Filesize.Settings -> Float -> Float
+nextYAxisPoint hSpeedSettings int =
     let
         default =
-            case (filesizeSettings model).units of
+            case hSpeedSettings.units of
                 Utils.Filesize.Base2 ->
                     10240
 
                 Utils.Filesize.Base10 ->
                     10000
     in
-    List.Extra.find (\n -> int < n) (yTickPoints model)
+    List.Extra.find (\n -> int < n) (yTickPoints hSpeedSettings)
         |> Maybe.withDefault default
 
 
-yTickMultis : Model -> List Float
-yTickMultis model =
-    case (filesizeSettings model).units of
+yTickMultis : Utils.Filesize.Settings -> List Float
+yTickMultis hSpeedSettings =
+    case hSpeedSettings.units of
         Utils.Filesize.Base2 ->
             [ 1024, 10240, 102400, 1048576, 10485760 ]
 
@@ -213,9 +220,9 @@ yTickMultis model =
             [ 1000, 10000, 100000, 1000000, 10000000 ]
 
 
-yTickPoints : Model -> List Float
-yTickPoints model =
-    yTickMultis model
+yTickPoints : Utils.Filesize.Settings -> List Float
+yTickPoints hSpeedSettings =
+    yTickMultis hSpeedSettings
         |> List.Extra.andThen
             (\m ->
                 [ 10, 15, 20, 25, 30, 40, 50, 60, 80 ]
@@ -223,11 +230,11 @@ yTickPoints model =
             )
 
 
-yTickConfig : Model -> Int -> LineChart.Axis.Tick.Config msg
-yTickConfig model speed =
+yTickConfig : Utils.Filesize.Settings -> Int -> LineChart.Axis.Tick.Config msg
+yTickConfig hSpeedSettings speed =
     let
         humanSpeed =
-            Utils.Filesize.formatWith (filesizeSettings model) speed ++ "/s"
+            Utils.Filesize.formatWith hSpeedSettings speed ++ "/s"
 
         label =
             LineChart.Junk.label LineChart.Colors.black humanSpeed
@@ -247,30 +254,30 @@ yTickConfig model speed =
 --- X AXIS
 
 
-xAxisConfig : Model -> LineChart.Axis.Config DataSeries msg
-xAxisConfig model =
+xAxisConfig : Time.Zone -> LineChart.Axis.Config DataSeries msg
+xAxisConfig timezone =
     LineChart.Axis.custom
         { title = LineChart.Axis.Title.default ""
         , variable = Just << toFloat << .time
         , pixels = 1200
         , range = LineChart.Axis.Range.default
         , axisLine = LineChart.Axis.Line.default
-        , ticks = xTicksConfig model
+        , ticks = xTicksConfig timezone
         }
 
 
-xTicksConfig : Model -> LineChart.Axis.Ticks.Config msg
-xTicksConfig model =
+xTicksConfig : Time.Zone -> LineChart.Axis.Ticks.Config msg
+xTicksConfig timezone =
     -- not actually sure this model.timezone does anything..
-    LineChart.Axis.Ticks.timeCustom model.timezone 8 (xTickConfig model)
+    LineChart.Axis.Ticks.timeCustom timezone 8 (xTickConfig timezone)
 
 
-xTickConfig : Model -> LineChart.Axis.Tick.Time -> LineChart.Axis.Tick.Config msg
-xTickConfig model time =
+xTickConfig : Time.Zone -> LineChart.Axis.Tick.Time -> LineChart.Axis.Tick.Config msg
+xTickConfig timezone time =
     let
         label =
             LineChart.Junk.label LineChart.Colors.black <|
-                formatTime model time.timestamp
+                formatTime timezone time.timestamp
     in
     LineChart.Axis.Tick.custom
         { position = toFloat (Time.posixToMillis time.timestamp)
@@ -294,6 +301,6 @@ formatter =
         ]
 
 
-formatTime : Model -> Time.Posix -> String
-formatTime model time =
-    formatter model.timezone time
+formatTime : Time.Zone -> Time.Posix -> String
+formatTime timezone time =
+    formatter timezone time
