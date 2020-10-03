@@ -135,7 +135,7 @@ processWebsocketData model data =
         Model.WebsocketData.Error errStr ->
             let
                 newMessage =
-                    { summary = Just "WebsocketData Error"
+                    { summary = Just "Unexpected Websocket Data"
                     , detail = Just errStr
                     , severity = Model.Message.Error
                     , time = model.currentTime

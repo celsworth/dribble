@@ -34,7 +34,7 @@ getWindowConfig config windowType =
             config.logs
 
 
-configSetter : Model.Window.Type -> Model.Window.Config -> Model.Config.Config -> Config
+configSetter : Model.Window.Type -> Model.Window.Config -> Config -> Config
 configSetter windowType =
     case windowType of
         Model.Window.Preferences ->
