@@ -4,12 +4,14 @@ require 'subscription'
 
 RSpec.describe Subscription do
   let(:subscription) do
-    described_class.new(command: command, interval: interval, rtorrent: rtorrent)
+    described_class.new(command: command, diff: diff,
+                        interval: interval, rtorrent: rtorrent)
   end
 
   let(:command) { ['d.multicall2', '', 'main', 'd.hash=', 'd.name='] }
   let(:interval) { 5 }
   let(:rtorrent) { double('rtorrent') }
+  let(:diff) { false }
 
   it 'is initially due' do
     expect(subscription).to be_due
@@ -45,11 +47,22 @@ RSpec.describe Subscription do
     subscription.run
   end
 
-  it 'returns diffed data' do
+  it 'returns complete data' do
     expect(rtorrent).to receive(:call).and_return([[1, 1], [2, 2]])
     expect(rtorrent).to receive(:call).and_return([[1, 1], [2, 1]])
 
     expect(subscription.run).to eq [[1, 1], [2, 2]]
-    expect(subscription.run).to eq [[2, 1]]
+    expect(subscription.run).to eq [[1, 1], [2, 1]]
+  end
+
+  context 'diff: true' do
+    let(:diff) { true }
+    it 'returns diffed data' do
+      expect(rtorrent).to receive(:call).and_return([[1, 1], [2, 2]])
+      expect(rtorrent).to receive(:call).and_return([[1, 1], [2, 1]])
+
+      expect(subscription.run).to eq [[1, 1], [2, 2]]
+      expect(subscription.run).to eq [[2, 1]]
+    end
   end
 end

@@ -3,6 +3,12 @@
 require 'sinatra/reloader'
 require 'sassc'
 
+begin
+  require 'pry'
+rescue LoadError
+  nil
+end
+
 require 'rtorrent'
 
 require 'subscription'

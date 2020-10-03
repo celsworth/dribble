@@ -13,6 +13,7 @@ gem 'xmlrpcs'
 
 group :development do
   gem 'filewatcher'
+  gem 'pry'
   gem 'rspec'
   gem 'scss_lint'
 end

@@ -21,9 +21,17 @@ class Websocket
     @subscriptions.each do |name, subscription|
       next unless subscription.due?
 
-      data = { name => subscription.run }
+      data = run_handling_error(name, subscription)
 
       @socket.send(JSON.generate(data))
     end
+  end
+
+  private
+
+  def run_handling_error(name, subscription)
+    { name => subscription.run }
+  rescue StandardError => e
+    { error: e.message }
   end
 end

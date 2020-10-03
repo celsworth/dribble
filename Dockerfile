@@ -1,6 +1,6 @@
 FROM ruby:2.7-alpine
 
-RUN apk add --no-cache g++ gcc make musl-dev bash nodejs-npm
+RUN apk add --no-cache g++ gcc make musl-dev bash nodejs-npm less
 RUN npm install -g elm --unsafe-perm=true --allow-root
 
 WORKDIR /var/app
