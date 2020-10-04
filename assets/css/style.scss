@@ -84,7 +84,6 @@ body {
   border-radius: 5px;
   box-shadow: 0 0 15px 10px #888;
   background: #f2f2f2;
-  padding: 35px 5px 5px;
   overflow-y: auto;
 
   // works great in Firefox, not so much Safari.
@@ -94,14 +93,13 @@ body {
   min-width: 200px;
   min-height: 200px;
 
-
   &.visible {
     display: block;
   }
 
   .titlebar {
     display: flex;
-    position: absolute;
+    position: sticky;
     top: 0;
     left: 0;
     align-items: center;
@@ -438,5 +436,46 @@ td {
   div { // cell content to apply width style to
     overflow: hidden;
     white-space: nowrap;
+  }
+}
+
+fieldset {
+  margin: 10px;
+  padding: 0;
+}
+
+// preferences
+.fieldset-header {
+  background: white;
+  padding: 10px;
+}
+
+.preference {
+  display: flex;
+  margin: 10px;
+  padding: 10px 0;
+}
+
+.preference-label {
+  width: 100px;
+}
+
+.preference-option {
+  display: flex;
+  align-items: top;
+  padding: 10px 20px;
+
+  &:first-child {
+    padding-top: 0;
+  }
+}
+
+.preference-text {
+  display: inline-block;
+  padding-left: 5px;
+
+  small {
+    display: block;
+    color: #555;
   }
 }

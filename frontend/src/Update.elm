@@ -17,6 +17,7 @@ import Update.ResizeOpMoved
 import Update.SaveConfig
 import Update.SetColumnAutoWidth
 import Update.SetCurrentTime
+import Update.SetPreference
 import Update.SetSortBy
 import Update.StartResizeOp
 import Update.ToggleTorrentAttributeVisibility
@@ -42,6 +43,9 @@ update msg model =
 
         GotColumnWidth attribute result ->
             model |> Update.ColumnWidthReceived.update attribute result
+
+        SetPreference preferenceUpdate ->
+            model |> Update.SetPreference.update preferenceUpdate
 
         SaveConfigClicked ->
             model |> Update.SaveConfig.update

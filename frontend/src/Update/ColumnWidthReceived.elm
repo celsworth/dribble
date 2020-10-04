@@ -2,8 +2,8 @@ module Update.ColumnWidthReceived exposing (update)
 
 import Browser.Dom
 import Model exposing (..)
-import Model.Config exposing (Config)
 import Model.Table
+import Update.Shared.ConfigHelpers exposing (getTableConfig, tableConfigSetter)
 
 
 
@@ -15,28 +15,21 @@ import Model.Table
 -}
 
 
-type alias Action =
-    {- store details of how to set width for different attribute types -}
-    { setter : Model.Table.Config -> Config -> Config
-    , tableConfig : Model.Table.Config
-    }
-
-
 update : Model.Table.Attribute -> Result Browser.Dom.Error Browser.Dom.Element -> Model -> ( Model, Cmd Msg )
 update attribute result model =
     let
-        action =
-            actionForAttribute attribute model
+        tableType =
+            Model.Table.typeFromAttribute attribute
 
         newTableConfig =
             \px ->
                 Model.Table.setColumnWidth
                     attribute
                     { px = px, auto = False }
-                    action.tableConfig
+                    (getTableConfig model.config tableType)
 
         newConfig =
-            \px -> action.setter (newTableConfig px) model.config
+            \px -> tableConfigSetter tableType (newTableConfig px) model.config
     in
     case result of
         Ok r ->
@@ -47,12 +40,3 @@ update attribute result model =
         Err _ ->
             -- XXX: could display error message
             model |> Model.addCmd Cmd.none
-
-
-actionForAttribute : Model.Table.Attribute -> Model -> Action
-actionForAttribute attribute model =
-    case attribute of
-        Model.Table.TorrentAttribute _ ->
-            { setter = Model.Config.setTorrentTable
-            , tableConfig = model.config.torrentTable
-            }

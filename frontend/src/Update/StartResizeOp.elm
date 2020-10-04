@@ -2,16 +2,20 @@ module Update.StartResizeOp exposing (update)
 
 import Model exposing (..)
 import Model.Table
+import Update.Shared.ConfigHelpers exposing (getTableConfig)
 
 
 update : Model.Table.Attribute -> Model.Table.MousePosition -> Model -> ( Model, Cmd Msg )
 update attribute mousePos model =
     let
-        -- XXX don't assume torrentTable
+        tableType =
+            Model.Table.typeFromAttribute attribute
+
+        tableConfig =
+            getTableConfig model.config tableType
+
         startWidth =
-            Model.Table.getColumnWidth
-                model.config.torrentTable.columnWidths
-                attribute
+            Model.Table.getColumnWidth tableConfig.columnWidths attribute
 
         resizeOp =
             { attribute = attribute

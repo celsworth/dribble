@@ -11,6 +11,12 @@ type Attribute
     = TorrentAttribute Model.Torrent.Attribute
 
 
+type alias MousePosition =
+    { x : Float
+    , y : Float
+    }
+
+
 type alias ResizeOp =
     { attribute : Attribute
     , startWidth : ColumnWidth
@@ -20,10 +26,9 @@ type alias ResizeOp =
     }
 
 
-type alias MousePosition =
-    { x : Float
-    , y : Float
-    }
+type Layout
+    = Fixed
+    | Fluid
 
 
 type alias ColumnWidths =
@@ -42,13 +47,17 @@ type alias Config =
     }
 
 
-type Layout
-    = Fixed
-    | Fluid
+type Type
+    = Torrents
 
 
 
 -- SETTERS
+
+
+setLayout : Layout -> Config -> Config
+setLayout new config =
+    { config | layout = new }
 
 
 setColumnWidths : ColumnWidths -> Config -> Config
@@ -80,6 +89,17 @@ defaultColumnWidth attribute =
         attribute
     , { px = Model.Torrent.attributeToDefaultWidth attribute, auto = False }
     )
+
+
+
+-- HELPERS
+
+
+typeFromAttribute : Attribute -> Type
+typeFromAttribute attribute =
+    case attribute of
+        TorrentAttribute _ ->
+            Torrents
 
 
 

@@ -4,6 +4,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Model exposing (..)
+import Model.Preferences as MP
+import Model.Table
 import Model.Window
 import View.Window
 
@@ -47,8 +49,66 @@ sectionContents model =
             []
         , strong [] [ text <| "Preferences" ]
         ]
-    , units model
+    , torrentsTableFieldset
     ]
+
+
+
+-- TORRENTS TABLE FIELDSET
+
+
+torrentsTableFieldset : Html Msg
+torrentsTableFieldset =
+    fieldset []
+        [ div [ class "fieldset-header" ] [ text "Torrents Table" ]
+        , div [ class "preference" ] torrentsTableLayout
+        ]
+
+
+torrentsTableLayout : List (Html Msg)
+torrentsTableLayout =
+    [ div [ class "preference-label" ] [ text "Layout" ]
+    , torrentsTableLayoutOptions
+    ]
+
+
+torrentsTableLayoutOptions : Html Msg
+torrentsTableLayoutOptions =
+    div []
+        [ div
+            [ onClick <| SetPreference <| MP.Table Model.Table.Torrents MP.Layout Model.Table.Fixed
+            , class "preference-option"
+            ]
+            [ input
+                [ name "torrent-table-layout"
+                , type_ "radio"
+                ]
+                []
+            , div [ class "preference-text" ]
+                [ span [ class "radio-label" ] [ text "Fixed" ]
+                , small [] [ tableFixedText ]
+                ]
+            ]
+        , div
+            [ onClick <| SetPreference <| MP.Table Model.Table.Torrents MP.Layout Model.Table.Fluid
+            , class "preference-option"
+            ]
+            [ input [ name "torrent-table-layout", type_ "radio" ] []
+            , div [ class "preference-text" ]
+                [ span [ class "radio-label" ] [ text "Fluid" ]
+                , small [] [ tableFixedText ]
+                ]
+            ]
+        ]
+
+
+tableFixedText : Html Msg
+tableFixedText =
+    text "Columns use the widths you set, without any dynamic reflowing."
+
+
+
+-- TMP
 
 
 units : Model -> Html Msg

@@ -2,8 +2,8 @@ module Update.WindowResized exposing (update)
 
 import Json.Decode as JD
 import Model exposing (..)
-import Model.Config exposing (Config)
 import Model.Window
+import Update.Shared.ConfigHelpers exposing (getWindowConfig, windowConfigSetter)
 
 
 update : Result JD.Error Model.Window.ResizeDetails -> Model -> ( Model, Cmd Msg )
@@ -21,8 +21,11 @@ update result model =
 handleSuccess : Model.Window.ResizeDetails -> Model -> ( Model, Cmd Msg )
 handleSuccess resizeDetails model =
     let
+        windowType =
+            Model.Window.idToType resizeDetails.id
+
         windowConfig =
-            getWindowConfig model.config resizeDetails
+            getWindowConfig model.config windowType
 
         newWindowConfig =
             { windowConfig
@@ -31,7 +34,7 @@ handleSuccess resizeDetails model =
             }
 
         setter =
-            configSetter resizeDetails
+            windowConfigSetter windowType
 
         newConfig =
             model.config |> setter newWindowConfig
@@ -39,23 +42,3 @@ handleSuccess resizeDetails model =
     model
         |> setConfig newConfig
         |> addCmd Cmd.none
-
-
-getWindowConfig : Config -> Model.Window.ResizeDetails -> Model.Window.Config
-getWindowConfig config resizeDetails =
-    case Model.Window.idToType resizeDetails.id of
-        Model.Window.Preferences ->
-            config.preferences
-
-        Model.Window.Logs ->
-            config.logs
-
-
-configSetter : Model.Window.ResizeDetails -> Model.Window.Config -> Model.Config.Config -> Config
-configSetter resizeDetails =
-    case Model.Window.idToType resizeDetails.id of
-        Model.Window.Preferences ->
-            Model.Config.setPreferences
-
-        Model.Window.Logs ->
-            Model.Config.setLogs

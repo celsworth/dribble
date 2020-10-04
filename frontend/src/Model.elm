@@ -6,6 +6,7 @@ import Html.Events.Extra.Mouse as Mouse
 import Json.Decode as JD
 import Model.Config exposing (Config)
 import Model.Message exposing (Message)
+import Model.Preferences
 import Model.SpeedChart
 import Model.Table
 import Model.Torrent exposing (Torrent)
@@ -22,6 +23,7 @@ type Msg
     | TorrentAttributeResized Model.Table.ResizeOp Model.Table.MousePosition
     | TorrentAttributeResizeEnded Model.Table.ResizeOp Model.Table.MousePosition
     | GotColumnWidth Model.Table.Attribute (Result Browser.Dom.Error Browser.Dom.Element)
+    | SetPreference Model.Preferences.PreferenceUpdate
     | SaveConfigClicked
     | TogglePreferencesVisible
     | ToggleLogsVisible
