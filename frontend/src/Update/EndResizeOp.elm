@@ -28,6 +28,6 @@ update resizeOp mousePosition model =
             model.config |> tableConfigSetter tableType newTableConfig
     in
     model
-        |> Model.setResizeOp Nothing
-        |> Model.setConfig newConfig
-        |> Model.addCmd Cmd.none
+        |> setResizeOp Nothing
+        |> setConfig newConfig
+        |> addCmd Cmd.none

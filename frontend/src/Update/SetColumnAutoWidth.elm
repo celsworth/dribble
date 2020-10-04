@@ -23,6 +23,6 @@ update attribute model =
         newConfig =
             model.config |> tableConfigSetter tableType newTableConfig
     in
-    ( model |> Model.setConfig newConfig
+    ( model |> setConfig newConfig
     , Task.attempt (GotColumnWidth attribute) <| Browser.Dom.getElement id
     )

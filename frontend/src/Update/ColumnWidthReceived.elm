@@ -34,9 +34,9 @@ update attribute result model =
     case result of
         Ok r ->
             model
-                |> Model.setConfig (newConfig r.element.width)
-                |> Model.addCmd Cmd.none
+                |> setConfig (newConfig r.element.width)
+                |> addCmd Cmd.none
 
         Err _ ->
             -- XXX: could display error message
-            model |> Model.addCmd Cmd.none
+            model |> addCmd Cmd.none
