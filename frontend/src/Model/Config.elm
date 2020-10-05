@@ -5,6 +5,7 @@ import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as E
 import Model.Table
 import Model.Torrent
+import Model.TorrentTable
 import Model.Window
 import Utils.Filesize
 
@@ -14,14 +15,17 @@ type ConfigWithResult
     | DecodeError String Config
 
 
+type alias Humanise =
+    { speed : Utils.Filesize.Settings
+    , size : Utils.Filesize.Settings
+    }
+
+
 type alias Config =
     { refreshDelay : Int
     , sortBy : Model.Torrent.Sort
     , torrentTable : Model.Table.Config
-    , visibleTorrentAttributes : List Model.Torrent.Attribute
-    , torrentAttributeOrder : List Model.Torrent.Attribute
-    , hSizeSettings : Utils.Filesize.Settings
-    , hSpeedSettings : Utils.Filesize.Settings
+    , humanise : Humanise
     , timezone : String
     , preferences : Model.Window.Config
     , logs : Model.Window.Config
@@ -48,11 +52,6 @@ setLogs new config =
     { config | logs = new }
 
 
-setVisibleTorrentAttributes : List Model.Torrent.Attribute -> Config -> Config
-setVisibleTorrentAttributes new config =
-    { config | visibleTorrentAttributes = new }
-
-
 
 -- JSON
 
@@ -61,11 +60,11 @@ default : Config
 default =
     { refreshDelay = 5
     , sortBy = Model.Torrent.SortBy Model.Torrent.UploadRate Model.Torrent.Desc
-    , torrentTable = Model.Table.defaultConfig
-    , visibleTorrentAttributes = defaultTorrentAttributes
-    , torrentAttributeOrder = defaultTorrentAttributes
-    , hSizeSettings = { units = Utils.Filesize.Base2, decimalPlaces = 2, decimalSeparator = "." }
-    , hSpeedSettings = { units = Utils.Filesize.Base10, decimalPlaces = 1, decimalSeparator = "." }
+    , torrentTable = Model.TorrentTable.defaultConfig
+    , humanise =
+        { size = { units = Utils.Filesize.Base2, decimalPlaces = 2, decimalSeparator = "." }
+        , speed = { units = Utils.Filesize.Base10, decimalPlaces = 1, decimalSeparator = "." }
+        }
     , timezone = "Europe/London"
     , preferences = { visible = False, width = 600, height = 400 }
     , logs = { visible = False, width = 800, height = 400 }
@@ -107,10 +106,7 @@ encode config =
         [ ( "refreshDelay", E.int config.refreshDelay )
         , ( "sortBy", encodeSortBy config.sortBy )
         , ( "torrentTable", Model.Table.encode config.torrentTable )
-        , ( "visibleTorrentAttributes", encodeTorrentAttributeList config.visibleTorrentAttributes )
-        , ( "torrentAttributeOrder", encodeTorrentAttributeList config.torrentAttributeOrder )
-        , ( "hSizeSettings", Utils.Filesize.encode config.hSizeSettings )
-        , ( "hSpeedSettings", Utils.Filesize.encode config.hSpeedSettings )
+        , ( "humanise", encodeHumanise config.humanise )
         , ( "timezone", E.string config.timezone )
         , ( "preferences", Model.Window.encode config.preferences )
         , ( "logs", Model.Window.encode config.logs )
@@ -135,6 +131,14 @@ encodeSortDirection direction =
 
         Model.Torrent.Desc ->
             E.string "desc"
+
+
+encodeHumanise : Humanise -> E.Value
+encodeHumanise humanise =
+    E.object
+        [ ( "size", Utils.Filesize.encode humanise.size )
+        , ( "speed", Utils.Filesize.encode humanise.speed )
+        ]
 
 
 encodeTorrentAttributeList : List Model.Torrent.Attribute -> E.Value
@@ -168,26 +172,10 @@ decoder =
         |> optional "refreshDelay" D.int default.refreshDelay
         |> optional "sortBy" sortByDecoder default.sortBy
         |> optional "torrentTable" Model.Table.decoder default.torrentTable
-        |> optional "visibleTorrentAttributes"
-            torrentAttributeListDecoder
-            default.visibleTorrentAttributes
-        |> optional "torrentAttributeOrder"
-            torrentAttributeListDecoder
-            default.torrentAttributeOrder
-        |> optional "hSizeSettings"
-            Utils.Filesize.decoder
-            default.hSizeSettings
-        |> optional "hSpeedSettings"
-            Utils.Filesize.decoder
-            default.hSpeedSettings
+        |> optional "humanise" humaniseDecoder default.humanise
         |> optional "timezone" D.string default.timezone
         |> optional "preferences" Model.Window.decoder default.preferences
         |> optional "logs" Model.Window.decoder default.logs
-
-
-torrentAttributeListDecoder : D.Decoder (List Model.Torrent.Attribute)
-torrentAttributeListDecoder =
-    D.list torrentAttributeDecoder
 
 
 sortByDecoder : D.Decoder Model.Torrent.Sort
@@ -212,6 +200,22 @@ sortDirectionDecoder =
                     _ ->
                         D.fail <| "unknown direction " ++ input
             )
+
+
+humaniseDecoder : D.Decoder Humanise
+humaniseDecoder =
+    D.succeed Humanise
+        |> optional "size"
+            Utils.Filesize.decoder
+            default.humanise.size
+        |> optional "speed"
+            Utils.Filesize.decoder
+            default.humanise.speed
+
+
+torrentAttributeListDecoder : D.Decoder (List Model.Torrent.Attribute)
+torrentAttributeListDecoder =
+    D.list torrentAttributeDecoder
 
 
 torrentAttributeDecoder : D.Decoder Model.Torrent.Attribute

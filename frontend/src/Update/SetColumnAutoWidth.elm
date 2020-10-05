@@ -16,9 +16,14 @@ update attribute model =
                 Model.Table.TorrentAttribute a ->
                     ( View.Torrent.attributeToTableHeaderId a, Model.Table.Torrents )
 
-        newTableConfig =
+        tableConfig =
             getTableConfig model.config tableType
-                |> Model.Table.setColumnWidthAuto attribute
+
+        tableColumn =
+            Model.Table.getColumn tableConfig attribute
+
+        newTableConfig =
+            tableConfig |> Model.Table.setColumn { tableColumn | auto = True }
 
         newConfig =
             model.config |> tableConfigSetter tableType newTableConfig

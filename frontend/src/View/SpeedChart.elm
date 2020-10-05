@@ -39,7 +39,7 @@ view model =
             model.traffic
             model.speedChartHover
             model.timezone
-            model.config.hSpeedSettings
+            model.config.humanise.speed
         ]
 
 

@@ -18,11 +18,14 @@ update resizeOp mousePosition model =
         tableType =
             Model.Table.typeFromAttribute resizeOp.attribute
 
-        newTableConfig =
+        tableConfig =
             getTableConfig model.config tableType
-                |> Model.Table.setColumnWidth
-                    newResizeOp.attribute
-                    newResizeOp.currentWidth
+
+        tableColumn =
+            Model.Table.getColumn tableConfig resizeOp.attribute
+
+        newTableConfig =
+            tableConfig |> Model.Table.setColumn { tableColumn | width = newResizeOp.currentWidth }
 
         newConfig =
             model.config |> tableConfigSetter tableType newTableConfig

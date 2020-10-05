@@ -14,14 +14,14 @@ update attribute mousePos model =
         tableConfig =
             getTableConfig model.config tableType
 
-        startWidth =
-            Model.Table.getColumnWidth tableConfig.columnWidths attribute
+        tableColumn =
+            Model.Table.getColumn tableConfig attribute
 
         resizeOp =
             { attribute = attribute
-            , startWidth = startWidth
+            , startWidth = tableColumn.width
             , startPosition = mousePos
-            , currentWidth = startWidth
+            , currentWidth = tableColumn.width
             , currentPosition = mousePos
             }
     in

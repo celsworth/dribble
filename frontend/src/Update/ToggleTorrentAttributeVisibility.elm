@@ -1,26 +1,32 @@
 module Update.ToggleTorrentAttributeVisibility exposing (update)
 
-import List
-import List.Extra
 import Model exposing (..)
-import Model.Config
+import Model.Table
 import Model.Torrent
+import Update.Shared.ConfigHelpers exposing (getTableConfig, tableConfigSetter)
 
 
 update : Model.Torrent.Attribute -> Model -> ( Model, Cmd Msg )
-update attr model =
+update attribute model =
     let
-        newVTA =
-            if List.member attr model.config.visibleTorrentAttributes then
-                List.Extra.remove attr model.config.visibleTorrentAttributes
+        -- TODO support for other tables
+        tableType =
+            Model.Table.Torrents
 
-            else
-                -- inserts at beginning
-                attr :: model.config.visibleTorrentAttributes
+        tableConfig =
+            getTableConfig model.config tableType
 
-        config =
-            model.config |> Model.Config.setVisibleTorrentAttributes newVTA
+        tableColumn =
+            Model.Table.getColumn tableConfig (Model.Table.TorrentAttribute attribute)
+
+        newTableConfig =
+            tableConfig
+                |> Model.Table.setColumn
+                    { tableColumn | visible = not tableColumn.visible }
+
+        newConfig =
+            model.config |> tableConfigSetter tableType newTableConfig
     in
     model
-        |> setConfig config
+        |> setConfig newConfig
         |> addCmd Cmd.none

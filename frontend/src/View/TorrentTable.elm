@@ -1,6 +1,6 @@
 module View.TorrentTable exposing (view)
 
-import Dict exposing (Dict)
+import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
@@ -29,26 +29,21 @@ view model =
             [ table []
                 [ Html.Lazy.lazy View.DragBar.view model.resizeOp
                 , Html.Lazy.lazy header model.config
-                , Html.Lazy.lazy4 body
+                , Html.Lazy.lazy5 body
+                    model.config.humanise
+                    model.config.torrentTable
                     model.torrentFilter
                     model.torrentsByHash
                     model.sortedTorrents
-                    model.config
                 ]
             ]
-
-
-fixedOrFluid : Model.Table.Config -> Model.Table.Layout
-fixedOrFluid tableConfig =
-    tableConfig.layout
 
 
 header : Config -> Html Msg
 header config =
     let
         visibleOrder =
-            List.filter (isVisible config.visibleTorrentAttributes)
-                config.torrentAttributeOrder
+            List.filter .visible config.torrentTable.columns
     in
     thead []
         [ tr []
@@ -56,37 +51,40 @@ header config =
         ]
 
 
-headerCell : Config -> Model.Torrent.Attribute -> Html Msg
-headerCell config attribute =
+headerCell : Config -> Model.Table.Column -> Html Msg
+headerCell config column =
     let
+        (Model.Table.TorrentAttribute attribute) =
+            column.attribute
+
         attrString =
             View.Torrent.attributeToTableHeaderString
                 attribute
 
         maybeResizeDiv =
-            case fixedOrFluid config.torrentTable of
+            case config.torrentTable.layout of
                 Model.Table.Fixed ->
                     Just <| div (headerCellResizeHandleAttributes attribute) []
 
                 Model.Table.Fluid ->
                     Nothing
     in
-    th (headerCellAttributes config attribute)
+    th (headerCellAttributes config.sortBy attribute)
         (List.filterMap identity
             [ Just <|
-                div (headerCellContentDivAttributes config attribute)
+                div (headerCellContentDivAttributes config.torrentTable attribute)
                     [ div [ class "content" ] [ text attrString ] ]
             , maybeResizeDiv
             ]
         )
 
 
-headerCellAttributes : Config -> Model.Torrent.Attribute -> List (Attribute Msg)
-headerCellAttributes config attribute =
+headerCellAttributes : Model.Torrent.Sort -> Model.Torrent.Attribute -> List (Attribute Msg)
+headerCellAttributes sortBy attribute =
     List.filterMap identity
         [ headerCellIdAttribute attribute
         , cellTextAlign attribute
-        , headerCellSortClass config attribute
+        , headerCellSortClass sortBy attribute
         ]
 
 
@@ -95,13 +93,13 @@ headerCellIdAttribute attribute =
     Just <| id (View.Torrent.attributeToTableHeaderId attribute)
 
 
-headerCellContentDivAttributes : Config -> Model.Torrent.Attribute -> List (Attribute Msg)
-headerCellContentDivAttributes config attribute =
+headerCellContentDivAttributes : Model.Table.Config -> Model.Torrent.Attribute -> List (Attribute Msg)
+headerCellContentDivAttributes tableConfig attribute =
     let
         maybeWidthAttr =
-            case fixedOrFluid config.torrentTable of
+            case tableConfig.layout of
                 Model.Table.Fixed ->
-                    thWidthAttribute config.torrentTable.columnWidths attribute
+                    thWidthAttribute tableConfig attribute
 
                 Model.Table.Fluid ->
                     Nothing
@@ -136,11 +134,11 @@ headerCellResizeHandleAttributes attribute =
     ]
 
 
-headerCellSortClass : Config -> Model.Torrent.Attribute -> Maybe (Attribute Msg)
-headerCellSortClass config attribute =
+headerCellSortClass : Model.Torrent.Sort -> Model.Torrent.Attribute -> Maybe (Attribute Msg)
+headerCellSortClass sortBy attribute =
     let
         (Model.Torrent.SortBy currentSortAttribute currentSortDirection) =
-            config.sortBy
+            sortBy
     in
     if currentSortAttribute == attribute then
         case currentSortDirection of
@@ -154,55 +152,58 @@ headerCellSortClass config attribute =
         Nothing
 
 
-body : TorrentFilter -> Dict String Torrent -> List String -> Config -> Html Msg
-body torrentFilter torrentsByHash sortedTorrents config =
+body : Model.Config.Humanise -> Model.Table.Config -> TorrentFilter -> TorrentsByHash -> List String -> Html Msg
+body humanise tableConfig torrentFilter torrentsByHash sortedTorrents =
     Keyed.node "tbody" [] <|
         List.filterMap identity
-            (List.map (keyedRow torrentFilter torrentsByHash config) sortedTorrents)
+            (List.map
+                (keyedRow humanise
+                    tableConfig
+                    torrentFilter
+                    torrentsByHash
+                )
+                sortedTorrents
+            )
 
 
-keyedRow : TorrentFilter -> Dict String Torrent -> Config -> String -> Maybe ( String, Html Msg )
-keyedRow torrentFilter torrentsByHash config hash =
+keyedRow : Model.Config.Humanise -> Model.Table.Config -> TorrentFilter -> TorrentsByHash -> String -> Maybe ( String, Html Msg )
+keyedRow humanise tableConfig torrentFilter torrentsByHash hash =
     Maybe.map
-        (\t -> ( t.hash, lazyRow torrentFilter config t ))
+        (\torrent -> ( hash, lazyRow humanise tableConfig torrentFilter torrent ))
         (Dict.get hash torrentsByHash)
 
 
-lazyRow : TorrentFilter -> Config -> Torrent -> Html Msg
-lazyRow torrentFilter config torrent =
+lazyRow : Model.Config.Humanise -> Model.Table.Config -> TorrentFilter -> Torrent -> Html Msg
+lazyRow humanise tableConfig torrentFilter torrent =
     if Model.TorrentFilter.torrentMatches torrentFilter torrent then
-        Html.Lazy.lazy2 row config torrent
+        -- pass in as little as possible so lazy works as well as possible
+        Html.Lazy.lazy3 row humanise tableConfig torrent
 
     else
         text ""
 
 
-row : Config -> Torrent -> Html Msg
-row config torrent =
+row : Model.Config.Humanise -> Model.Table.Config -> Torrent -> Html Msg
+row humanise tableConfig torrent =
     let
-        {-
-           _ =
-               Debug.log "rendering:" torrent
+        {- _ =
+           Debug.log "rendering:" torrent
         -}
         visibleOrder =
-            List.filter (isVisible config.visibleTorrentAttributes)
-                config.torrentAttributeOrder
+            List.filter .visible tableConfig.columns
     in
-    tr
-        []
-        (List.map (cell config torrent) visibleOrder)
+    tr [] (List.map (cell humanise tableConfig torrent) visibleOrder)
 
 
-isVisible : List Model.Torrent.Attribute -> Model.Torrent.Attribute -> Bool
-isVisible visibleTorrentAttributes attribute =
-    List.member attribute visibleTorrentAttributes
-
-
-cell : Config -> Torrent -> Model.Torrent.Attribute -> Html Msg
-cell config torrent attribute =
+cell : Model.Config.Humanise -> Model.Table.Config -> Torrent -> Model.Table.Column -> Html Msg
+cell humanise tableConfig torrent column =
+    let
+        (Model.Table.TorrentAttribute attribute) =
+            column.attribute
+    in
     td []
-        [ div (cellAttributes config.torrentTable attribute)
-            [ cellContent config torrent attribute
+        [ div (cellAttributes tableConfig attribute)
+            [ cellContent humanise torrent attribute
             ]
         ]
 
@@ -211,9 +212,9 @@ cellAttributes : Model.Table.Config -> Model.Torrent.Attribute -> List (Attribut
 cellAttributes tableConfig attribute =
     let
         maybeWidthAttr =
-            case fixedOrFluid tableConfig of
+            case tableConfig.layout of
                 Model.Table.Fixed ->
-                    tdWidthAttribute tableConfig.columnWidths attribute
+                    tdWidthAttribute tableConfig attribute
 
                 Model.Table.Fluid ->
                     Nothing
@@ -229,8 +230,8 @@ cellTextAlign attribute =
     Maybe.map class (View.Torrent.textAlignment attribute)
 
 
-cellContent : Config -> Torrent -> Model.Torrent.Attribute -> Html Msg
-cellContent config torrent attribute =
+cellContent : Model.Config.Humanise -> Torrent -> Model.Torrent.Attribute -> Html Msg
+cellContent humanise torrent attribute =
     case attribute of
         Model.Torrent.Status ->
             torrentStatusCell torrent
@@ -240,7 +241,7 @@ cellContent config torrent attribute =
 
         _ ->
             View.Torrent.attributeAccessor
-                config
+                humanise
                 torrent
                 attribute
 
@@ -310,28 +311,26 @@ donePercentCell torrent =
 -}
 
 
-thWidthAttribute : Model.Table.ColumnWidths -> Model.Torrent.Attribute -> Maybe (Attribute Msg)
-thWidthAttribute columnWidths attribute =
-    widthAttribute columnWidths attribute 10
+thWidthAttribute : Model.Table.Config -> Model.Torrent.Attribute -> Maybe (Attribute Msg)
+thWidthAttribute tableConfig attribute =
+    widthAttribute tableConfig attribute 10
 
 
-tdWidthAttribute : Model.Table.ColumnWidths -> Model.Torrent.Attribute -> Maybe (Attribute Msg)
-tdWidthAttribute columnWidths attribute =
-    widthAttribute columnWidths attribute 8
+tdWidthAttribute : Model.Table.Config -> Model.Torrent.Attribute -> Maybe (Attribute Msg)
+tdWidthAttribute tableConfig attribute =
+    widthAttribute tableConfig attribute 8
 
 
-widthAttribute : Model.Table.ColumnWidths -> Model.Torrent.Attribute -> Float -> Maybe (Attribute Msg)
-widthAttribute columnWidths attribute subtract =
+widthAttribute : Model.Table.Config -> Model.Torrent.Attribute -> Float -> Maybe (Attribute Msg)
+widthAttribute tableConfig attribute subtract =
     let
-        width =
-            Model.Table.getColumnWidth columnWidths
+        tableColumn =
+            Model.Table.getColumn
+                tableConfig
                 (Model.Table.TorrentAttribute attribute)
-
-        { auto, px } =
-            width
     in
-    if auto then
+    if tableColumn.auto then
         Nothing
 
     else
-        Just <| style "width" (String.fromFloat (px - subtract) ++ "px")
+        Just <| style "width" (String.fromFloat (tableColumn.width - subtract) ++ "px")

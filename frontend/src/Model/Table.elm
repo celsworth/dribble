@@ -1,9 +1,9 @@
 module Model.Table exposing (..)
 
-import Dict exposing (Dict)
 import Json.Decode as D
-import Json.Decode.Pipeline exposing (optional, required)
+import Json.Decode.Pipeline exposing (hardcoded, required)
 import Json.Encode as E
+import List.Extra
 import Model.Torrent
 
 
@@ -19,11 +19,15 @@ type alias MousePosition =
 
 type alias ResizeOp =
     { attribute : Attribute
-    , startWidth : ColumnWidth
+    , startWidth : Float
     , startPosition : MousePosition
-    , currentWidth : ColumnWidth
+    , currentWidth : Float
     , currentPosition : MousePosition
     }
+
+
+type Type
+    = Torrents
 
 
 type Layout
@@ -31,24 +35,24 @@ type Layout
     | Fluid
 
 
-type alias ColumnWidths =
-    Dict String ColumnWidth
-
-
-type alias ColumnWidth =
-    { px : Float
+type alias Column =
+    { attribute : Attribute
+    , width : Float
     , auto : Bool
+    , visible : Bool
     }
 
 
 type alias Config =
-    { layout : Layout
-    , columnWidths : ColumnWidths
+    -- can we split into config that affects individual row content,
+    -- and config that affects row order?
+    { tableType : Type
+    , layout : Layout
+    , columns : List Column
+
+    -- sortBy?
+    -- filter?
     }
-
-
-type Type
-    = Torrents
 
 
 
@@ -58,37 +62,6 @@ type Type
 setLayout : Layout -> Config -> Config
 setLayout new config =
     { config | layout = new }
-
-
-setColumnWidths : ColumnWidths -> Config -> Config
-setColumnWidths new config =
-    { config | columnWidths = new }
-
-
-
--- DEFAULTS
-
-
-defaultConfig : Config
-defaultConfig =
-    { layout = Fixed
-    , columnWidths = defaultColumnWidths
-    }
-
-
-defaultColumnWidths : ColumnWidths
-defaultColumnWidths =
-    Dict.fromList <|
-        List.map defaultColumnWidth Model.Torrent.defaultAttributes
-
-
-defaultColumnWidth : Model.Torrent.Attribute -> ( String, ColumnWidth )
-defaultColumnWidth attribute =
-    -- and cope with other table types
-    ( Model.Torrent.attributeToKey
-        attribute
-    , { px = Model.Torrent.attributeToDefaultWidth attribute, auto = False }
-    )
 
 
 
@@ -111,71 +84,50 @@ minimumColumnPx =
     30
 
 
-getColumnWidth : ColumnWidths -> Attribute -> ColumnWidth
-getColumnWidth columnWidths attribute =
+defaultColumn : Attribute -> Column
+defaultColumn attribute =
+    { attribute = attribute
+    , width = minimumColumnPx
+    , auto = False
+    , visible = True
+    }
+
+
+getColumn : Config -> Attribute -> Column
+getColumn tableConfig attribute =
+    List.Extra.find (\c -> c.attribute == attribute) tableConfig.columns
+        |> Maybe.withDefault (defaultColumn attribute)
+
+
+setColumn : Column -> Config -> Config
+setColumn column tableConfig =
+    {- TODO: this should really cope if the column isn't in the List,
+       by adding it to the end?
+    -}
     let
-        key =
-            case attribute of
-                TorrentAttribute a ->
-                    Model.Torrent.attributeToKey a
+        columns =
+            tableConfig.columns
+
+        newColumns =
+            List.Extra.setIf (\c -> c.attribute == column.attribute) column columns
     in
-    case Dict.get key columnWidths of
-        Just width ->
-            width
-
-        Nothing ->
-            -- default
-            { px = minimumColumnPx, auto = False }
+    { tableConfig | columns = newColumns }
 
 
-setColumnWidth : Attribute -> ColumnWidth -> Config -> Config
-setColumnWidth attribute newWidth config =
-    let
-        key =
-            case attribute of
-                TorrentAttribute a ->
-                    Model.Torrent.attributeToKey a
-
-        newDict =
-            Dict.insert key newWidth config.columnWidths
-    in
-    config |> setColumnWidths newDict
-
-
-setColumnWidthAuto : Attribute -> Config -> Config
-setColumnWidthAuto attribute config =
-    let
-        key =
-            case attribute of
-                TorrentAttribute a ->
-                    Model.Torrent.attributeToKey a
-
-        oldWidth =
-            getColumnWidth config.columnWidths attribute
-
-        newWidth =
-            { oldWidth | auto = True }
-
-        newDict =
-            Dict.insert key newWidth config.columnWidths
-    in
-    config |> setColumnWidths newDict
-
-
-calculateNewColumnWidth : ResizeOp -> ColumnWidth
+calculateNewColumnWidth : ResizeOp -> Float
 calculateNewColumnWidth { startWidth, currentPosition, startPosition } =
     let
         newPx =
-            startWidth.px + currentPosition.x - startPosition.x
+            startWidth + currentPosition.x - startPosition.x
     in
     -- prevent columns going below 20px
     case List.maximum [ minimumColumnPx, newPx ] of
         Just max ->
-            { startWidth | px = max }
+            max
 
         Nothing ->
             -- notreachable, minimumColumnPx is never unset
-            { px = minimumColumnPx, auto = False }
+            minimumColumnPx
 
 
 updateResizeOpIfValid : ResizeOp -> MousePosition -> Maybe ResizeOp
@@ -189,7 +141,7 @@ updateResizeOpIfValid resizeOp mousePosition =
 
         -- stop the dragbar moving any further if the column would be too narrow
         valid =
-            newWidth.px > minimumColumnPx
+            newWidth > minimumColumnPx
     in
     if valid then
         Just { newResizeOp | currentWidth = newWidth }
@@ -205,9 +157,17 @@ updateResizeOpIfValid resizeOp mousePosition =
 encode : Config -> E.Value
 encode config =
     E.object
-        [ ( "layout", encodeLayout config.layout )
-        , ( "columnWidths", encodeColumnWidths config.columnWidths )
+        [ ( "tableType", encodeTableType config.tableType )
+        , ( "layout", encodeLayout config.layout )
+        , ( "columns", encodeColumns config.columns )
         ]
+
+
+encodeTableType : Type -> E.Value
+encodeTableType val =
+    case val of
+        Torrents ->
+            E.string "torrents"
 
 
 encodeLayout : Layout -> E.Value
@@ -220,19 +180,26 @@ encodeLayout val =
             E.string "fluid"
 
 
-encodeColumnWidths : ColumnWidths -> E.Value
-encodeColumnWidths columnWidths =
-    Dict.toList columnWidths
-        |> List.map (\( k, v ) -> ( k, encodeColumnWidth v ))
-        |> E.object
+encodeColumns : List Column -> E.Value
+encodeColumns columns =
+    E.list encodeColumn columns
 
 
-encodeColumnWidth : ColumnWidth -> E.Value
-encodeColumnWidth columnWidth =
+encodeColumn : Column -> E.Value
+encodeColumn column =
     E.object
-        [ ( "px", E.float columnWidth.px )
-        , ( "auto", E.bool columnWidth.auto )
+        [ ( "attribute", encodeAttribute column.attribute )
+        , ( "width", E.float column.width )
+        , ( "auto", E.bool column.auto )
+        , ( "visible", E.bool column.visible )
         ]
+
+
+encodeAttribute : Attribute -> E.Value
+encodeAttribute attribute =
+    case attribute of
+        TorrentAttribute a ->
+            E.string <| Model.Torrent.attributeToKey a
 
 
 
@@ -241,9 +208,29 @@ encodeColumnWidth columnWidth =
 
 decoder : D.Decoder Config
 decoder =
+    D.field "tableType" tableTypeDecoder |> D.andThen decoder2
+
+
+decoder2 : Type -> D.Decoder Config
+decoder2 tableType =
     D.succeed Config
-        |> optional "layout" layoutDecoder defaultConfig.layout
-        |> optional "columnWidths" columnWidthsDecoder defaultConfig.columnWidths
+        |> hardcoded tableType
+        |> required "layout" layoutDecoder
+        |> required "columns" (columnsDecoder tableType)
+
+
+tableTypeDecoder : D.Decoder Type
+tableTypeDecoder =
+    D.string
+        |> D.andThen
+            (\input ->
+                case input of
+                    "torrents" ->
+                        D.succeed Torrents
+
+                    _ ->
+                        D.fail <| "unknown tableType" ++ input
+            )
 
 
 layoutDecoder : D.Decoder Layout
@@ -263,13 +250,31 @@ layoutDecoder =
             )
 
 
-columnWidthsDecoder : D.Decoder ColumnWidths
-columnWidthsDecoder =
-    D.dict columnWidthDecoder
+columnsDecoder : Type -> D.Decoder (List Column)
+columnsDecoder tableType =
+    D.list (columnDecoder tableType)
 
 
-columnWidthDecoder : D.Decoder ColumnWidth
-columnWidthDecoder =
-    D.succeed ColumnWidth
-        |> required "px" D.float
+columnDecoder : Type -> D.Decoder Column
+columnDecoder tableType =
+    D.succeed Column
+        |> required "attribute" (attributeDecoder tableType)
+        |> required "width" D.float
         |> required "auto" D.bool
+        |> required "visible" D.bool
+
+
+attributeDecoder : Type -> D.Decoder Attribute
+attributeDecoder tableType =
+    D.string
+        |> D.andThen
+            (\input ->
+                case tableType of
+                    Torrents ->
+                        case Model.Torrent.keyToAttribute input of
+                            Just a ->
+                                D.succeed <| TorrentAttribute a
+
+                            Nothing ->
+                                D.fail <| "unknown torrent key " ++ input
+            )

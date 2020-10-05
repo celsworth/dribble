@@ -39,11 +39,15 @@ type Msg
     | WindowResized (Result JD.Error Model.Window.ResizeDetails)
 
 
+type alias TorrentsByHash =
+    Dict String Torrent
+
+
 type alias Model =
     { config : Config
     , websocketConnected : Bool
     , sortedTorrents : List String
-    , torrentsByHash : Dict String Torrent
+    , torrentsByHash : TorrentsByHash
     , torrentFilter : TorrentFilter
     , traffic : List Traffic
     , prevTraffic : Maybe Traffic

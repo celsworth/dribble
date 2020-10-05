@@ -2,7 +2,7 @@ module View.Torrent exposing (..)
 
 import Html exposing (Html, text)
 import Model exposing (..)
-import Model.Config exposing (Config)
+import Model.Config
 import Model.Torrent exposing (..)
 import Utils.Filesize
 import View.Utils.LocalTimeNode
@@ -13,8 +13,8 @@ attributeToTableHeaderId attribute =
     "th-ta-" ++ attributeToKey attribute
 
 
-attributeAccessor : Config -> Torrent -> Attribute -> Html Msg
-attributeAccessor config torrent attribute =
+attributeAccessor : Model.Config.Humanise -> Torrent -> Attribute -> Html Msg
+attributeAccessor humanise torrent attribute =
     let
         -- convert 0 speeds to Nothing
         humanByteSpeed =
@@ -24,18 +24,18 @@ attributeAccessor config torrent attribute =
                         Nothing
 
                     r ->
-                        Just <| Utils.Filesize.formatWith config.hSpeedSettings r ++ "/s"
+                        Just <| Utils.Filesize.formatWith humanise.speed r ++ "/s"
     in
     case attribute of
         Status ->
-            -- TODO
-            text "NOT SUPPORTED"
+            -- has an icon
+            text ""
 
         Name ->
             text <| torrent.name
 
         Size ->
-            text <| Utils.Filesize.formatWith config.hSizeSettings torrent.size
+            text <| Utils.Filesize.formatWith humanise.size torrent.size
 
         CreationTime ->
             nonZeroLocalTimeNode torrent.creationTime
@@ -47,14 +47,14 @@ attributeAccessor config torrent attribute =
             nonZeroLocalTimeNode torrent.finishedTime
 
         DownloadedBytes ->
-            text <| Utils.Filesize.formatWith config.hSizeSettings torrent.downloadedBytes
+            text <| Utils.Filesize.formatWith humanise.size torrent.downloadedBytes
 
         DownloadRate ->
             text <|
                 Maybe.withDefault "" (humanByteSpeed torrent.downloadRate)
 
         UploadedBytes ->
-            text <| Utils.Filesize.formatWith config.hSizeSettings torrent.uploadedBytes
+            text <| Utils.Filesize.formatWith humanise.size torrent.uploadedBytes
 
         UploadRate ->
             text <|

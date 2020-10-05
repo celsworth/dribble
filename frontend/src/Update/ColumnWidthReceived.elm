@@ -21,15 +21,23 @@ update attribute result model =
         tableType =
             Model.Table.typeFromAttribute attribute
 
+        tableConfig =
+            getTableConfig model.config tableType
+
+        tableColumn =
+            Model.Table.getColumn tableConfig attribute
+
         newTableConfig =
             \px ->
-                Model.Table.setColumnWidth
-                    attribute
-                    { px = px, auto = False }
-                    (getTableConfig model.config tableType)
+                tableConfig
+                    |> Model.Table.setColumn
+                        { tableColumn
+                            | width = px
+                            , auto = False
+                        }
 
         newConfig =
-            \px -> tableConfigSetter tableType (newTableConfig px) model.config
+            \px -> model.config |> tableConfigSetter tableType (newTableConfig px)
     in
     case result of
         Ok r ->

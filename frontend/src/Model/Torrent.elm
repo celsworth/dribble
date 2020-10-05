@@ -78,31 +78,6 @@ type alias Torrent =
     }
 
 
-defaultAttributes : List Attribute
-defaultAttributes =
-    [ Status
-    , Name
-    , Size
-    , DonePercent
-    , CreationTime
-    , StartedTime
-    , FinishedTime
-    , DownloadedBytes
-    , DownloadRate
-    , UploadedBytes
-    , UploadRate
-    , Seeders
-
-    --, SeedersConnected
-    --, SeedersTotal
-    , Peers
-
-    --, PeersConnected
-    --, PeersTotal
-    , Label
-    ]
-
-
 
 -- SORTING
 
@@ -135,7 +110,7 @@ comparator : Sort -> Torrent -> Torrent -> Order
 comparator sortBy a b =
     case sortBy of
         SortBy Status direction ->
-            maybeReverse direction <| statusCmp a b
+            maybeReverse direction <| cmp a b (.status >> statusToInt)
 
         SortBy Name direction ->
             maybeReverse direction <| cmp a b .name
@@ -189,12 +164,6 @@ comparator sortBy a b =
 
         SortBy DonePercent direction ->
             maybeReverse direction <| cmp a b .donePercent
-
-
-statusCmp : Torrent -> Torrent -> Order
-statusCmp a b =
-    {- makes cmp do   a1 = statusToInt a.status -}
-    cmp a b (.status >> statusToInt)
 
 
 cmp : Torrent -> Torrent -> (Torrent -> comparable) -> Order
@@ -424,64 +393,6 @@ statusToInt status =
 
 
 -- ATTRIBUTE ACCCESSORS ETC
-
-
-attributeToDefaultWidth : Attribute -> Float
-attributeToDefaultWidth attribute =
-    case attribute of
-        Status ->
-            28
-
-        Name ->
-            300
-
-        Size ->
-            70
-
-        DonePercent ->
-            60
-
-        CreationTime ->
-            146
-
-        StartedTime ->
-            146
-
-        FinishedTime ->
-            146
-
-        DownloadedBytes ->
-            75
-
-        DownloadRate ->
-            85
-
-        UploadedBytes ->
-            75
-
-        UploadRate ->
-            85
-
-        Seeders ->
-            60
-
-        SeedersConnected ->
-            30
-
-        SeedersTotal ->
-            30
-
-        Peers ->
-            60
-
-        PeersConnected ->
-            30
-
-        PeersTotal ->
-            30
-
-        Label ->
-            60
 
 
 attributeToKey : Attribute -> String

@@ -16,7 +16,7 @@ let debouncedWindowResizeObserved = debounce(entry => {
 	width: entry.target.offsetWidth,
 	height: entry.target.offsetHeight
   });
-} , 300);
+} , 200);
 
 const dtFormat = new Intl.DateTimeFormat('default', {
 	day: '2-digit', month: '2-digit', year: 'numeric',
@@ -26,7 +26,7 @@ const dtFormat = new Intl.DateTimeFormat('default', {
 	timeZoneName: 'short'
 });
 
-// <localtime posix="1601468962000">
+// <local-time posix="1601468962000">
 customElements.define('local-time',
 	class extends HTMLElement {
 		constructor() { super(); }
@@ -41,6 +41,48 @@ customElements.define('local-time',
 		}
 	}
 );
+
+/* unused
+function humanFileSize(bytes, units, dp) {
+	let suffixes, thresh;
+
+	if (units == "si") {
+		suffixes = ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+		thresh = 1000;
+	} else {
+		suffixes = ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+		thresh = 1024;
+	}
+
+	let u = -1;
+	const r = 10**dp;
+
+	do {
+		bytes /= thresh;
+		++u;
+	} while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < suffixes.length - 1);
+
+	return bytes.toFixed(dp) + ' ' + suffixes[u];
+}
+
+// <human-bytes bytes="999999", units="si", dp="1">
+customElements.define('human-bytes',
+	class extends HTMLElement {
+		constructor() { super(); }
+		connectedCallback() { this.setTextContent(); }
+		attributeChangedCallback() { this.setTextContent(); }
+		static get observedAttributes() { return ['bytes', 'units', 'dp']; }
+
+		setTextContent()
+		{
+			const bytes = this.getAttribute('bytes');
+			const units = this.getAttribute('units');
+			const dp = this.getAttribute('dp');
+			this.textContent = humanFileSize(bytes, units, dp)
+		}
+	}
+);
+*/
 
 function debounce(func, wait, immediate) {
 	var timeout;
