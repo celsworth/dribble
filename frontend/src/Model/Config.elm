@@ -16,8 +16,8 @@ type ConfigWithResult
 
 
 type alias Humanise =
-    { speed : Utils.Filesize.Settings
-    , size : Utils.Filesize.Settings
+    { size : Utils.Filesize.Settings
+    , speed : Utils.Filesize.Settings
     }
 
 
@@ -69,31 +69,6 @@ default =
     , preferences = { visible = False, width = 600, height = 400 }
     , logs = { visible = False, width = 800, height = 400 }
     }
-
-
-defaultTorrentAttributes : List Model.Torrent.Attribute
-defaultTorrentAttributes =
-    [ Model.Torrent.Status
-    , Model.Torrent.Name
-    , Model.Torrent.Size
-    , Model.Torrent.DonePercent
-    , Model.Torrent.CreationTime
-    , Model.Torrent.StartedTime
-    , Model.Torrent.FinishedTime
-    , Model.Torrent.DownloadedBytes
-    , Model.Torrent.DownloadRate
-    , Model.Torrent.UploadedBytes
-    , Model.Torrent.UploadRate
-    , Model.Torrent.Seeders
-
-    --, SeedersConnected
-    --, SeedersTotal
-    , Model.Torrent.Peers
-
-    --, PeersConnected
-    --, PeersTotal
-    , Model.Torrent.Label
-    ]
 
 
 

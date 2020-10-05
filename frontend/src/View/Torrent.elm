@@ -120,6 +120,15 @@ textAlignment attribute =
         UploadRate ->
             Just "text-right"
 
+        CreationTime ->
+            Just "text-right"
+
+        StartedTime ->
+            Just "text-right"
+
+        FinishedTime ->
+            Just "text-right"
+
         Seeders ->
             Just "text-right"
 
