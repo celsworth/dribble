@@ -1,5 +1,8 @@
 module Model.TorrentFilter exposing (..)
 
+import Json.Decode as D
+import Json.Decode.Pipeline exposing (optional, required)
+import Json.Encode as E
 import Model.Torrent exposing (Torrent)
 import Parser exposing ((|.), (|=), Parser, Step(..))
 import Regex exposing (Regex)
@@ -17,13 +20,63 @@ type NameFilterComponent
 
 
 type alias TorrentFilter =
+    {- generated at runtime and used for filtering -}
     { name : NameFilter
     }
 
 
-setName : String -> TorrentFilter -> TorrentFilter
-setName new filter =
-    { filter | name = parseName new }
+type alias Config =
+    {- stored in Config and saved to localStorage -}
+    { name : String }
+
+
+
+-- DEFAULT
+
+
+default : Config
+default =
+    { name = ""
+    }
+
+
+
+-- JSON ENCODER
+
+
+encode : Config -> E.Value
+encode config =
+    E.object
+        [ ( "name", E.string config.name )
+        ]
+
+
+
+-- JSON DECODER
+
+
+decoder : D.Decoder Config
+decoder =
+    D.succeed Config
+        |> optional "name" D.string default.name
+
+
+
+-- SETTERS
+
+
+setName : String -> Config -> Config
+setName new config =
+    { config | name = new }
+
+
+filterFromConfig : Config -> TorrentFilter
+filterFromConfig config =
+    { name = parseName config.name }
+
+
+
+-- FILTERS
 
 
 torrentMatches : Torrent -> TorrentFilter -> Bool
@@ -47,6 +100,10 @@ torrentMatches2 torrent filter =
 
         Error ->
             False
+
+
+
+-- PARSER
 
 
 parseName : String -> NameFilter

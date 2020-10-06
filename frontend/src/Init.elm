@@ -22,12 +22,15 @@ init flags =
     let
         ( config, messages ) =
             decodeConfig flags
+
+        torrentFilter =
+            Model.TorrentFilter.filterFromConfig config.filter
     in
     ( { config = config
       , websocketConnected = False
       , sortedTorrents = []
       , torrentsByHash = Dict.empty
-      , torrentFilter = { name = Model.TorrentFilter.Unset }
+      , torrentFilter = torrentFilter
       , traffic = []
       , prevTraffic = Nothing
       , speedChartHover = []

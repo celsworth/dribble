@@ -5,6 +5,7 @@ import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as E
 import Model.Table
 import Model.Torrent
+import Model.TorrentFilter
 import Model.TorrentTable
 import Model.Window
 import Utils.Filesize
@@ -25,6 +26,7 @@ type alias Config =
     { refreshDelay : Int
     , sortBy : Model.Torrent.Sort
     , torrentTable : Model.Table.Config
+    , filter : Model.TorrentFilter.Config
     , humanise : Humanise
     , preferences : Model.Window.Config
     , logs : Model.Window.Config
@@ -41,6 +43,11 @@ setTorrentTable new config =
     { config | torrentTable = new }
 
 
+setFilter : Model.TorrentFilter.Config -> Config -> Config
+setFilter new config =
+    { config | filter = new }
+
+
 setPreferences : Model.Window.Config -> Config -> Config
 setPreferences new config =
     { config | preferences = new }
@@ -52,7 +59,7 @@ setLogs new config =
 
 
 
--- JSON
+-- DEFAULT
 
 
 default : Config
@@ -60,6 +67,7 @@ default =
     { refreshDelay = 5
     , sortBy = Model.Torrent.SortBy Model.Torrent.UploadRate Model.Torrent.Desc
     , torrentTable = Model.TorrentTable.defaultConfig
+    , filter = Model.TorrentFilter.default
     , humanise =
         { size = { units = Utils.Filesize.Base2, decimalPlaces = 2, decimalSeparator = "." }
         , speed = { units = Utils.Filesize.Base10, decimalPlaces = 1, decimalSeparator = "." }
@@ -79,6 +87,7 @@ encode config =
         [ ( "refreshDelay", E.int config.refreshDelay )
         , ( "sortBy", encodeSortBy config.sortBy )
         , ( "torrentTable", Model.Table.encode config.torrentTable )
+        , ( "filter", Model.TorrentFilter.encode config.filter )
         , ( "humanise", encodeHumanise config.humanise )
         , ( "preferences", Model.Window.encode config.preferences )
         , ( "logs", Model.Window.encode config.logs )
@@ -144,6 +153,7 @@ decoder =
         |> optional "refreshDelay" D.int default.refreshDelay
         |> optional "sortBy" sortByDecoder default.sortBy
         |> optional "torrentTable" Model.Table.decoder default.torrentTable
+        |> optional "filter" Model.TorrentFilter.decoder default.filter
         |> optional "humanise" humaniseDecoder default.humanise
         |> optional "preferences" Model.Window.decoder default.preferences
         |> optional "logs" Model.Window.decoder default.logs

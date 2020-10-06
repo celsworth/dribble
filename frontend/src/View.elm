@@ -73,10 +73,11 @@ navigation model =
 
 
 nameFilterInput : Model -> Html Msg
-nameFilterInput _ =
+nameFilterInput model =
     input
         [ placeholder "Regex Filter"
         , class "name-filter"
+        , value model.config.filter.name
         , onInput TorrentNameFilterChanged
         , type_ "text"
         ]
