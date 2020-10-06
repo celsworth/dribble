@@ -7,7 +7,6 @@ import Model.Message
 import Model.Table
 import Model.WebsocketData
 import Model.Window
-import Ports
 import Update.ColumnWidthReceived
 import Update.EndResizeOp
 import Update.ProcessTorrents
@@ -28,63 +27,86 @@ import Update.WindowResized
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    let
+        r =
+            ( model, Cmd.none )
+
+        {- shortcut;
+           instead of: andThen (\_ -> ( setTimeZone zone model, Cmd.none ))
+           do: andThen (call setTimeZone zone)
+        -}
+        noCmd =
+            -- _ is passed in model
+            \meth args _ -> ( meth args model, Cmd.none )
+    in
     case msg of
         SetTimeZone zone ->
-            model |> setTimeZone zone |> addCmd Cmd.none
+            r |> andThen (noCmd setTimeZone zone)
 
         MouseDown attribute pos button keys ->
-            model |> handleMouseDown attribute pos button keys
+            r |> andThen (handleMouseDown attribute pos button keys)
 
         TorrentAttributeResized resizeOp pos ->
-            model |> Update.ResizeOpMoved.update resizeOp pos
+            r |> andThen (Update.ResizeOpMoved.update resizeOp pos)
 
         TorrentAttributeResizeEnded resizeOp pos ->
-            model |> Update.EndResizeOp.update resizeOp pos
+            r
+                |> andThen (Update.EndResizeOp.update resizeOp pos)
+                |> andThen Update.SaveConfig.update
 
         GotColumnWidth attribute result ->
-            model |> Update.ColumnWidthReceived.update attribute result
+            r
+                |> andThen (Update.ColumnWidthReceived.update attribute result)
+                |> andThen Update.SaveConfig.update
 
         SetPreference preferenceUpdate ->
-            model |> Update.SetPreference.update preferenceUpdate
+            r
+                |> andThen (Update.SetPreference.update preferenceUpdate)
+                |> andThen Update.SaveConfig.update
 
         SaveConfigClicked ->
-            model |> Update.SaveConfig.update
+            r |> andThen Update.SaveConfig.update
 
         SetHamburgerMenuVisible bool ->
-            model |> setHamburgerMenuVisible bool |> addCmd Cmd.none
+            r |> andThen (noCmd setHamburgerMenuVisible bool)
 
         TogglePreferencesVisible ->
-            model |> Update.ToggleWindowVisible.update Model.Window.Preferences
+            r |> andThen (Update.ToggleWindowVisible.update Model.Window.Preferences)
 
         ToggleLogsVisible ->
-            model |> Update.ToggleWindowVisible.update Model.Window.Logs
+            r |> andThen (Update.ToggleWindowVisible.update Model.Window.Logs)
 
         TorrentNameFilterChanged value ->
-            model |> Update.TorrentNameFilterChanged.update value
+            r |> andThen (Update.TorrentNameFilterChanged.update value)
 
         ToggleTorrentAttributeVisibility attribute ->
-            model |> Update.ToggleTorrentAttributeVisibility.update attribute
+            r
+                |> andThen (Update.ToggleTorrentAttributeVisibility.update attribute)
+                |> andThen Update.SaveConfig.update
 
         SetSortBy attribute ->
-            model |> Update.SetSortBy.update attribute
+            r
+                |> andThen (Update.SetSortBy.update attribute)
+                |> andThen Update.SaveConfig.update
 
         SpeedChartHover data ->
-            model |> setSpeedChartHover data |> addCmd Cmd.none
+            r |> andThen (noCmd setSpeedChartHover data)
 
         Tick time ->
-            model |> Update.SetCurrentTime.update time
-
-        RequestUpdatedTraffic _ ->
-            model |> addCmd Ports.getTraffic
+            r |> andThen (Update.SetCurrentTime.update time)
 
         WebsocketData result ->
-            model |> processWebsocketResponse result
+            r |> andThen (processWebsocketResponse result)
 
         WebsocketStatusUpdated result ->
-            model |> Update.ProcessWebsocketStatusUpdated.update result
+            r |> andThen (Update.ProcessWebsocketStatusUpdated.update result)
 
         WindowResized result ->
-            model |> Update.WindowResized.update result
+            r |> andThen (Update.WindowResized.update result)
+
+
+
+-- TODO: move to Update/
 
 
 handleMouseDown : Model.Table.Attribute -> Model.Table.MousePosition -> Mouse.Button -> Mouse.Keys -> Model -> ( Model, Cmd Msg )

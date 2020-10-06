@@ -26,7 +26,6 @@ type alias Config =
     , sortBy : Model.Torrent.Sort
     , torrentTable : Model.Table.Config
     , humanise : Humanise
-    , timezone : String
     , preferences : Model.Window.Config
     , logs : Model.Window.Config
     }
@@ -65,7 +64,6 @@ default =
         { size = { units = Utils.Filesize.Base2, decimalPlaces = 2, decimalSeparator = "." }
         , speed = { units = Utils.Filesize.Base10, decimalPlaces = 1, decimalSeparator = "." }
         }
-    , timezone = "Europe/London"
     , preferences = { visible = False, width = 600, height = 400 }
     , logs = { visible = False, width = 800, height = 400 }
     }
@@ -82,7 +80,6 @@ encode config =
         , ( "sortBy", encodeSortBy config.sortBy )
         , ( "torrentTable", Model.Table.encode config.torrentTable )
         , ( "humanise", encodeHumanise config.humanise )
-        , ( "timezone", E.string config.timezone )
         , ( "preferences", Model.Window.encode config.preferences )
         , ( "logs", Model.Window.encode config.logs )
         ]
@@ -148,7 +145,6 @@ decoder =
         |> optional "sortBy" sortByDecoder default.sortBy
         |> optional "torrentTable" Model.Table.decoder default.torrentTable
         |> optional "humanise" humaniseDecoder default.humanise
-        |> optional "timezone" D.string default.timezone
         |> optional "preferences" Model.Window.decoder default.preferences
         |> optional "logs" Model.Window.decoder default.logs
 

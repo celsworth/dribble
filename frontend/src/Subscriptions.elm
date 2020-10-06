@@ -21,15 +21,6 @@ subscriptions _ =
             ]
 
 
-updateTrafficTicker : Model -> Maybe (Sub Msg)
-updateTrafficTicker model =
-    if model.websocketConnected then
-        Just <| Time.every 10000 RequestUpdatedTraffic
-
-    else
-        Nothing
-
-
 
 -- JSON DECODING
 

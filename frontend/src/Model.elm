@@ -33,7 +33,6 @@ type Msg
     | SetSortBy Model.Torrent.Attribute
     | SpeedChartHover (List Model.SpeedChart.DataSeries)
     | Tick Time.Posix
-    | RequestUpdatedTraffic Time.Posix
     | WebsocketData (Result JD.Error Model.WebsocketData.Data)
     | WebsocketStatusUpdated (Result JD.Error Bool)
     | WindowResized (Result JD.Error Model.Window.ResizeDetails)
@@ -123,3 +122,12 @@ setCurrentTime new model =
 addCmd : Cmd Msg -> Model -> ( Model, Cmd Msg )
 addCmd cmd model =
     ( model, cmd )
+
+
+andThen : (model -> ( model, Cmd msg )) -> ( model, Cmd msg ) -> ( model, Cmd msg )
+andThen fn ( model, cmd ) =
+    let
+        ( nextModel, nextCmd ) =
+            fn model
+    in
+    ( nextModel, Cmd.batch [ cmd, nextCmd ] )
