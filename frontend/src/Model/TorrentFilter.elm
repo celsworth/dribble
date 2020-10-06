@@ -4,36 +4,53 @@ import Model.Torrent exposing (Torrent)
 import Regex exposing (Regex)
 
 
+type NameFilter
+    = Regex Regex
+    | Error
+    | Unset
+
+
 type alias TorrentFilter =
-    { name : Maybe Regex
+    { name : NameFilter
     }
 
 
 setName : String -> TorrentFilter -> TorrentFilter
 setName new filter =
-    {- convert from string to regex -}
-    let
-        nameRe =
-            if String.isEmpty new then
-                Nothing
-
-            else
-                stringToRegex new
-    in
-    { filter | name = nameRe }
-
-
-stringToRegex : String -> Maybe Regex
-stringToRegex input =
-    Regex.fromStringWith { caseInsensitive = True, multiline = False } input
+    { filter | name = parseName new }
 
 
 torrentMatches : TorrentFilter -> Torrent -> Bool
 torrentMatches filter torrent =
     {- return true if it matches the given filter -}
     case filter.name of
-        Just re ->
+        Regex re ->
             Regex.contains re torrent.name
 
-        Nothing ->
+        Error ->
+            False
+
+        Unset ->
             True
+
+
+parseName : String -> NameFilter
+parseName input =
+    if String.isEmpty input then
+        Unset
+
+    else
+        {- this does a lot.
+           * remove left/right whitespace
+           * split on spaces
+           * make those into (?=.*<foo>)
+           * join those together
+           * make a Regex; if it fails make an Error
+        -}
+        String.trim input
+            |> String.split " "
+            |> List.map (\s -> "(?=.*" ++ s ++ ")")
+            |> String.concat
+            |> Regex.fromStringWith { caseInsensitive = True, multiline = False }
+            |> Maybe.map Regex
+            |> Maybe.withDefault Error

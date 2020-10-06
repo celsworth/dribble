@@ -5,6 +5,7 @@ import Json.Decode as JD
 import Model exposing (Model, Msg(..))
 import Model.Config exposing (Config)
 import Model.Message exposing (Message)
+import Model.TorrentFilter
 import Ports
 import Task
 import Time
@@ -26,7 +27,7 @@ init flags =
       , websocketConnected = False
       , sortedTorrents = []
       , torrentsByHash = Dict.empty
-      , torrentFilter = { name = Nothing }
+      , torrentFilter = { name = Model.TorrentFilter.Unset }
       , traffic = []
       , prevTraffic = Nothing
       , speedChartHover = []
