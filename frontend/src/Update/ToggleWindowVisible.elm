@@ -21,4 +21,4 @@ update windowType model =
     model
         |> setConfig newConfig
         |> setHamburgerMenuVisible False
-        |> addCmd Cmd.none
+        |> noCmd

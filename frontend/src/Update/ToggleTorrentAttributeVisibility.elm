@@ -29,4 +29,4 @@ update attribute model =
     in
     model
         |> setConfig newConfig
-        |> addCmd Cmd.none
+        |> noCmd

@@ -5,7 +5,7 @@ import Model exposing (..)
 import Model.Torrent exposing (Torrent)
 
 
-update : List Torrent -> Model -> Model
+update : List Torrent -> Model -> ( Model, Cmd Msg )
 update torrents model =
     let
         byHash =
@@ -16,6 +16,7 @@ update torrents model =
                 (Dict.values byHash)
     in
     { model | sortedTorrents = sortedTorrents, torrentsByHash = byHash }
+        |> noCmd
 
 
 torrentsByHash : Model -> List Torrent -> Dict String Torrent

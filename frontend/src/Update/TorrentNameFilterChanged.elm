@@ -15,4 +15,4 @@ update value model =
     in
     model
         |> setTorrentFilter newFilter
-        |> addCmd Cmd.none
+        |> noCmd

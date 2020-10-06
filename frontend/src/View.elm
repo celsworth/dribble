@@ -6,12 +6,10 @@ import Html.Events exposing (onClick, onInput, onMouseLeave)
 import Html.Events.Extra.Mouse
 import Model exposing (..)
 import Model.Table
-import Model.Torrent
 import View.Logs
 import View.Messages
 import View.Preferences
 import View.SpeedChart
-import View.Torrent
 import View.TorrentTable
 
 
@@ -64,19 +62,14 @@ navigation : Model -> Html Msg
 navigation model =
     section [ class "navigation" ]
         [ div [ class "flex-container" ]
-            [ button [ onClick SaveConfigClicked ] [ text "Save Config" ]
-            , toggleTorrentAttributeVisibilityButton Model.Torrent.CreationTime
-            , toggleTorrentAttributeVisibilityButton Model.Torrent.StartedTime
+            [ button [ onClick ResetConfigClicked ] [ text "Reset Config" ]
+            , button [ onClick SaveConfigClicked ] [ text "Save Config" ]
             ]
         , div [ class "flex-container" ]
             [ nameFilterInput model
             , hamburgerButton model
             ]
         ]
-
-
-
--- button [ onClick ToggleLogsVisible ] [ i [ class "fas fa-bars" ] [] ]
 
 
 nameFilterInput : Model -> Html Msg
@@ -95,7 +88,7 @@ hamburgerButton model =
     let
         menu =
             if model.hamburgerMenuVisible then
-                hamburgerMenu model
+                hamburgerMenu
 
             else
                 text ""
@@ -106,19 +99,8 @@ hamburgerButton model =
         ]
 
 
-toggleTorrentAttributeVisibilityButton : Model.Torrent.Attribute -> Html Msg
-toggleTorrentAttributeVisibilityButton attribute =
-    let
-        str =
-            "Toggle "
-                ++ View.Torrent.attributeToString attribute
-    in
-    button [ onClick <| ToggleTorrentAttributeVisibility attribute ]
-        [ text str ]
-
-
-hamburgerMenu : Model -> Html Msg
-hamburgerMenu model =
+hamburgerMenu : Html Msg
+hamburgerMenu =
     div
         [ class "hamburger-menu"
         , onMouseLeave (SetHamburgerMenuVisible False)

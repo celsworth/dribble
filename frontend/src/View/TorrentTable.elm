@@ -175,7 +175,7 @@ keyedRow humanise tableConfig torrentFilter torrentsByHash hash =
 
 lazyRow : Model.Config.Humanise -> Model.Table.Config -> TorrentFilter -> Torrent -> Html Msg
 lazyRow humanise tableConfig torrentFilter torrent =
-    if Model.TorrentFilter.torrentMatches torrentFilter torrent then
+    if Model.TorrentFilter.torrentMatches torrent torrentFilter then
         -- pass in as little as possible so lazy works as well as possible
         Html.Lazy.lazy3 row humanise tableConfig torrent
 

@@ -33,4 +33,4 @@ update resizeOp mousePosition model =
     model
         |> setResizeOp Nothing
         |> setConfig newConfig
-        |> addCmd Cmd.none
+        |> noCmd

@@ -19,7 +19,7 @@ update attribute model =
     model
         |> setConfig newConfig
         |> setSortedTorrents sortedTorrents
-        |> addCmd Cmd.none
+        |> noCmd
 
 
 updateConfig : Model.Torrent.Attribute -> Config -> Config

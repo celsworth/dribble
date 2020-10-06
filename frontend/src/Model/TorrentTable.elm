@@ -71,6 +71,11 @@ defaultColumns =
       , auto = False
       , visible = True
       }
+    , { attribute = Model.Table.TorrentAttribute Model.Torrent.Ratio
+      , width = 60
+      , auto = False
+      , visible = True
+      }
     , { attribute = Model.Table.TorrentAttribute Model.Torrent.Seeders
       , width = 60
       , auto = False

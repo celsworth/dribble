@@ -41,6 +41,7 @@ type Attribute
     | DownloadRate
     | UploadedBytes
     | UploadRate
+    | Ratio
     | Seeders
     | SeedersConnected
     | SeedersTotal
@@ -63,6 +64,7 @@ type alias Torrent =
     , downloadRate : Int
     , uploadedBytes : Int
     , uploadRate : Int
+    , ratio : Float
     , isOpen : Bool
     , isActive : Bool
     , hashing : HashingStatus
@@ -138,6 +140,9 @@ comparator sortBy a b =
 
         SortBy UploadRate direction ->
             maybeReverse direction <| cmp a b .uploadRate
+
+        SortBy Ratio direction ->
+            maybeReverse direction <| cmp a b (.ratio >> infiniteToFloat)
 
         SortBy Seeders direction ->
             -- NOTREACHED
@@ -271,6 +276,9 @@ internalDecoder hash name size creationTime startedTime finishedTime downloadedB
 
         status =
             resolveStatus message hashing isOpen isActive done
+
+        ratio =
+            toFloat uploadedBytes / toFloat downloadedBytes
     in
     D.succeed <|
         Torrent
@@ -285,6 +293,7 @@ internalDecoder hash name size creationTime startedTime finishedTime downloadedB
             downloadRate
             uploadedBytes
             uploadRate
+            ratio
             isOpen
             isActive
             hashing
@@ -368,6 +377,21 @@ intToHashingStatusDecoder =
 -- MISC
 
 
+infiniteToFloat : Float -> Float
+infiniteToFloat ratio =
+    case ( isNaN ratio, isInfinite ratio ) of
+        ( True, _ ) ->
+            -- keep NaN at the bottom
+            -1
+
+        ( _, True ) ->
+            -- keep infinite at the top
+            99999999999
+
+        ( _, _ ) ->
+            ratio
+
+
 statusToInt : Status -> Int
 statusToInt status =
     {- convert Status to a comparable value for sorting -}
@@ -428,6 +452,9 @@ attributeToKey attribute =
         UploadRate ->
             "uploadRate"
 
+        Ratio ->
+            "ratio"
+
         Seeders ->
             "seeders"
 
@@ -485,6 +512,9 @@ keyToAttribute str =
 
         "uploadRate" ->
             Just UploadRate
+
+        "ratio" ->
+            Just Ratio
 
         "seedersConnected" ->
             Just SeedersConnected

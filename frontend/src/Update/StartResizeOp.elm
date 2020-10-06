@@ -26,5 +26,5 @@ update attribute mousePos model =
             }
     in
     model
-        |> Model.setResizeOp (Just resizeOp)
-        |> Model.addCmd Cmd.none
+        |> setResizeOp (Just resizeOp)
+        |> noCmd

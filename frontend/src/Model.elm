@@ -24,6 +24,7 @@ type Msg
     | TorrentAttributeResizeEnded Model.Table.ResizeOp Model.Table.MousePosition
     | GotColumnWidth Model.Table.Attribute (Result Browser.Dom.Error Browser.Dom.Element)
     | SetPreference Model.Preferences.PreferenceUpdate
+    | ResetConfigClicked
     | SaveConfigClicked
     | TogglePreferencesVisible
     | ToggleLogsVisible
@@ -124,7 +125,12 @@ addCmd cmd model =
     ( model, cmd )
 
 
-andThen : (model -> ( model, Cmd msg )) -> ( model, Cmd msg ) -> ( model, Cmd msg )
+noCmd : Model -> ( Model, Cmd Msg )
+noCmd model =
+    ( model, Cmd.none )
+
+
+andThen : (Model -> ( Model, Cmd Msg )) -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 andThen fn ( model, cmd ) =
     let
         ( nextModel, nextCmd ) =

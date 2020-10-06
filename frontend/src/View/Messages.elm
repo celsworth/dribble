@@ -5,6 +5,7 @@ import Html.Attributes exposing (..)
 import Model exposing (..)
 import Model.Message exposing (Message)
 import Time
+import View.Utils.DateFormatter
 
 
 view : Model -> Html Msg
@@ -30,7 +31,7 @@ messageList model =
         recentMessages =
             List.filter (isRecent model) model.messages
     in
-    ul [] (List.map message recentMessages)
+    ul [] (List.map (message model.timezone) recentMessages)
 
 
 isRecent : Model -> Message -> Bool
@@ -42,8 +43,8 @@ isRecent model msg =
     timeDiff < 10 * 1000
 
 
-message : Message -> Html Msg
-message msg =
+message : Time.Zone -> Message -> Html Msg
+message zone msg =
     let
         kls =
             case msg.severity of
@@ -62,4 +63,8 @@ message msg =
 
         Just s ->
             li [ class kls ]
-                [ text s ]
+                [ span
+                    [ class "time" ]
+                    [ text <| View.Utils.DateFormatter.format zone msg.time ]
+                , text s
+                ]

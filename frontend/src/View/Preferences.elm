@@ -7,6 +7,7 @@ import Model exposing (..)
 import Model.Preferences as MP
 import Model.Table
 import Model.Window
+import View.Torrent
 import View.Window
 
 
@@ -49,7 +50,7 @@ sectionContents model =
             []
         , strong [] [ text <| "Preferences" ]
         ]
-    , torrentsTableFieldset
+    , torrentsTableFieldset model.config.torrentTable
     ]
 
 
@@ -57,23 +58,24 @@ sectionContents model =
 -- TORRENTS TABLE FIELDSET
 
 
-torrentsTableFieldset : Html Msg
-torrentsTableFieldset =
+torrentsTableFieldset : Model.Table.Config -> Html Msg
+torrentsTableFieldset tableConfig =
     fieldset []
         [ div [ class "fieldset-header" ] [ text "Torrents Table" ]
-        , div [ class "preference" ] torrentsTableLayout
+        , div [ class "preference" ] <| torrentsTableLayout tableConfig
+        , div [ class "preference" ] <| torrentsTableColumns tableConfig
         ]
 
 
-torrentsTableLayout : List (Html Msg)
-torrentsTableLayout =
+torrentsTableLayout : Model.Table.Config -> List (Html Msg)
+torrentsTableLayout tableConfig =
     [ div [ class "preference-label" ] [ text "Layout" ]
-    , torrentsTableLayoutOptions
+    , torrentsTableLayoutOptions tableConfig
     ]
 
 
-torrentsTableLayoutOptions : Html Msg
-torrentsTableLayoutOptions =
+torrentsTableLayoutOptions : Model.Table.Config -> Html Msg
+torrentsTableLayoutOptions tableConfig =
     div []
         [ div
             [ onClick <| SetPreference <| MP.Table Model.Table.Torrents MP.Layout Model.Table.Fixed
@@ -105,6 +107,39 @@ torrentsTableLayoutOptions =
 tableFixedText : Html Msg
 tableFixedText =
     text "Columns use the widths you set, without any dynamic reflowing."
+
+
+torrentsTableColumns : Model.Table.Config -> List (Html Msg)
+torrentsTableColumns tableConfig =
+    [ div [ class "preference-label" ] [ text "Columns" ]
+    , torrentsTableColumnsOptions tableConfig
+    ]
+
+
+torrentsTableColumnsOptions : Model.Table.Config -> Html Msg
+torrentsTableColumnsOptions tableConfig =
+    ol [] <|
+        List.map torrentsTableColumnsOption tableConfig.columns
+
+
+torrentsTableColumnsOption : Model.Table.Column -> Html Msg
+torrentsTableColumnsOption column =
+    let
+        (Model.Table.TorrentAttribute attribute) =
+            column.attribute
+
+        visibility =
+            if column.visible then
+                "column-visible"
+
+            else
+                "column-hidden"
+    in
+    li [ class "column", class visibility ]
+        [ i [ onClick (ToggleTorrentAttributeVisibility attribute), class "fas fa-eye" ]
+            []
+        , text <| View.Torrent.attributeToString attribute
+        ]
 
 
 

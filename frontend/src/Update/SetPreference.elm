@@ -12,7 +12,7 @@ update preferenceUpdate model =
         MP.Table tableType MP.Layout layout ->
             model
                 |> setTableLayout tableType layout
-                |> addCmd Cmd.none
+                |> noCmd
 
 
 setTableLayout : Model.Table.Type -> Model.Table.Layout -> Model -> Model

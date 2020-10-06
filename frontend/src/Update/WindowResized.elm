@@ -15,7 +15,7 @@ update result model =
         Err _ ->
             -- this JSON is from our own javascript..
             -- so this should never happen
-            model |> addCmd Cmd.none
+            model |> noCmd
 
 
 handleSuccess : Model.Window.ResizeDetails -> Model -> ( Model, Cmd Msg )
@@ -41,4 +41,4 @@ handleSuccess resizeDetails model =
     in
     model
         |> setConfig newConfig
-        |> addCmd Cmd.none
+        |> noCmd

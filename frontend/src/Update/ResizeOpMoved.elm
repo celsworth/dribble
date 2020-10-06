@@ -20,8 +20,8 @@ update resizeOp mousePosition model =
     case ( resizing, maybeResizeOp ) of
         ( True, Just newResizeOp ) ->
             model
-                |> Model.setResizeOp (Just newResizeOp)
-                |> Model.addCmd Cmd.none
+                |> setResizeOp (Just newResizeOp)
+                |> noCmd
 
         ( _, _ ) ->
-            model |> Model.addCmd Cmd.none
+            model |> noCmd

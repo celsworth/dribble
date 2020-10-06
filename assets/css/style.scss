@@ -59,7 +59,7 @@ body {
   margin: 0;
   overflow: hidden;
   font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,sans-serif;
-  font-size: .9rem;
+  font-size: .85rem;
 }
 
 .text-right {
@@ -135,6 +135,10 @@ body {
 
   .name-filter {
     margin-right: 10px;
+
+    &.error {
+      background-color: #ecc;
+    }
   }
 
   .hamburger-button {
@@ -168,7 +172,6 @@ body {
   border: 1px outset #555;
   background: #fff;
   color: #555;
-  font-size: 1.1rem;
 
   ul {
     white-space: nowrap;
@@ -196,6 +199,69 @@ body {
 .preferences {
   width: 400px;
   height: 600px;
+
+  ol {
+    padding-left: 10px;
+    margin: 0;
+    flex-grow: 1;
+  }
+
+  .column {
+    display: block;
+    margin: 5px 0;
+    padding: 5px;
+
+    i { margin-right: 10px; }
+  }
+
+  .column-visible {
+    background: #ddd;
+  }
+
+  .column-hidden {
+    color: #aaa;
+    background: #eee;
+
+  }
+}
+
+.fieldset-header {
+  background: white;
+  padding: 10px;
+}
+
+.preference {
+  display: flex;
+  margin: 10px;
+  padding: 10px 0;
+}
+
+.preference-label {
+  width: 100px;
+}
+
+.preference-option {
+  display: flex;
+  padding: 10px;
+
+  input {
+    // this feels wrong, its just to try and line up the radio buttons with labels :(
+    margin-top: 3px;
+  }
+
+  &:first-child {
+    padding-top: 0;
+  }
+}
+
+.preference-text {
+  display: inline-block;
+  padding-left: 5px;
+
+  small {
+    display: block;
+    color: #555;
+  }
 }
 
 .logs {
@@ -221,6 +287,12 @@ body {
 
 .messages,
 .logs {
+  .time {
+    display: block;
+    font-size: .6rem;
+    font-weight: bold;
+  }
+
   .error {
     border: 1px solid #ecc;
     background: #fdd;
@@ -433,7 +505,7 @@ td {
 
   // changing this 4px l/r padding requires a change in elm.
   // see TorrentTable widthAttribute methods
-  padding: 3px 4px;
+  padding: 2px 4px;
 
   div { // cell content to apply width style to
     overflow: hidden;
@@ -446,42 +518,4 @@ fieldset {
   padding: 0;
 }
 
-// preferences
-.fieldset-header {
-  background: white;
-  padding: 10px;
-}
 
-.preference {
-  display: flex;
-  margin: 10px;
-  padding: 10px 0;
-}
-
-.preference-label {
-  width: 100px;
-}
-
-.preference-option {
-  display: flex;
-  padding: 10px;
-
-  input {
-    // this feels wrong, its just to try and line up the radio buttons with labels :(
-    margin-top: 3px;
-  }
-
-  &:first-child {
-    padding-top: 0;
-  }
-}
-
-.preference-text {
-  display: inline-block;
-  padding-left: 5px;
-
-  small {
-    display: block;
-    color: #555;
-  }
-}

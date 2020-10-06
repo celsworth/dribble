@@ -43,8 +43,9 @@ update attribute result model =
         Ok r ->
             model
                 |> setConfig (newConfig r.element.width)
-                |> addCmd Cmd.none
+                |> noCmd
 
         Err _ ->
             -- XXX: could display error message
-            model |> addCmd Cmd.none
+            model
+                |> noCmd

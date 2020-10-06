@@ -1,21 +1,17 @@
 module Update exposing (update)
 
 import Html.Events.Extra.Mouse as Mouse
-import Json.Decode as JD
 import Model exposing (..)
-import Model.Message
 import Model.Table
-import Model.WebsocketData
 import Model.Window
 import Update.ColumnWidthReceived
 import Update.EndResizeOp
-import Update.ProcessTorrents
-import Update.ProcessTraffic
+import Update.ProcessWebsocketData
 import Update.ProcessWebsocketStatusUpdated
+import Update.ResetConfig
 import Update.ResizeOpMoved
 import Update.SaveConfig
 import Update.SetColumnAutoWidth
-import Update.SetCurrentTime
 import Update.SetPreference
 import Update.SetSortBy
 import Update.StartResizeOp
@@ -35,13 +31,13 @@ update msg model =
            instead of: andThen (\_ -> ( setTimeZone zone model, Cmd.none ))
            do: andThen (call setTimeZone zone)
         -}
-        noCmd =
+        call =
             -- _ is passed in model
-            \meth args _ -> ( meth args model, Cmd.none )
+            \meth args _ -> model |> meth args |> noCmd
     in
     case msg of
         SetTimeZone zone ->
-            r |> andThen (noCmd setTimeZone zone)
+            r |> andThen (call setTimeZone zone)
 
         MouseDown attribute pos button keys ->
             r |> andThen (handleMouseDown attribute pos button keys)
@@ -64,17 +60,24 @@ update msg model =
                 |> andThen (Update.SetPreference.update preferenceUpdate)
                 |> andThen Update.SaveConfig.update
 
+        ResetConfigClicked ->
+            r |> andThen Update.ResetConfig.update
+
         SaveConfigClicked ->
             r |> andThen Update.SaveConfig.update
 
         SetHamburgerMenuVisible bool ->
-            r |> andThen (noCmd setHamburgerMenuVisible bool)
+            r |> andThen (call setHamburgerMenuVisible bool)
 
         TogglePreferencesVisible ->
-            r |> andThen (Update.ToggleWindowVisible.update Model.Window.Preferences)
+            r
+                |> andThen (Update.ToggleWindowVisible.update Model.Window.Preferences)
+                |> andThen Update.SaveConfig.update
 
         ToggleLogsVisible ->
-            r |> andThen (Update.ToggleWindowVisible.update Model.Window.Logs)
+            r
+                |> andThen (Update.ToggleWindowVisible.update Model.Window.Logs)
+                |> andThen Update.SaveConfig.update
 
         TorrentNameFilterChanged value ->
             r |> andThen (Update.TorrentNameFilterChanged.update value)
@@ -90,13 +93,13 @@ update msg model =
                 |> andThen Update.SaveConfig.update
 
         SpeedChartHover data ->
-            r |> andThen (noCmd setSpeedChartHover data)
+            r |> andThen (call setSpeedChartHover data)
 
         Tick time ->
-            r |> andThen (Update.SetCurrentTime.update time)
+            r |> andThen (call setCurrentTime time)
 
         WebsocketData result ->
-            r |> andThen (processWebsocketResponse result)
+            r |> andThen (Update.ProcessWebsocketData.update result)
 
         WebsocketStatusUpdated result ->
             r |> andThen (Update.ProcessWebsocketStatusUpdated.update result)
@@ -122,51 +125,3 @@ handleMouseDown attribute mousePosition mouseButton mouseKeys model =
 
             _ ->
                 ( model, Cmd.none )
-
-
-processWebsocketResponse : Result JD.Error Model.WebsocketData.Data -> Model -> ( Model, Cmd Msg )
-processWebsocketResponse result model =
-    case result of
-        Ok data ->
-            processWebsocketData model data
-
-        Result.Err errStr ->
-            -- meh it'll do for now. this is used when we get invalid JSON
-            let
-                newMessage =
-                    { summary = Just "Invalid JSON received from Websocket"
-                    , detail = Just <| JD.errorToString errStr
-                    , severity = Model.Message.Error
-                    , time = model.currentTime
-                    }
-            in
-            model
-                |> addMessage newMessage
-                |> addCmd Cmd.none
-
-
-processWebsocketData : Model -> Model.WebsocketData.Data -> ( Model, Cmd Msg )
-processWebsocketData model data =
-    case data of
-        Model.WebsocketData.TorrentsReceived torrents ->
-            model
-                |> Update.ProcessTorrents.update torrents
-                |> addCmd Cmd.none
-
-        Model.WebsocketData.TrafficReceived traffic ->
-            model
-                |> Update.ProcessTraffic.update traffic
-                |> addCmd Cmd.none
-
-        Model.WebsocketData.Error errStr ->
-            let
-                newMessage =
-                    { summary = Just "Unexpected Websocket Data"
-                    , detail = Just errStr
-                    , severity = Model.Message.Error
-                    , time = model.currentTime
-                    }
-            in
-            model
-                |> addMessage newMessage
-                |> addCmd Cmd.none

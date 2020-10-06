@@ -4,6 +4,7 @@ import Html exposing (Html, text)
 import Model exposing (..)
 import Model.Config
 import Model.Torrent exposing (..)
+import Round
 import Utils.Filesize
 import View.Utils.LocalTimeNode
 
@@ -59,6 +60,19 @@ attributeAccessor humanise torrent attribute =
         UploadRate ->
             text <|
                 Maybe.withDefault "" (humanByteSpeed torrent.uploadRate)
+
+        Ratio ->
+            -- ratio can have a couple of special cases
+            text <|
+                case ( isInfinite torrent.ratio, isNaN torrent.ratio ) of
+                    ( False, False ) ->
+                        Round.round 3 torrent.ratio
+
+                    ( _, True ) ->
+                        "—"
+
+                    ( True, _ ) ->
+                        "∞"
 
         Seeders ->
             text <|
@@ -127,6 +141,9 @@ textAlignment attribute =
             Just "text-right"
 
         FinishedTime ->
+            Just "text-right"
+
+        Ratio ->
             Just "text-right"
 
         Seeders ->
@@ -217,6 +234,9 @@ attributeToString attribute =
 
         UploadRate ->
             "Upload Rate"
+
+        Ratio ->
+            "Ratio"
 
         SeedersConnected ->
             "Seeders Connected"
