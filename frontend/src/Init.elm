@@ -2,7 +2,7 @@ module Init exposing (Flags, init)
 
 import Dict
 import Json.Decode as JD
-import Model exposing (Model, Msg(..))
+import Model exposing (Model, Msg(..), dndSystem)
 import Model.Config exposing (Config)
 import Model.Message exposing (Message)
 import Model.TorrentFilter
@@ -27,6 +27,7 @@ init flags =
             Model.TorrentFilter.filterFromConfig config.filter
     in
     ( { config = config
+      , dnd = dndSystem.model
       , websocketConnected = False
       , sortedTorrents = []
       , torrentsByHash = Dict.empty

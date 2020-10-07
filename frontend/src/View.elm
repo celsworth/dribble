@@ -4,6 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onMouseLeave)
 import Html.Events.Extra.Mouse
+import Html.Lazy
 import Model exposing (..)
 import Model.Table
 import View.Logs
@@ -60,35 +61,36 @@ reconstructClientPos event =
 
 navigation : Model -> Html Msg
 navigation model =
-    section [ class "navigation" ]
+    section
+        [ class "navigation" ]
         [ div [ class "flex-container" ]
             [ button [ onClick ResetConfigClicked ] [ text "Reset Config" ]
             , button [ onClick SaveConfigClicked ] [ text "Save Config" ]
             ]
         , div [ class "flex-container" ]
-            [ nameFilterInput model
-            , hamburgerButton model
+            [ Html.Lazy.lazy nameFilterInput model.config.filter.name
+            , Html.Lazy.lazy hamburgerButton model.hamburgerMenuVisible
             ]
         ]
 
 
-nameFilterInput : Model -> Html Msg
-nameFilterInput model =
+nameFilterInput : String -> Html Msg
+nameFilterInput nameFilter =
     input
         [ placeholder "Regex Filter"
         , class "name-filter"
-        , value model.config.filter.name
+        , value nameFilter
         , onInput TorrentNameFilterChanged
         , type_ "text"
         ]
         []
 
 
-hamburgerButton : Model -> Html Msg
-hamburgerButton model =
+hamburgerButton : Bool -> Html Msg
+hamburgerButton visible =
     let
         menu =
-            if model.hamburgerMenuVisible then
+            if visible then
                 hamburgerMenu
 
             else

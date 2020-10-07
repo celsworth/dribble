@@ -11,13 +11,14 @@ import Time
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions model =
     Sub.batch <|
         List.filterMap identity <|
             [ Just <| Time.every 1000 Tick
             , Just <| Ports.messageReceiver (WebsocketData << decodeString)
             , Just <| Ports.windowResizeObserved (WindowResized << decodeWindowResizeDetails)
             , Just <| Ports.websocketStatusUpdated (WebsocketStatusUpdated << decodeStatus)
+            , Just <| dndSystem.subscriptions model.dnd
             ]
 
 

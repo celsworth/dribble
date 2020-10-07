@@ -186,8 +186,9 @@ lazyRow humanise tableConfig torrentFilter torrent =
 row : Model.Config.Humanise -> Model.Table.Config -> Torrent -> Html Msg
 row humanise tableConfig torrent =
     let
-        {- _ =
-           Debug.log "rendering:" torrent
+        {-
+           _ =
+               Debug.log "rendering:" torrent
         -}
         visibleOrder =
             List.filter .visible tableConfig.columns

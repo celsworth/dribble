@@ -207,11 +207,21 @@ body {
   }
 
   .column {
-    display: block;
+    display: flex;
     margin: 5px 0;
     padding: 5px;
 
     i { margin-right: 10px; }
+  }
+
+  .draggable {
+    flex-grow: 1;
+    cursor: ns-resize;
+  }
+
+  .column-moving {
+    background: inherit;
+    color: #aaa;
   }
 
   .column-visible {
@@ -219,9 +229,8 @@ body {
   }
 
   .column-hidden {
-    color: #aaa;
     background: #eee;
-
+    color: #aaa;
   }
 }
 

@@ -2,6 +2,7 @@ module Model exposing (..)
 
 import Browser.Dom
 import Dict exposing (Dict)
+import DnDList
 import Html.Events.Extra.Mouse as Mouse
 import Json.Decode as JD
 import Model.Config exposing (Config)
@@ -37,14 +38,30 @@ type Msg
     | WebsocketData (Result JD.Error Model.WebsocketData.Data)
     | WebsocketStatusUpdated (Result JD.Error Bool)
     | WindowResized (Result JD.Error Model.Window.ResizeDetails)
+    | DnDMsg DnDList.Msg
 
 
 type alias TorrentsByHash =
     Dict String Torrent
 
 
+dndConfig : DnDList.Config Model.Table.Column
+dndConfig =
+    { beforeUpdate = \_ _ list -> list
+    , movement = DnDList.Vertical
+    , listen = DnDList.OnDrag
+    , operation = DnDList.Rotate
+    }
+
+
+dndSystem : DnDList.System Model.Table.Column Msg
+dndSystem =
+    DnDList.create dndConfig DnDMsg
+
+
 type alias Model =
     { config : Config
+    , dnd : DnDList.Model
     , websocketConnected : Bool
     , sortedTorrents : List String
     , torrentsByHash : TorrentsByHash

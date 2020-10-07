@@ -64,6 +64,15 @@ setLayout new config =
     { config | layout = new }
 
 
+setColumns : List Column -> Config -> Config
+setColumns new config =
+    if config.columns /= new then
+        { config | columns = new }
+
+    else
+        config
+
+
 
 -- HELPERS
 

@@ -2,6 +2,7 @@ module Update exposing (update)
 
 import Html.Events.Extra.Mouse as Mouse
 import Model exposing (..)
+import Model.Config
 import Model.Table
 import Model.Window
 import Update.ColumnWidthReceived
@@ -106,6 +107,21 @@ update msg model =
 
         WindowResized result ->
             r |> andThen (Update.WindowResized.update result)
+
+        DnDMsg dndmsg ->
+            let
+                ( dnd, items ) =
+                    dndSystem.update dndmsg model.dnd model.config.torrentTable.columns
+
+                newTorrentTable =
+                    model.config.torrentTable |> Model.Table.setColumns items
+
+                newConfig =
+                    model.config |> Model.Config.setTorrentTable newTorrentTable
+            in
+            ( { model | dnd = dnd, config = newConfig }
+            , dndSystem.commands dnd
+            )
 
 
 

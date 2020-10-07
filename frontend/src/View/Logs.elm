@@ -3,6 +3,7 @@ module View.Logs exposing (view)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import Html.Lazy
 import Model exposing (..)
 import Model.Message exposing (Message)
 import Model.Window
@@ -13,15 +14,13 @@ import View.Window
 
 view : Model -> Html Msg
 view model =
-    section (sectionAttributes model) (sectionContents model)
+    section
+        (sectionAttributes model.config.logs)
+        [ Html.Lazy.lazy2 sectionContents model.timezone model.messages ]
 
 
-sectionAttributes : Model -> List (Attribute Msg)
-sectionAttributes model =
-    let
-        windowConfig =
-            model.config.logs
-    in
+sectionAttributes : Model.Window.Config -> List (Attribute Msg)
+sectionAttributes windowConfig =
     List.filterMap identity
         [ Just <| class "logs window"
         , Just <| id "logs"
@@ -40,29 +39,30 @@ displayClass windowConfig =
         Nothing
 
 
-sectionContents : Model -> List (Html Msg)
-sectionContents model =
-    [ div [ class "titlebar" ]
-        [ i
-            [ class "close-icon fas fa-times-circle"
-            , onClick ToggleLogsVisible
+sectionContents : Time.Zone -> List Message -> Html Msg
+sectionContents timezone messages =
+    div []
+        [ div [ class "titlebar" ]
+            [ i
+                [ class "close-icon fas fa-times-circle"
+                , onClick ToggleLogsVisible
+                ]
+                []
+            , strong [] [ text <| "Logs" ]
             ]
-            []
-        , strong [] [ text <| "Logs" ]
+        , messageList timezone messages
         ]
-    , messageList model
-    ]
 
 
-messageList : Model -> Html Msg
-messageList model =
-    ol [] (List.map (messageItem model) model.messages)
+messageList : Time.Zone -> List Message -> Html Msg
+messageList timezone messages =
+    ol [] (List.map (messageItem timezone) messages)
 
 
-messageItem : Model -> Message -> Html Msg
-messageItem model msg =
+messageItem : Time.Zone -> Message -> Html Msg
+messageItem timezone msg =
     li [ class (messageItemClass msg.severity) ]
-        [ messageTime model msg, messageContent model msg ]
+        [ messageTime timezone msg, messageContent msg ]
 
 
 messageItemClass : Model.Message.Severity -> String
@@ -78,13 +78,13 @@ messageItemClass severity =
             "error"
 
 
-messageTime : Model -> Message -> Html Msg
-messageTime model msg =
-    strong [ class "time" ] [ text <| formattedTime model msg.time ]
+messageTime : Time.Zone -> Message -> Html Msg
+messageTime timezone msg =
+    strong [ class "time" ] [ text <| formattedTime timezone msg.time ]
 
 
-messageContent : Model -> Message -> Html Msg
-messageContent _ msg =
+messageContent : Message -> Html Msg
+messageContent msg =
     div [ class "content" ] <|
         List.filterMap identity
             [ Maybe.map messageSummaryAttribute msg.summary
@@ -102,6 +102,6 @@ messageDetailAttribute detail =
     pre [] [ text detail ]
 
 
-formattedTime : Model -> Time.Posix -> String
-formattedTime model time =
-    View.Utils.DateFormatter.format model.timezone time
+formattedTime : Time.Zone -> Time.Posix -> String
+formattedTime timezone time =
+    View.Utils.DateFormatter.format timezone time
