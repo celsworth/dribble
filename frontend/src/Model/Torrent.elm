@@ -112,6 +112,7 @@ comparator : Sort -> Torrent -> Torrent -> Order
 comparator sortBy a b =
     case sortBy of
         SortBy Status direction ->
+            -- ends up doing a1 = statusToInt .status a
             maybeReverse direction <| cmp a b (.status >> statusToInt)
 
         SortBy Name direction ->

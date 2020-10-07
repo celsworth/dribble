@@ -74,7 +74,7 @@ filterTraffic traffic =
         -}
         now =
             List.Extra.last traffic
-                |> Maybe.andThen (Just << .time)
+                |> Maybe.andThen (.time >> Just)
                 |> Maybe.withDefault 0
 
         limit =
@@ -152,7 +152,7 @@ yAxisConfig : Utils.Filesize.Settings -> LineChart.Axis.Config DataSeries msg
 yAxisConfig hSpeedSettings =
     LineChart.Axis.custom
         { title = LineChart.Axis.Title.default ""
-        , variable = Just << toFloat << .speed
+        , variable = .speed >> toFloat >> Just
         , pixels = 500
         , range = LineChart.Axis.Range.custom (yAxisRange hSpeedSettings)
         , axisLine = LineChart.Axis.Line.default
@@ -258,7 +258,7 @@ xAxisConfig : Time.Zone -> LineChart.Axis.Config DataSeries msg
 xAxisConfig timezone =
     LineChart.Axis.custom
         { title = LineChart.Axis.Title.default ""
-        , variable = Just << toFloat << .time
+        , variable = .time >> toFloat >> Just
         , pixels = 1200
         , range = LineChart.Axis.Range.default
         , axisLine = LineChart.Axis.Line.default
