@@ -2,6 +2,7 @@ module Subscriptions exposing (..)
 
 import Json.Decode as D
 import Model exposing (..)
+import Model.Table
 import Model.Torrent
 import Model.Traffic
 import Model.WebsocketData
@@ -18,7 +19,7 @@ subscriptions model =
             , Just <| Ports.messageReceiver (WebsocketData << decodeString)
             , Just <| Ports.windowResizeObserved (WindowResized << decodeWindowResizeDetails)
             , Just <| Ports.websocketStatusUpdated (WebsocketStatusUpdated << decodeStatus)
-            , Just <| dndSystem.subscriptions model.dnd
+            , Just <| (dndSystem Model.Table.Torrents).subscriptions model.dnd
             ]
 
 

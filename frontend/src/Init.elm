@@ -5,6 +5,7 @@ import Json.Decode as JD
 import Model exposing (Model, Msg(..), dndSystem)
 import Model.Config exposing (Config)
 import Model.Message exposing (Message)
+import Model.Table
 import Model.TorrentFilter
 import Ports
 import Task
@@ -27,7 +28,7 @@ init flags =
             Model.TorrentFilter.filterFromConfig config.filter
     in
     ( { config = config
-      , dnd = dndSystem.model
+      , dnd = (dndSystem Model.Table.Torrents).model
       , websocketConnected = False
       , sortedTorrents = []
       , torrentsByHash = Dict.empty

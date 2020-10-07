@@ -38,7 +38,7 @@ type Msg
     | WebsocketData (Result JD.Error Model.WebsocketData.Data)
     | WebsocketStatusUpdated (Result JD.Error Bool)
     | WindowResized (Result JD.Error Model.Window.ResizeDetails)
-    | DnDMsg DnDList.Msg
+    | DnDMsg Model.Table.Type DnDList.Msg
 
 
 type alias TorrentsByHash =
@@ -54,9 +54,9 @@ dndConfig =
     }
 
 
-dndSystem : DnDList.System Model.Table.Column Msg
-dndSystem =
-    DnDList.create dndConfig DnDMsg
+dndSystem : Model.Table.Type -> DnDList.System Model.Table.Column Msg
+dndSystem tableType =
+    DnDList.create dndConfig (DnDMsg tableType)
 
 
 type alias Model =

@@ -109,35 +109,38 @@ torrentsTableLayoutOptions tableConfig =
 
 
 torrentsTableColumns : DnDList.Model -> Model.Table.Config -> List (Html Msg)
-torrentsTableColumns dndModel tableConfig =
+torrentsTableColumns dnd tableConfig =
     [ div [ class "preference-label" ] [ text "Columns" ]
-    , torrentsTableColumnsOptions dndModel tableConfig
+    , torrentsTableColumnsOptions dnd tableConfig
     ]
 
 
 torrentsTableColumnsOptions : DnDList.Model -> Model.Table.Config -> Html Msg
-torrentsTableColumnsOptions dndModel tableConfig =
+torrentsTableColumnsOptions dnd tableConfig =
     ol [] <|
-        List.indexedMap (torrentsTableColumnsOption dndModel) tableConfig.columns
-            ++ [ ghostView dndModel tableConfig.columns ]
+        List.indexedMap (torrentsTableColumnsOption dnd tableConfig) tableConfig.columns
+            ++ [ ghostView dnd tableConfig ]
 
 
-torrentsTableColumnsOption : DnDList.Model -> Int -> Model.Table.Column -> Html Msg
-torrentsTableColumnsOption dnd index column =
+torrentsTableColumnsOption : DnDList.Model -> Model.Table.Config -> Int -> Model.Table.Column -> Html Msg
+torrentsTableColumnsOption dnd tableConfig index column =
     let
         (Model.Table.TorrentAttribute attribute) =
             column.attribute
 
         itemId =
             "dndlist-torrentsTable-" ++ Model.Torrent.attributeToKey attribute
+
+        tableDndSystem =
+            dndSystem Model.Table.Torrents
     in
-    case dndSystem.info dnd of
+    case tableDndSystem.info dnd of
         Just { dragIndex } ->
             if dragIndex /= index then
                 torrentsTableColumnsOptionLi
                     (Just itemId)
                     column
-                    (Just <| dndSystem.dropEvents index itemId)
+                    (Just <| tableDndSystem.dropEvents index itemId)
                     Nothing
 
             else
@@ -148,7 +151,7 @@ torrentsTableColumnsOption dnd index column =
             torrentsTableColumnsOptionLi
                 (Just itemId)
                 column
-                (Just <| dndSystem.dragEvents index itemId)
+                (Just <| tableDndSystem.dragEvents index itemId)
                 Nothing
 
 
@@ -184,11 +187,17 @@ torrentsTableColumnsOptionLi itemId column dndEvents dndStyles =
         ]
 
 
-ghostView : DnDList.Model -> List Model.Table.Column -> Html Msg
-ghostView dnd items =
+ghostView : DnDList.Model -> Model.Table.Config -> Html Msg
+ghostView dnd tableConfig =
     let
+        items =
+            tableConfig.columns
+
+        tableDndSystem =
+            dndSystem Model.Table.Torrents
+
         maybeDragItem =
-            dndSystem.info dnd
+            tableDndSystem.info dnd
                 |> Maybe.andThen
                     (\{ dragIndex } ->
                         items |> List.drop dragIndex |> List.head
@@ -196,7 +205,7 @@ ghostView dnd items =
     in
     case maybeDragItem of
         Just column ->
-            torrentsTableColumnsOptionLi Nothing column Nothing (Just <| dndSystem.ghostStyles dnd)
+            torrentsTableColumnsOptionLi Nothing column Nothing (Just <| tableDndSystem.ghostStyles dnd)
 
         Nothing ->
             text ""
