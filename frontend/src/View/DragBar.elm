@@ -20,5 +20,5 @@ attributes : Model.Table.ResizeOp -> List (Attribute Msg)
 attributes resizeOp =
     [ id "dragbar"
     , class "dragbar visible"
-    , style "left" (String.fromFloat resizeOp.currentPosition.x ++ "px")
+    , style "transform" ("translate3d(" ++ String.fromFloat resizeOp.currentPosition.x ++ "px" ++ ", 0, 0)")
     ]

@@ -33,12 +33,13 @@ $torrents-height: calc(100vh - #{$footer-height} - #{$header-height});
 
 .dragbar {
   display: none;
-  position: absolute;
+  position: fixed;
   top: 0;
-  bottom: 0;
-  z-index: 5;
+  left: 0;
+  z-index: 5; // do we need this?
   border-left: 1px solid $dragbar-color;
   width: 1px;
+  height: 100%;
 
   &.visible {
     display: block;
