@@ -4,7 +4,6 @@ import DnDList
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Html.Lazy
 import Model exposing (..)
 import Model.Preferences as MP
 import Model.Table
@@ -16,7 +15,16 @@ import View.Window
 
 view : Model -> Html Msg
 view model =
-    section (sectionAttributes model.config.preferences) (sectionContents model)
+    -- need to add the section to the DOM even when hidden,
+    -- so ResizeObserver can find it
+    section (sectionAttributes model.config.preferences)
+        -- however can avoid rendering any invisible content
+        [ if model.config.preferences.visible then
+            sectionContents model
+
+          else
+            text ""
+        ]
 
 
 sectionAttributes : Model.Window.Config -> List (Attribute Msg)
@@ -38,18 +46,19 @@ sectionAttributes windowConfig =
         ]
 
 
-sectionContents : Model -> List (Html Msg)
+sectionContents : Model -> Html Msg
 sectionContents model =
-    [ div [ class "titlebar" ]
-        [ i
-            [ class "close-icon fas fa-times-circle"
-            , onClick TogglePreferencesVisible
+    div []
+        [ div [ class "titlebar" ]
+            [ i
+                [ class "close-icon fas fa-times-circle"
+                , onClick TogglePreferencesVisible
+                ]
+                []
+            , strong [] [ text <| "Preferences" ]
             ]
-            []
-        , strong [] [ text <| "Preferences" ]
+        , torrentsTableFieldset model.dnd model.config.torrentTable
         ]
-    , Html.Lazy.lazy2 torrentsTableFieldset model.dnd model.config.torrentTable
-    ]
 
 
 
@@ -118,12 +127,12 @@ torrentsTableColumns dnd tableConfig =
 torrentsTableColumnsOptions : DnDList.Model -> Model.Table.Config -> Html Msg
 torrentsTableColumnsOptions dnd tableConfig =
     ol [] <|
-        List.indexedMap (torrentsTableColumnsOption dnd tableConfig) tableConfig.columns
+        List.indexedMap (torrentsTableColumnsOption dnd) tableConfig.columns
             ++ [ ghostView dnd tableConfig ]
 
 
-torrentsTableColumnsOption : DnDList.Model -> Model.Table.Config -> Int -> Model.Table.Column -> Html Msg
-torrentsTableColumnsOption dnd tableConfig index column =
+torrentsTableColumnsOption : DnDList.Model -> Int -> Model.Table.Column -> Html Msg
+torrentsTableColumnsOption dnd index column =
     let
         (Model.Table.TorrentAttribute attribute) =
             column.attribute

@@ -14,29 +14,35 @@ import View.Window
 
 view : Model -> Html Msg
 view model =
-    section
-        (sectionAttributes model.config.logs)
-        [ Html.Lazy.lazy2 sectionContents model.timezone model.messages ]
+    -- need to add the section to the DOM even when hidden,
+    -- so ResizeObserver can find it
+    section (sectionAttributes model.config.logs)
+        -- however can avoid rendering any invisible content
+        [ if model.config.logs.visible then
+            Html.Lazy.lazy2 sectionContents model.timezone model.messages
+
+          else
+            text ""
+        ]
 
 
 sectionAttributes : Model.Window.Config -> List (Attribute Msg)
 sectionAttributes windowConfig =
+    let
+        displayClass =
+            if windowConfig.visible then
+                Just <| class "visible"
+
+            else
+                Nothing
+    in
     List.filterMap identity
         [ Just <| class "logs window"
         , Just <| id "logs"
         , Just <| style "width" (View.Window.width windowConfig)
         , Just <| style "height" (View.Window.height windowConfig)
-        , displayClass windowConfig
+        , displayClass
         ]
-
-
-displayClass : Model.Window.Config -> Maybe (Attribute Msg)
-displayClass windowConfig =
-    if windowConfig.visible then
-        Just <| class "visible"
-
-    else
-        Nothing
 
 
 sectionContents : Time.Zone -> List Message -> Html Msg
