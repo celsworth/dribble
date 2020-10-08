@@ -2,7 +2,8 @@ FROM alpine:latest AS elm-builder
 RUN apk add --no-cache nodejs-npm
 RUN npm install -g elm --unsafe-perm=true --allow-root
 COPY frontend ./
-RUN elm make src/Main.elm --output /dribble.js
+RUN elm make src/Main.elm --optimize --output /dribble.js || \
+    elm make src/Main.elm --output /dribble.js
 
 
 FROM ruby:2.7-alpine AS ruby-builder
