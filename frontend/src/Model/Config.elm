@@ -3,6 +3,7 @@ module Model.Config exposing (..)
 import Json.Decode as D
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as E
+import Model.Attribute
 import Model.Table
 import Model.Torrent
 import Model.TorrentFilter
@@ -24,7 +25,7 @@ type alias Humanise =
 
 type alias Config =
     { refreshDelay : Int
-    , sortBy : Model.Torrent.Sort
+    , sortBy : Model.Attribute.Sort
     , torrentTable : Model.Table.Config
     , filter : Model.TorrentFilter.Config
     , humanise : Humanise
@@ -33,7 +34,7 @@ type alias Config =
     }
 
 
-setSortBy : Model.Torrent.Sort -> Config -> Config
+setSortBy : Model.Attribute.Sort -> Config -> Config
 setSortBy new config =
     { config | sortBy = new }
 
@@ -65,7 +66,7 @@ setLogs new config =
 default : Config
 default =
     { refreshDelay = 5
-    , sortBy = Model.Torrent.SortBy Model.Torrent.UploadRate Model.Torrent.Desc
+    , sortBy = Model.Attribute.SortBy (Model.Attribute.TorrentAttribute Model.Torrent.UploadRate) Model.Attribute.Desc
     , torrentTable = Model.TorrentTable.defaultConfig
     , filter = Model.TorrentFilter.default
     , humanise =
@@ -94,23 +95,23 @@ encode config =
         ]
 
 
-encodeSortBy : Model.Torrent.Sort -> E.Value
+encodeSortBy : Model.Attribute.Sort -> E.Value
 encodeSortBy sortBy =
     case sortBy of
-        Model.Torrent.SortBy column direction ->
+        Model.Attribute.SortBy column direction ->
             E.object
                 [ ( "column", encodeTorrentAttribute column )
                 , ( "direction", encodeSortDirection direction )
                 ]
 
 
-encodeSortDirection : Model.Torrent.SortDirection -> E.Value
+encodeSortDirection : Model.Attribute.SortDirection -> E.Value
 encodeSortDirection direction =
     case direction of
-        Model.Torrent.Asc ->
+        Model.Attribute.Asc ->
             E.string "asc"
 
-        Model.Torrent.Desc ->
+        Model.Attribute.Desc ->
             E.string "desc"
 
 
@@ -122,14 +123,14 @@ encodeHumanise humanise =
         ]
 
 
-encodeTorrentAttributeList : List Model.Torrent.Attribute -> E.Value
+encodeTorrentAttributeList : List Model.Attribute.Attribute -> E.Value
 encodeTorrentAttributeList torrentAttributes =
     E.list encodeTorrentAttribute torrentAttributes
 
 
-encodeTorrentAttribute : Model.Torrent.Attribute -> E.Value
+encodeTorrentAttribute : Model.Attribute.Attribute -> E.Value
 encodeTorrentAttribute attribute =
-    E.string <| Model.Torrent.attributeToKey attribute
+    E.string <| Model.Torrent.attributeToKey (Model.Attribute.unwrap attribute)
 
 
 
@@ -159,24 +160,24 @@ decoder =
         |> optional "logs" Model.Window.decoder default.logs
 
 
-sortByDecoder : D.Decoder Model.Torrent.Sort
+sortByDecoder : D.Decoder Model.Attribute.Sort
 sortByDecoder =
-    D.succeed Model.Torrent.SortBy
+    D.succeed Model.Attribute.SortBy
         |> required "column" torrentAttributeDecoder
         |> required "direction" sortDirectionDecoder
 
 
-sortDirectionDecoder : D.Decoder Model.Torrent.SortDirection
+sortDirectionDecoder : D.Decoder Model.Attribute.SortDirection
 sortDirectionDecoder =
     D.string
         |> D.andThen
             (\input ->
                 case input of
                     "asc" ->
-                        D.succeed Model.Torrent.Asc
+                        D.succeed Model.Attribute.Asc
 
                     "desc" ->
-                        D.succeed Model.Torrent.Desc
+                        D.succeed Model.Attribute.Desc
 
                     _ ->
                         D.fail <| "unknown direction " ++ input
@@ -194,19 +195,19 @@ humaniseDecoder =
             default.humanise.speed
 
 
-torrentAttributeListDecoder : D.Decoder (List Model.Torrent.Attribute)
+torrentAttributeListDecoder : D.Decoder (List Model.Attribute.Attribute)
 torrentAttributeListDecoder =
     D.list torrentAttributeDecoder
 
 
-torrentAttributeDecoder : D.Decoder Model.Torrent.Attribute
+torrentAttributeDecoder : D.Decoder Model.Attribute.Attribute
 torrentAttributeDecoder =
     D.string
         |> D.andThen
             (\input ->
                 case Model.Torrent.keyToAttribute input of
                     Just a ->
-                        D.succeed a
+                        D.succeed <| Model.Attribute.TorrentAttribute a
 
                     Nothing ->
                         D.fail <| "unknown torrent key " ++ input

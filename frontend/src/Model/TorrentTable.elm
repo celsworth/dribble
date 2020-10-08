@@ -1,7 +1,8 @@
 module Model.TorrentTable exposing (..)
 
+import Model.Attribute exposing (Attribute(..))
 import Model.Table
-import Model.Torrent
+import Model.Torrent exposing (Attribute(..))
 
 
 defaultConfig : Model.Table.Config
@@ -16,97 +17,97 @@ defaultColumns : List Model.Table.Column
 defaultColumns =
     -- used for new torrentTable initialiation only.
     -- changes to this are not picked up in existing configs!
-    [ { attribute = Model.Table.TorrentAttribute Model.Torrent.Status
+    [ { attribute = TorrentAttribute Status
       , width = 28
       , auto = False
       , visible = True
       }
-    , { attribute = Model.Table.TorrentAttribute Model.Torrent.Name
+    , { attribute = TorrentAttribute Name
       , width = 300
       , auto = False
       , visible = True
       }
-    , { attribute = Model.Table.TorrentAttribute Model.Torrent.Size
+    , { attribute = TorrentAttribute Size
       , width = 70
       , auto = False
       , visible = True
       }
-    , { attribute = Model.Table.TorrentAttribute Model.Torrent.DonePercent
+    , { attribute = TorrentAttribute DonePercent
       , width = 60
       , auto = False
       , visible = True
       }
-    , { attribute = Model.Table.TorrentAttribute Model.Torrent.CreationTime
+    , { attribute = TorrentAttribute CreationTime
       , width = 146
       , auto = False
       , visible = True
       }
-    , { attribute = Model.Table.TorrentAttribute Model.Torrent.StartedTime
+    , { attribute = TorrentAttribute StartedTime
       , width = 146
       , auto = False
       , visible = True
       }
-    , { attribute = Model.Table.TorrentAttribute Model.Torrent.FinishedTime
+    , { attribute = TorrentAttribute FinishedTime
       , width = 146
       , auto = False
       , visible = True
       }
-    , { attribute = Model.Table.TorrentAttribute Model.Torrent.DownloadedBytes
+    , { attribute = TorrentAttribute DownloadedBytes
       , width = 75
       , auto = False
       , visible = True
       }
-    , { attribute = Model.Table.TorrentAttribute Model.Torrent.DownloadRate
+    , { attribute = TorrentAttribute DownloadRate
       , width = 85
       , auto = False
       , visible = True
       }
-    , { attribute = Model.Table.TorrentAttribute Model.Torrent.UploadedBytes
+    , { attribute = TorrentAttribute UploadedBytes
       , width = 75
       , auto = False
       , visible = True
       }
-    , { attribute = Model.Table.TorrentAttribute Model.Torrent.UploadRate
+    , { attribute = TorrentAttribute UploadRate
       , width = 85
       , auto = False
       , visible = True
       }
-    , { attribute = Model.Table.TorrentAttribute Model.Torrent.Ratio
+    , { attribute = TorrentAttribute Ratio
       , width = 60
       , auto = False
       , visible = True
       }
-    , { attribute = Model.Table.TorrentAttribute Model.Torrent.Seeders
+    , { attribute = TorrentAttribute Seeders
       , width = 60
       , auto = False
       , visible = True
       }
-    , { attribute = Model.Table.TorrentAttribute Model.Torrent.SeedersConnected
+    , { attribute = TorrentAttribute SeedersConnected
       , width = 30
       , auto = False
       , visible = False
       }
-    , { attribute = Model.Table.TorrentAttribute Model.Torrent.SeedersTotal
+    , { attribute = TorrentAttribute SeedersTotal
       , width = 30
       , auto = False
       , visible = False
       }
-    , { attribute = Model.Table.TorrentAttribute Model.Torrent.Peers
+    , { attribute = TorrentAttribute Peers
       , width = 60
       , auto = False
       , visible = True
       }
-    , { attribute = Model.Table.TorrentAttribute Model.Torrent.PeersConnected
+    , { attribute = TorrentAttribute PeersConnected
       , width = 30
       , auto = False
       , visible = False
       }
-    , { attribute = Model.Table.TorrentAttribute Model.Torrent.PeersTotal
+    , { attribute = TorrentAttribute PeersTotal
       , width = 30
       , auto = False
       , visible = False
       }
-    , { attribute = Model.Table.TorrentAttribute Model.Torrent.Label
+    , { attribute = TorrentAttribute Label
       , width = 60
       , auto = False
       , visible = True

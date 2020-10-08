@@ -2,6 +2,8 @@ module Update.ProcessTorrents exposing (update)
 
 import Dict exposing (Dict)
 import Model exposing (..)
+import Model.Attribute
+import Model.Sort.Torrent
 import Model.Torrent exposing (Torrent)
 
 
@@ -11,9 +13,16 @@ update torrents model =
         byHash =
             torrentsByHash model torrents
 
+        (Model.Attribute.SortBy sortByAttribute sortByDir) =
+            model.config.sortBy
+
+        attribute =
+            case sortByAttribute of
+                Model.Attribute.TorrentAttribute torrentAttr ->
+                    torrentAttr
+
         sortedTorrents =
-            Model.Torrent.sort model.config.sortBy
-                (Dict.values byHash)
+            Model.Sort.Torrent.sort attribute sortByDir (Dict.values byHash)
     in
     { model | sortedTorrents = sortedTorrents, torrentsByHash = byHash }
         |> noCmd

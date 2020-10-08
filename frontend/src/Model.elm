@@ -5,6 +5,7 @@ import Dict exposing (Dict)
 import DnDList
 import Html.Events.Extra.Mouse as Mouse
 import Json.Decode as JD
+import Model.Attribute exposing (Attribute)
 import Model.Config exposing (Config)
 import Model.Message exposing (Message)
 import Model.Preferences
@@ -20,10 +21,10 @@ import Time
 
 type Msg
     = SetTimeZone Time.Zone
-    | MouseDown Model.Table.Attribute Model.Table.MousePosition Mouse.Button Mouse.Keys
+    | MouseDown Attribute Model.Table.MousePosition Mouse.Button Mouse.Keys
     | TorrentAttributeResized Model.Table.ResizeOp Model.Table.MousePosition
     | TorrentAttributeResizeEnded Model.Table.ResizeOp Model.Table.MousePosition
-    | GotColumnWidth Model.Table.Attribute (Result Browser.Dom.Error Browser.Dom.Element)
+    | GotColumnWidth Attribute (Result Browser.Dom.Error Browser.Dom.Element)
     | SetPreference Model.Preferences.PreferenceUpdate
     | ResetConfigClicked
     | SaveConfigClicked

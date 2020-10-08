@@ -2,19 +2,22 @@ module Update.SetColumnAutoWidth exposing (update)
 
 import Browser.Dom
 import Model exposing (..)
+import Model.Attribute exposing (Attribute(..))
 import Model.Table
+import Model.Torrent
 import Task
 import Update.Shared.ConfigHelpers exposing (getTableConfig, tableConfigSetter)
-import View.Torrent
 
 
-update : Model.Table.Attribute -> Model -> ( Model, Cmd Msg )
+update : Model.Attribute.Attribute -> Model -> ( Model, Cmd Msg )
 update attribute model =
     let
         ( id, tableType ) =
             case attribute of
-                Model.Table.TorrentAttribute a ->
-                    ( View.Torrent.attributeToTableHeaderId a, Model.Table.Torrents )
+                Model.Attribute.TorrentAttribute a ->
+                    ( Model.Torrent.attributeToTableHeaderId a
+                    , Model.Table.Torrents
+                    )
 
         tableConfig =
             getTableConfig model.config tableType

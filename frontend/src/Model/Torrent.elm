@@ -2,16 +2,6 @@ module Model.Torrent exposing (..)
 
 import Json.Decode as D
 import Json.Decode.Pipeline as Pipeline exposing (custom)
-import List.Extra
-
-
-type SortDirection
-    = Asc
-    | Desc
-
-
-type Sort
-    = SortBy Attribute SortDirection
 
 
 type Status
@@ -78,135 +68,6 @@ type alias Torrent =
     -- custom local vars, not from JSON
     , donePercent : Float
     }
-
-
-
--- SORTING
-
-
-sort : Sort -> List Torrent -> List String
-sort sortBy torrents =
-    let
-        comparators =
-            List.map comparator (resolveSort sortBy)
-    in
-    List.map .hash <|
-        List.foldl List.Extra.stableSortWith torrents comparators
-
-
-resolveSort : Sort -> List Sort
-resolveSort sortBy =
-    -- if sortBy is a special case, decide what to actually sort by
-    case sortBy of
-        SortBy Seeders direction ->
-            [ SortBy SeedersTotal direction, SortBy SeedersConnected direction ]
-
-        SortBy Peers direction ->
-            [ SortBy PeersTotal direction, SortBy PeersConnected direction ]
-
-        _ ->
-            [ sortBy ]
-
-
-comparator : Sort -> Torrent -> Torrent -> Order
-comparator sortBy a b =
-    case sortBy of
-        SortBy Status direction ->
-            -- ends up doing a1 = statusToInt .status a
-            maybeReverse direction <| cmp a b (.status >> statusToInt)
-
-        SortBy Name direction ->
-            maybeReverse direction <| cmp a b .name
-
-        SortBy Size direction ->
-            maybeReverse direction <| cmp a b .size
-
-        SortBy CreationTime direction ->
-            maybeReverse direction <| cmp a b .creationTime
-
-        SortBy StartedTime direction ->
-            maybeReverse direction <| cmp a b .startedTime
-
-        SortBy FinishedTime direction ->
-            maybeReverse direction <| cmp a b .finishedTime
-
-        SortBy DownloadedBytes direction ->
-            maybeReverse direction <| cmp a b .downloadedBytes
-
-        SortBy DownloadRate direction ->
-            maybeReverse direction <| cmp a b .downloadRate
-
-        SortBy UploadedBytes direction ->
-            maybeReverse direction <| cmp a b .uploadedBytes
-
-        SortBy UploadRate direction ->
-            maybeReverse direction <| cmp a b .uploadRate
-
-        SortBy Ratio direction ->
-            maybeReverse direction <| cmp a b (.ratio >> infiniteToFloat)
-
-        SortBy Seeders direction ->
-            -- NOTREACHED
-            maybeReverse direction <| cmp a b .seedersConnected
-
-        SortBy SeedersConnected direction ->
-            maybeReverse direction <| cmp a b .seedersConnected
-
-        SortBy SeedersTotal direction ->
-            maybeReverse direction <| cmp a b .seedersTotal
-
-        SortBy Peers direction ->
-            -- NOTREACHED
-            maybeReverse direction <| cmp a b .peersConnected
-
-        SortBy PeersConnected direction ->
-            maybeReverse direction <| cmp a b .peersConnected
-
-        SortBy PeersTotal direction ->
-            maybeReverse direction <| cmp a b .peersTotal
-
-        SortBy Label direction ->
-            maybeReverse direction <| cmp a b .label
-
-        SortBy DonePercent direction ->
-            maybeReverse direction <| cmp a b .donePercent
-
-
-cmp : Torrent -> Torrent -> (Torrent -> comparable) -> Order
-cmp a b method =
-    let
-        a1 =
-            method a
-
-        b1 =
-            method b
-    in
-    if a1 == b1 then
-        EQ
-
-    else if a1 > b1 then
-        GT
-
-    else
-        LT
-
-
-maybeReverse : SortDirection -> Order -> Order
-maybeReverse direction order =
-    case direction of
-        Asc ->
-            order
-
-        Desc ->
-            case order of
-                LT ->
-                    GT
-
-                EQ ->
-                    EQ
-
-                GT ->
-                    LT
 
 
 
@@ -540,6 +401,152 @@ keyToAttribute str =
 
         "donePercent" ->
             Just DonePercent
+
+        _ ->
+            Nothing
+
+
+attributeToTableHeaderId : Attribute -> String
+attributeToTableHeaderId attribute =
+    "th-torrentAttribute-" ++ attributeToKey attribute
+
+
+attributeToTableHeaderString : Attribute -> String
+attributeToTableHeaderString attribute =
+    case attribute of
+        Status ->
+            {- force #ta-ta-torrentStatus .size .content to
+               have height so it can be clicked on
+            -}
+            "\u{00A0}"
+
+        CreationTime ->
+            "Created"
+
+        StartedTime ->
+            "Started"
+
+        FinishedTime ->
+            "Finished"
+
+        DownloadRate ->
+            "Down"
+
+        UploadRate ->
+            "Up"
+
+        _ ->
+            attributeToString attribute
+
+
+attributeToString : Attribute -> String
+attributeToString attribute =
+    case attribute of
+        Status ->
+            "Status"
+
+        Name ->
+            "Name"
+
+        Size ->
+            "Size"
+
+        CreationTime ->
+            "Creation Time"
+
+        StartedTime ->
+            "Started Time"
+
+        FinishedTime ->
+            "Finished Time"
+
+        DownloadedBytes ->
+            "Downloaded"
+
+        DownloadRate ->
+            "Download Rate"
+
+        UploadedBytes ->
+            "Uploaded"
+
+        UploadRate ->
+            "Upload Rate"
+
+        Ratio ->
+            "Ratio"
+
+        SeedersConnected ->
+            "Seeders Connected"
+
+        Seeders ->
+            "Seeders"
+
+        SeedersTotal ->
+            "Seeders Total"
+
+        Peers ->
+            "Peers"
+
+        PeersConnected ->
+            "Peers Connected"
+
+        PeersTotal ->
+            "Peers Total"
+
+        Label ->
+            "Label"
+
+        DonePercent ->
+            "Done"
+
+
+attributeTextAlignment : Attribute -> Maybe String
+attributeTextAlignment attribute =
+    case attribute of
+        Size ->
+            Just "text-right"
+
+        DownloadedBytes ->
+            Just "text-right"
+
+        DownloadRate ->
+            Just "text-right"
+
+        UploadedBytes ->
+            Just "text-right"
+
+        UploadRate ->
+            Just "text-right"
+
+        CreationTime ->
+            Just "text-right"
+
+        StartedTime ->
+            Just "text-right"
+
+        FinishedTime ->
+            Just "text-right"
+
+        Ratio ->
+            Just "text-right"
+
+        Seeders ->
+            Just "text-right"
+
+        SeedersConnected ->
+            Just "text-right"
+
+        SeedersTotal ->
+            Just "text-right"
+
+        Peers ->
+            Just "text-right"
+
+        PeersConnected ->
+            Just "text-right"
+
+        PeersTotal ->
+            Just "text-right"
 
         _ ->
             Nothing

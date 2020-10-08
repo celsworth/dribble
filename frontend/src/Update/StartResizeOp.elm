@@ -1,11 +1,12 @@
 module Update.StartResizeOp exposing (update)
 
 import Model exposing (..)
+import Model.Attribute
 import Model.Table
 import Update.Shared.ConfigHelpers exposing (getTableConfig)
 
 
-update : Model.Table.Attribute -> Model.Table.MousePosition -> Model -> ( Model, Cmd Msg )
+update : Model.Attribute.Attribute -> Model.Table.MousePosition -> Model -> ( Model, Cmd Msg )
 update attribute mousePos model =
     let
         tableType =

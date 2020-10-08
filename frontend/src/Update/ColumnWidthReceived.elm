@@ -2,6 +2,7 @@ module Update.ColumnWidthReceived exposing (update)
 
 import Browser.Dom
 import Model exposing (..)
+import Model.Attribute
 import Model.Table
 import Update.Shared.ConfigHelpers exposing (getTableConfig, tableConfigSetter)
 
@@ -15,7 +16,7 @@ import Update.Shared.ConfigHelpers exposing (getTableConfig, tableConfigSetter)
 -}
 
 
-update : Model.Table.Attribute -> Result Browser.Dom.Error Browser.Dom.Element -> Model -> ( Model, Cmd Msg )
+update : Model.Attribute.Attribute -> Result Browser.Dom.Error Browser.Dom.Element -> Model -> ( Model, Cmd Msg )
 update attribute result model =
     let
         tableType =

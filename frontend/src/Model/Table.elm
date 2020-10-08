@@ -4,11 +4,8 @@ import Json.Decode as D
 import Json.Decode.Pipeline exposing (hardcoded, required)
 import Json.Encode as E
 import List.Extra
+import Model.Attribute exposing (Attribute(..))
 import Model.Torrent
-
-
-type Attribute
-    = TorrentAttribute Model.Torrent.Attribute
 
 
 type alias MousePosition =
@@ -206,9 +203,7 @@ encodeColumn column =
 
 encodeAttribute : Attribute -> E.Value
 encodeAttribute attribute =
-    case attribute of
-        TorrentAttribute a ->
-            E.string <| Model.Torrent.attributeToKey a
+    E.string <| Model.Attribute.attributeToKey attribute
 
 
 

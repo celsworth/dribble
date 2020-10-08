@@ -3,19 +3,20 @@ module View.TorrentTable exposing (view)
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
-import Html.Events.Extra.Mouse
 import Html.Keyed as Keyed
 import Html.Lazy
 import List
 import Model exposing (..)
-import Model.Config exposing (Config)
+import Model.Attribute
+import Model.Config
 import Model.Table
 import Model.Torrent exposing (Torrent)
 import Model.TorrentFilter exposing (TorrentFilter)
 import Round
+import Utils.Filesize
 import View.DragBar
-import View.Torrent
+import View.Table
+import View.Utils.LocalTimeNode
 
 
 view : Model -> Html Msg
@@ -28,7 +29,9 @@ view model =
         section [ class "torrents" ]
             [ table []
                 [ Html.Lazy.lazy View.DragBar.view model.resizeOp
-                , Html.Lazy.lazy header model.config
+                , Html.Lazy.lazy2 View.Table.header
+                    model.config
+                    model.config.torrentTable
                 , Html.Lazy.lazy5 body
                     model.config.humanise
                     model.config.torrentTable
@@ -39,129 +42,12 @@ view model =
             ]
 
 
-header : Config -> Html Msg
-header config =
-    let
-        visibleOrder =
-            List.filter .visible config.torrentTable.columns
-    in
-    thead []
-        [ tr []
-            (List.map (headerCell config) visibleOrder)
-        ]
-
-
-headerCell : Config -> Model.Table.Column -> Html Msg
-headerCell config column =
-    let
-        (Model.Table.TorrentAttribute attribute) =
-            column.attribute
-
-        attrString =
-            View.Torrent.attributeToTableHeaderString
-                attribute
-
-        maybeResizeDiv =
-            case config.torrentTable.layout of
-                Model.Table.Fixed ->
-                    Just <| div (headerCellResizeHandleAttributes attribute) []
-
-                Model.Table.Fluid ->
-                    Nothing
-    in
-    th (headerCellAttributes config.sortBy attribute)
-        (List.filterMap identity
-            [ Just <|
-                div (headerCellContentDivAttributes config.torrentTable attribute)
-                    [ div [ class "content" ] [ text attrString ] ]
-            , maybeResizeDiv
-            ]
-        )
-
-
-headerCellAttributes : Model.Torrent.Sort -> Model.Torrent.Attribute -> List (Attribute Msg)
-headerCellAttributes sortBy attribute =
-    List.filterMap identity
-        [ headerCellIdAttribute attribute
-        , cellTextAlign attribute
-        , headerCellSortClass sortBy attribute
-        ]
-
-
-headerCellIdAttribute : Model.Torrent.Attribute -> Maybe (Attribute Msg)
-headerCellIdAttribute attribute =
-    Just <| id (View.Torrent.attributeToTableHeaderId attribute)
-
-
-headerCellContentDivAttributes : Model.Table.Config -> Model.Torrent.Attribute -> List (Attribute Msg)
-headerCellContentDivAttributes tableConfig attribute =
-    let
-        maybeWidthAttr =
-            case tableConfig.layout of
-                Model.Table.Fixed ->
-                    thWidthAttribute tableConfig attribute
-
-                Model.Table.Fluid ->
-                    Nothing
-    in
-    List.filterMap identity
-        [ maybeWidthAttr
-        , Just <| onClick (SetSortBy attribute)
-        ]
-
-
-headerCellResizeHandleAttributes : Model.Torrent.Attribute -> List (Attribute Msg)
-headerCellResizeHandleAttributes attribute =
-    let
-        {- this mess converts (x, y) to { x: x, y: y } -}
-        reconstructClientPos =
-            \event ->
-                let
-                    ( x, y ) =
-                        event.clientPos
-                in
-                { x = x, y = y }
-    in
-    [ class "resize-handle"
-    , Html.Events.Extra.Mouse.onDown
-        (\e ->
-            MouseDown
-                (Model.Table.TorrentAttribute attribute)
-                (reconstructClientPos e)
-                e.button
-                e.keys
-        )
-    ]
-
-
-headerCellSortClass : Model.Torrent.Sort -> Model.Torrent.Attribute -> Maybe (Attribute Msg)
-headerCellSortClass sortBy attribute =
-    let
-        (Model.Torrent.SortBy currentSortAttribute currentSortDirection) =
-            sortBy
-    in
-    if currentSortAttribute == attribute then
-        case currentSortDirection of
-            Model.Torrent.Asc ->
-                Just <| class "sorted ascending"
-
-            Model.Torrent.Desc ->
-                Just <| class "sorted descending"
-
-    else
-        Nothing
-
-
 body : Model.Config.Humanise -> Model.Table.Config -> TorrentFilter -> TorrentsByHash -> List String -> Html Msg
 body humanise tableConfig torrentFilter torrentsByHash sortedTorrents =
     Keyed.node "tbody" [] <|
         List.filterMap identity
             (List.map
-                (keyedRow humanise
-                    tableConfig
-                    torrentFilter
-                    torrentsByHash
-                )
+                (keyedRow humanise tableConfig torrentFilter torrentsByHash)
                 sortedTorrents
             )
 
@@ -169,13 +55,18 @@ body humanise tableConfig torrentFilter torrentsByHash sortedTorrents =
 keyedRow : Model.Config.Humanise -> Model.Table.Config -> TorrentFilter -> TorrentsByHash -> String -> Maybe ( String, Html Msg )
 keyedRow humanise tableConfig torrentFilter torrentsByHash hash =
     Maybe.map
-        (\torrent -> ( hash, lazyRow humanise tableConfig torrentFilter torrent ))
+        (\torrent -> ( hash, lazyRow humanise tableConfig (Just torrentFilter) torrent ))
         (Dict.get hash torrentsByHash)
 
 
-lazyRow : Model.Config.Humanise -> Model.Table.Config -> TorrentFilter -> Torrent -> Html Msg
+lazyRow : Model.Config.Humanise -> Model.Table.Config -> Maybe TorrentFilter -> Torrent -> Html Msg
 lazyRow humanise tableConfig torrentFilter torrent =
-    if Model.TorrentFilter.torrentMatches torrent torrentFilter then
+    let
+        matches =
+            Maybe.map (Model.TorrentFilter.torrentMatches torrent) torrentFilter
+                |> Maybe.withDefault True
+    in
+    if matches then
         -- pass in as little as possible so lazy works as well as possible
         Html.Lazy.lazy3 row humanise tableConfig torrent
 
@@ -190,45 +81,21 @@ row humanise tableConfig torrent =
            _ =
                Debug.log "rendering:" torrent
         -}
-        visibleOrder =
+        visibleColumns =
             List.filter .visible tableConfig.columns
+
+        cell =
+            \column ->
+                View.Table.cell
+                    tableConfig
+                    column.attribute
+                    (cellContent
+                        humanise
+                        torrent
+                        (Model.Attribute.unwrap column.attribute)
+                    )
     in
-    tr [] (List.map (cell humanise tableConfig torrent) visibleOrder)
-
-
-cell : Model.Config.Humanise -> Model.Table.Config -> Torrent -> Model.Table.Column -> Html Msg
-cell humanise tableConfig torrent column =
-    let
-        (Model.Table.TorrentAttribute attribute) =
-            column.attribute
-    in
-    td []
-        [ div (cellAttributes tableConfig attribute)
-            [ cellContent humanise torrent attribute
-            ]
-        ]
-
-
-cellAttributes : Model.Table.Config -> Model.Torrent.Attribute -> List (Attribute Msg)
-cellAttributes tableConfig attribute =
-    let
-        maybeWidthAttr =
-            case tableConfig.layout of
-                Model.Table.Fixed ->
-                    tdWidthAttribute tableConfig attribute
-
-                Model.Table.Fluid ->
-                    Nothing
-    in
-    List.filterMap identity
-        [ maybeWidthAttr
-        , cellTextAlign attribute
-        ]
-
-
-cellTextAlign : Model.Torrent.Attribute -> Maybe (Attribute Msg)
-cellTextAlign attribute =
-    Maybe.map class (View.Torrent.textAlignment attribute)
+    tr [] (List.map cell visibleColumns)
 
 
 cellContent : Model.Config.Humanise -> Torrent -> Model.Torrent.Attribute -> Html Msg
@@ -241,10 +108,7 @@ cellContent humanise torrent attribute =
             donePercentCell torrent
 
         _ ->
-            View.Torrent.attributeAccessor
-                humanise
-                torrent
-                attribute
+            attributeAccessor humanise torrent attribute
 
 
 torrentStatusCell : Torrent -> Html Msg
@@ -299,39 +163,106 @@ donePercentCell torrent =
 
 
 
-{-
-   WIDTH HELPERS
-
-   this complication is because the width stored in columnWidths
-   includes padding and borders. To set the proper size for the
-   internal div, we need to subtract some:
-
-   For th columns, that amounts to 10px (2*4px padding, 2*1px border)
-
-   For td, there are no borders, so its just 2*4px padding to remove
--}
+-- convert a Torrent Attribute into content for a cell in this table
 
 
-thWidthAttribute : Model.Table.Config -> Model.Torrent.Attribute -> Maybe (Attribute Msg)
-thWidthAttribute tableConfig attribute =
-    widthAttribute tableConfig attribute 10
-
-
-tdWidthAttribute : Model.Table.Config -> Model.Torrent.Attribute -> Maybe (Attribute Msg)
-tdWidthAttribute tableConfig attribute =
-    widthAttribute tableConfig attribute 8
-
-
-widthAttribute : Model.Table.Config -> Model.Torrent.Attribute -> Float -> Maybe (Attribute Msg)
-widthAttribute tableConfig attribute subtract =
+attributeAccessor : Model.Config.Humanise -> Torrent -> Model.Torrent.Attribute -> Html Msg
+attributeAccessor humanise torrent attribute =
     let
-        tableColumn =
-            Model.Table.getColumn
-                tableConfig
-                (Model.Table.TorrentAttribute attribute)
+        -- convert 0 speeds to Nothing
+        humanByteSpeed =
+            \bytes ->
+                case bytes of
+                    0 ->
+                        Nothing
+
+                    r ->
+                        Just <| Utils.Filesize.formatWith humanise.speed r ++ "/s"
     in
-    if tableColumn.auto then
-        Nothing
+    case attribute of
+        Model.Torrent.Status ->
+            -- has an icon
+            text ""
+
+        Model.Torrent.Name ->
+            text <| torrent.name
+
+        Model.Torrent.Size ->
+            text <| Utils.Filesize.formatWith humanise.size torrent.size
+
+        Model.Torrent.CreationTime ->
+            nonZeroLocalTimeNode torrent.creationTime
+
+        Model.Torrent.StartedTime ->
+            nonZeroLocalTimeNode torrent.startedTime
+
+        Model.Torrent.FinishedTime ->
+            nonZeroLocalTimeNode torrent.finishedTime
+
+        Model.Torrent.DownloadedBytes ->
+            text <| Utils.Filesize.formatWith humanise.size torrent.downloadedBytes
+
+        Model.Torrent.DownloadRate ->
+            text <|
+                Maybe.withDefault "" (humanByteSpeed torrent.downloadRate)
+
+        Model.Torrent.UploadedBytes ->
+            text <| Utils.Filesize.formatWith humanise.size torrent.uploadedBytes
+
+        Model.Torrent.UploadRate ->
+            text <|
+                Maybe.withDefault "" (humanByteSpeed torrent.uploadRate)
+
+        Model.Torrent.Ratio ->
+            -- ratio can have a couple of special cases
+            text <|
+                case ( isInfinite torrent.ratio, isNaN torrent.ratio ) of
+                    ( False, False ) ->
+                        Round.round 3 torrent.ratio
+
+                    ( _, True ) ->
+                        "—"
+
+                    ( True, _ ) ->
+                        "∞"
+
+        Model.Torrent.Seeders ->
+            text <|
+                String.fromInt torrent.seedersConnected
+                    ++ " ("
+                    ++ String.fromInt torrent.seedersTotal
+                    ++ ")"
+
+        Model.Torrent.SeedersConnected ->
+            text <| String.fromInt torrent.seedersConnected
+
+        Model.Torrent.SeedersTotal ->
+            text <| String.fromInt torrent.seedersTotal
+
+        Model.Torrent.Peers ->
+            text <|
+                String.fromInt torrent.peersConnected
+                    ++ " ("
+                    ++ String.fromInt torrent.peersTotal
+                    ++ ")"
+
+        Model.Torrent.PeersConnected ->
+            text <| String.fromInt torrent.peersConnected
+
+        Model.Torrent.PeersTotal ->
+            text <| String.fromInt torrent.peersTotal
+
+        Model.Torrent.Label ->
+            text <| torrent.label
+
+        Model.Torrent.DonePercent ->
+            text <| String.fromFloat torrent.donePercent
+
+
+nonZeroLocalTimeNode : Int -> Html Msg
+nonZeroLocalTimeNode time =
+    if time == 0 then
+        text ""
 
     else
-        Just <| style "width" (String.fromFloat (tableColumn.width - subtract) ++ "px")
+        View.Utils.LocalTimeNode.view time

@@ -5,11 +5,11 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Model exposing (..)
+import Model.Attribute
 import Model.Preferences as MP
 import Model.Table
 import Model.Torrent
 import Model.Window
-import View.Torrent
 import View.Window
 
 
@@ -134,7 +134,7 @@ torrentsTableColumnsOptions dnd tableConfig =
 torrentsTableColumnsOption : DnDList.Model -> Int -> Model.Table.Column -> Html Msg
 torrentsTableColumnsOption dnd index column =
     let
-        (Model.Table.TorrentAttribute attribute) =
+        (Model.Attribute.TorrentAttribute attribute) =
             column.attribute
 
         itemId =
@@ -166,7 +166,7 @@ torrentsTableColumnsOption dnd index column =
 
 torrentsTableColumnsOptionLi itemId column dndEvents dndStyles =
     let
-        (Model.Table.TorrentAttribute attribute) =
+        (Model.Attribute.TorrentAttribute attribute) =
             column.attribute
 
         visibility =
@@ -191,7 +191,7 @@ torrentsTableColumnsOptionLi itemId column dndEvents dndStyles =
         [ i [ onClick (ToggleTorrentAttributeVisibility attribute), class "fas fa-eye" ] []
         , div divAttributes
             [ i [ class "fas fa-arrows-alt-v" ] []
-            , text <| View.Torrent.attributeToString attribute
+            , text <| Model.Torrent.attributeToString attribute
             ]
         ]
 

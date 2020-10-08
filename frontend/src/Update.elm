@@ -2,6 +2,7 @@ module Update exposing (update)
 
 import Html.Events.Extra.Mouse as Mouse
 import Model exposing (..)
+import Model.Attribute
 import Model.Table
 import Model.Window
 import Update.ColumnWidthReceived
@@ -85,12 +86,12 @@ update msg model =
 
         ToggleTorrentAttributeVisibility attribute ->
             r
-                |> andThen (Update.ToggleTorrentAttributeVisibility.update attribute)
+                |> andThen (Update.ToggleTorrentAttributeVisibility.update (Model.Attribute.TorrentAttribute attribute))
                 |> andThen Update.SaveConfig.update
 
         SetSortBy attribute ->
             r
-                |> andThen (Update.SetSortBy.update attribute)
+                |> andThen (Update.SetSortBy.update (Model.Attribute.TorrentAttribute attribute))
                 |> andThen Update.SaveConfig.update
 
         SpeedChartHover data ->
@@ -116,7 +117,7 @@ update msg model =
 -- TODO: move to Update/
 
 
-handleMouseDown : Model.Table.Attribute -> Model.Table.MousePosition -> Mouse.Button -> Mouse.Keys -> Model -> ( Model, Cmd Msg )
+handleMouseDown : Model.Attribute.Attribute -> Model.Table.MousePosition -> Mouse.Button -> Mouse.Keys -> Model -> ( Model, Cmd Msg )
 handleMouseDown attribute mousePosition mouseButton mouseKeys model =
     if mouseKeys.alt then
         -- should be in right click menu

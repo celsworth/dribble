@@ -2,30 +2,39 @@ module Update.SetSortBy exposing (update)
 
 import Dict
 import Model exposing (..)
+import Model.Attribute
 import Model.Config exposing (Config)
-import Model.Torrent
+import Model.Sort.Torrent
 
 
-update : Model.Torrent.Attribute -> Model -> ( Model, Cmd Msg )
+update : Model.Attribute.Attribute -> Model -> ( Model, Cmd Msg )
 update attribute model =
     let
         newConfig =
-            updateConfig attribute model.config
+            model.config |> updateConfig attribute
 
-        sortedTorrents =
-            Model.Torrent.sort newConfig.sortBy
-                (Dict.values model.torrentsByHash)
+        (Model.Attribute.SortBy sortByAttribute sortByDir) =
+            newConfig.sortBy
+
+        applyNewSort =
+            case sortByAttribute of
+                Model.Attribute.TorrentAttribute torrentAttribute ->
+                    setSortedTorrents <|
+                        Model.Sort.Torrent.sort
+                            torrentAttribute
+                            sortByDir
+                            (Dict.values model.torrentsByHash)
     in
     model
         |> setConfig newConfig
-        |> setSortedTorrents sortedTorrents
+        |> applyNewSort
         |> noCmd
 
 
-updateConfig : Model.Torrent.Attribute -> Config -> Config
+updateConfig : Model.Attribute.Attribute -> Config -> Config
 updateConfig attr config =
     let
-        (Model.Torrent.SortBy currentAttr currentDirection) =
+        (Model.Attribute.SortBy currentAttr currentDirection) =
             config.sortBy
 
         currentSortMatchesAttr =
@@ -34,13 +43,13 @@ updateConfig attr config =
         newSort =
             if currentSortMatchesAttr then
                 case currentDirection of
-                    Model.Torrent.Asc ->
-                        Model.Torrent.SortBy attr Model.Torrent.Desc
+                    Model.Attribute.Asc ->
+                        Model.Attribute.SortBy attr Model.Attribute.Desc
 
-                    Model.Torrent.Desc ->
-                        Model.Torrent.SortBy attr Model.Torrent.Asc
+                    Model.Attribute.Desc ->
+                        Model.Attribute.SortBy attr Model.Attribute.Asc
 
             else
-                Model.Torrent.SortBy attr currentDirection
+                Model.Attribute.SortBy attr currentDirection
     in
     config |> Model.Config.setSortBy newSort
