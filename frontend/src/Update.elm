@@ -91,7 +91,7 @@ update msg model =
 
         SetSortBy attribute ->
             r
-                |> andThen (Update.SetSortBy.update (Model.Attribute.TorrentAttribute attribute))
+                |> andThen (Update.SetSortBy.update attribute)
                 |> andThen Update.SaveConfig.update
 
         SpeedChartHover data ->

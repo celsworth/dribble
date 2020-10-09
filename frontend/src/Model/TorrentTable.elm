@@ -10,6 +10,9 @@ defaultConfig =
     { tableType = Model.Table.Torrents
     , layout = Model.Table.Fixed
     , columns = defaultColumns
+
+    -- stored in config.sortBy for now
+    , sortBy = Nothing
     }
 
 

@@ -25,6 +25,10 @@ type alias Humanise =
 
 type alias Config =
     { refreshDelay : Int
+
+    -- as an optimisation, torrent table sort is stored here, NOT in torrentTable.
+    -- this is so when the sort changes, we don't invalidate the lazy cache of all
+    -- the rows, because there could be thousands of them.
     , sortBy : Model.Attribute.Sort
     , torrentTable : Model.Table.Config
     , filter : Model.TorrentFilter.Config
@@ -86,7 +90,7 @@ encode : Config -> E.Value
 encode config =
     E.object
         [ ( "refreshDelay", E.int config.refreshDelay )
-        , ( "sortBy", encodeSortBy config.sortBy )
+        , ( "sortBy", Model.Attribute.encodeSortBy (Just config.sortBy) )
         , ( "torrentTable", Model.Table.encode config.torrentTable )
         , ( "filter", Model.TorrentFilter.encode config.filter )
         , ( "humanise", encodeHumanise config.humanise )
@@ -95,42 +99,12 @@ encode config =
         ]
 
 
-encodeSortBy : Model.Attribute.Sort -> E.Value
-encodeSortBy sortBy =
-    case sortBy of
-        Model.Attribute.SortBy column direction ->
-            E.object
-                [ ( "column", encodeTorrentAttribute column )
-                , ( "direction", encodeSortDirection direction )
-                ]
-
-
-encodeSortDirection : Model.Attribute.SortDirection -> E.Value
-encodeSortDirection direction =
-    case direction of
-        Model.Attribute.Asc ->
-            E.string "asc"
-
-        Model.Attribute.Desc ->
-            E.string "desc"
-
-
 encodeHumanise : Humanise -> E.Value
 encodeHumanise humanise =
     E.object
         [ ( "size", Utils.Filesize.encode humanise.size )
         , ( "speed", Utils.Filesize.encode humanise.speed )
         ]
-
-
-encodeTorrentAttributeList : List Model.Attribute.Attribute -> E.Value
-encodeTorrentAttributeList torrentAttributes =
-    E.list encodeTorrentAttribute torrentAttributes
-
-
-encodeTorrentAttribute : Model.Attribute.Attribute -> E.Value
-encodeTorrentAttribute attribute =
-    E.string <| Model.Torrent.attributeToKey (Model.Attribute.unwrap attribute)
 
 
 
@@ -152,7 +126,7 @@ decoder : D.Decoder Config
 decoder =
     D.succeed Config
         |> optional "refreshDelay" D.int default.refreshDelay
-        |> optional "sortBy" sortByDecoder default.sortBy
+        |> optional "sortBy" Model.Attribute.sortByDecoder default.sortBy
         |> optional "torrentTable" Model.Table.decoder default.torrentTable
         |> optional "filter" Model.TorrentFilter.decoder default.filter
         |> optional "humanise" humaniseDecoder default.humanise
@@ -160,55 +134,8 @@ decoder =
         |> optional "logs" Model.Window.decoder default.logs
 
 
-sortByDecoder : D.Decoder Model.Attribute.Sort
-sortByDecoder =
-    D.succeed Model.Attribute.SortBy
-        |> required "column" torrentAttributeDecoder
-        |> required "direction" sortDirectionDecoder
-
-
-sortDirectionDecoder : D.Decoder Model.Attribute.SortDirection
-sortDirectionDecoder =
-    D.string
-        |> D.andThen
-            (\input ->
-                case input of
-                    "asc" ->
-                        D.succeed Model.Attribute.Asc
-
-                    "desc" ->
-                        D.succeed Model.Attribute.Desc
-
-                    _ ->
-                        D.fail <| "unknown direction " ++ input
-            )
-
-
 humaniseDecoder : D.Decoder Humanise
 humaniseDecoder =
     D.succeed Humanise
-        |> optional "size"
-            Utils.Filesize.decoder
-            default.humanise.size
-        |> optional "speed"
-            Utils.Filesize.decoder
-            default.humanise.speed
-
-
-torrentAttributeListDecoder : D.Decoder (List Model.Attribute.Attribute)
-torrentAttributeListDecoder =
-    D.list torrentAttributeDecoder
-
-
-torrentAttributeDecoder : D.Decoder Model.Attribute.Attribute
-torrentAttributeDecoder =
-    D.string
-        |> D.andThen
-            (\input ->
-                case Model.Torrent.keyToAttribute input of
-                    Just a ->
-                        D.succeed <| Model.Attribute.TorrentAttribute a
-
-                    Nothing ->
-                        D.fail <| "unknown torrent key " ++ input
-            )
+        |> optional "size" Utils.Filesize.decoder default.humanise.size
+        |> optional "speed" Utils.Filesize.decoder default.humanise.speed

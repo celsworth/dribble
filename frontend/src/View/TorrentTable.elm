@@ -92,23 +92,23 @@ row humanise tableConfig torrent =
                     (cellContent
                         humanise
                         torrent
-                        (Model.Attribute.unwrap column.attribute)
+                        column.attribute
                     )
     in
     tr [] (List.map cell visibleColumns)
 
 
-cellContent : Model.Config.Humanise -> Torrent -> Model.Torrent.Attribute -> Html Msg
+cellContent : Model.Config.Humanise -> Torrent -> Model.Attribute.Attribute -> Html Msg
 cellContent humanise torrent attribute =
     case attribute of
-        Model.Torrent.Status ->
+        Model.Attribute.TorrentAttribute Model.Torrent.Status ->
             torrentStatusCell torrent
 
-        Model.Torrent.DonePercent ->
+        Model.Attribute.TorrentAttribute Model.Torrent.DonePercent ->
             donePercentCell torrent
 
-        _ ->
-            attributeAccessor humanise torrent attribute
+        Model.Attribute.TorrentAttribute torrentAttribute ->
+            attributeAccessor humanise torrent torrentAttribute
 
 
 torrentStatusCell : Torrent -> Html Msg

@@ -1,7 +1,7 @@
 module Model.Table exposing (..)
 
 import Json.Decode as D
-import Json.Decode.Pipeline exposing (hardcoded, required)
+import Json.Decode.Pipeline exposing (hardcoded, optional, required)
 import Json.Encode as E
 import List.Extra
 import Model.Attribute exposing (Attribute(..))
@@ -46,9 +46,7 @@ type alias Config =
     { tableType : Type
     , layout : Layout
     , columns : List Column
-
-    -- sortBy?
-    -- filter?
+    , sortBy : Maybe Model.Attribute.Sort
     }
 
 
@@ -166,6 +164,7 @@ encode config =
         [ ( "tableType", encodeTableType config.tableType )
         , ( "layout", encodeLayout config.layout )
         , ( "columns", encodeColumns config.columns )
+        , ( "sortBy", Model.Attribute.encodeSortBy config.sortBy )
         ]
 
 
@@ -194,16 +193,11 @@ encodeColumns columns =
 encodeColumn : Column -> E.Value
 encodeColumn column =
     E.object
-        [ ( "attribute", encodeAttribute column.attribute )
+        [ ( "attribute", Model.Attribute.encode column.attribute )
         , ( "width", E.float column.width )
         , ( "auto", E.bool column.auto )
         , ( "visible", E.bool column.visible )
         ]
-
-
-encodeAttribute : Attribute -> E.Value
-encodeAttribute attribute =
-    E.string <| Model.Attribute.attributeToKey attribute
 
 
 
@@ -212,15 +206,11 @@ encodeAttribute attribute =
 
 decoder : D.Decoder Config
 decoder =
-    D.field "tableType" tableTypeDecoder |> D.andThen decoder2
-
-
-decoder2 : Type -> D.Decoder Config
-decoder2 tableType =
     D.succeed Config
-        |> hardcoded tableType
+        |> required "tableType" tableTypeDecoder
         |> required "layout" layoutDecoder
-        |> required "columns" (columnsDecoder tableType)
+        |> required "columns" columnsDecoder
+        |> optional "sortBy" (D.map Just Model.Attribute.sortByDecoder) Nothing
 
 
 tableTypeDecoder : D.Decoder Type
@@ -254,31 +244,15 @@ layoutDecoder =
             )
 
 
-columnsDecoder : Type -> D.Decoder (List Column)
-columnsDecoder tableType =
-    D.list (columnDecoder tableType)
+columnsDecoder : D.Decoder (List Column)
+columnsDecoder =
+    D.list columnDecoder
 
 
-columnDecoder : Type -> D.Decoder Column
-columnDecoder tableType =
+columnDecoder : D.Decoder Column
+columnDecoder =
     D.succeed Column
-        |> required "attribute" (attributeDecoder tableType)
+        |> required "attribute" Model.Attribute.decoder
         |> required "width" D.float
         |> required "auto" D.bool
         |> required "visible" D.bool
-
-
-attributeDecoder : Type -> D.Decoder Attribute
-attributeDecoder tableType =
-    D.string
-        |> D.andThen
-            (\input ->
-                case tableType of
-                    Torrents ->
-                        case Model.Torrent.keyToAttribute input of
-                            Just a ->
-                                D.succeed <| TorrentAttribute a
-
-                            Nothing ->
-                                D.fail <| "unknown torrent key " ++ input
-            )

@@ -97,7 +97,7 @@ headerCellContentDivAttributes tableConfig attribute =
     in
     List.filterMap identity
         [ maybeWidthAttr
-        , Just <| onClick (SetSortBy (Model.Attribute.unwrap attribute))
+        , Just <| onClick (SetSortBy attribute)
         ]
 
 

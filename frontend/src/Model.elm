@@ -33,7 +33,7 @@ type Msg
     | SetHamburgerMenuVisible Bool
     | TorrentNameFilterChanged String
     | ToggleTorrentAttributeVisibility Model.Torrent.Attribute
-    | SetSortBy Model.Torrent.Attribute
+    | SetSortBy Model.Attribute.Attribute
     | SpeedChartHover (List Model.SpeedChart.DataSeries)
     | Tick Time.Posix
     | WebsocketData (Result JD.Error Model.WebsocketData.Data)
