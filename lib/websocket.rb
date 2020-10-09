@@ -23,14 +23,15 @@ class Websocket
 
       data = run_handling_error(name, subscription)
 
-      @socket.send(JSON.generate(data))
+      @socket.send(JSON.generate(data)) if data
     end
   end
 
   private
 
   def run_handling_error(name, subscription)
-    { name => subscription.run }
+    data = subscription.run
+    { name => data } unless data.empty? && subscription.diff
   rescue StandardError => e
     { error: e.message }
   end

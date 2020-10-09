@@ -8,14 +8,12 @@ class SubscriptionRunner
   end
 
   def start
-    run
-  rescue StandardError => e
-    # thread aborted! restart it
-    warn "SubscriptionRunner thread death: #{e.message}"
-    warn e.backtrace
-    sleep 5
-
-    retry
+    Thread.new do
+      loop do
+        run
+        sleep 1
+      end
+    end
   end
 
   def add_websocket(websocket)
@@ -29,11 +27,10 @@ class SubscriptionRunner
   private
 
   def run
-    Thread.new do
-      loop do
-        @websockets.each(&:run_subscriptions)
-        sleep 1
-      end
-    end
+    @websockets.each(&:run_subscriptions)
+  rescue StandardError => e
+    warn "run_subscripions exception: #{e.message}"
+    warn e.backtrace
+    sleep 5
   end
 end

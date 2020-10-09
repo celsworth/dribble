@@ -10,7 +10,7 @@ RSpec.describe Subscription do
 
   let(:command) { ['d.multicall2', '', 'main', 'd.hash=', 'd.name='] }
   let(:interval) { 5 }
-  let(:rtorrent) { double('rtorrent') }
+  let(:rtorrent) { instance_double(Rtorrent) }
   let(:diff) { false }
 
   it 'is initially due' do

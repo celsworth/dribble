@@ -7,6 +7,8 @@ require 'rtorrent'
 # and return changed data.
 #
 class Subscription
+  attr_reader :diff
+
   def initialize(command:, diff:, interval:, rtorrent:, data_differ: nil)
     @command = command
     @diff = diff
