@@ -1,11 +1,10 @@
 module Model.Table exposing (..)
 
 import Json.Decode as D
-import Json.Decode.Pipeline exposing (hardcoded, optional, required)
+import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as E
 import List.Extra
 import Model.Attribute exposing (Attribute(..))
-import Model.Torrent
 
 
 type alias MousePosition =

@@ -1,7 +1,9 @@
 module Model.Torrent exposing (..)
 
+import Dict exposing (Dict)
 import Json.Decode as D
 import Json.Decode.Pipeline as Pipeline exposing (custom)
+import Json.Encode as E
 
 
 type Status
@@ -68,6 +70,19 @@ type alias Torrent =
     -- custom local vars, not from JSON
     , donePercent : Float
     }
+
+
+type alias TorrentsByHash =
+    Dict String Torrent
+
+
+
+-- JSON ENCODER
+
+
+encodeAttribute : Attribute -> E.Value
+encodeAttribute attribute =
+    E.string <| attributeToKey attribute
 
 
 
@@ -192,6 +207,20 @@ resolveStatus message hashing isOpen isActive done =
 
         _ ->
             Hashing
+
+
+attributeDecoder : D.Decoder Attribute
+attributeDecoder =
+    D.string
+        |> D.andThen
+            (\input ->
+                case keyToAttribute input of
+                    Just a ->
+                        D.succeed <| a
+
+                    Nothing ->
+                        D.fail <| "unknown torrent key " ++ input
+            )
 
 
 intToBoolDecoder : D.Decoder Bool

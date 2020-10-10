@@ -10,7 +10,7 @@ import Model exposing (..)
 import Model.Attribute
 import Model.Config
 import Model.Table
-import Model.Torrent exposing (Torrent)
+import Model.Torrent exposing (Torrent, TorrentsByHash)
 import Model.TorrentFilter exposing (TorrentFilter)
 import Round
 import Utils.Filesize

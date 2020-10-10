@@ -11,7 +11,7 @@ import Model.Message exposing (Message)
 import Model.Preferences
 import Model.SpeedChart
 import Model.Table
-import Model.Torrent exposing (Torrent)
+import Model.Torrent exposing (Torrent, TorrentsByHash)
 import Model.TorrentFilter exposing (TorrentFilter)
 import Model.Traffic exposing (Traffic)
 import Model.WebsocketData
@@ -40,10 +40,6 @@ type Msg
     | WebsocketStatusUpdated (Result JD.Error Bool)
     | WindowResized (Result JD.Error Model.Window.ResizeDetails)
     | DnDMsg Model.Table.Type DnDList.Msg
-
-
-type alias TorrentsByHash =
-    Dict String Torrent
 
 
 dndConfig : DnDList.Config Model.Table.Column
