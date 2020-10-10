@@ -93,6 +93,11 @@ setSortedTorrents new model =
     { model | sortedTorrents = new }
 
 
+setTorrentsByHash : TorrentsByHash -> Model -> Model
+setTorrentsByHash new model =
+    { model | torrentsByHash = new }
+
+
 setTorrentFilter : TorrentFilter -> Model -> Model
 setTorrentFilter new model =
     { model | torrentFilter = new }

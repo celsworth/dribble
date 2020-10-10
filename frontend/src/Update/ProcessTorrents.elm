@@ -24,7 +24,9 @@ update torrents model =
         sortedTorrents =
             Model.Sort.Torrent.sort attribute sortByDir (Dict.values byHash)
     in
-    { model | sortedTorrents = sortedTorrents, torrentsByHash = byHash }
+    model
+        |> setSortedTorrents sortedTorrents
+        |> setTorrentsByHash byHash
         |> noCmd
 
 
