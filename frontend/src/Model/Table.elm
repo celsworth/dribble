@@ -1,7 +1,7 @@
 module Model.Table exposing (..)
 
 import Json.Decode as D
-import Json.Decode.Pipeline exposing (optional, required)
+import Json.Decode.Pipeline exposing (required)
 import Json.Encode as E
 import List.Extra
 import Model.Attribute exposing (Attribute(..))
@@ -24,6 +24,7 @@ type alias ResizeOp =
 
 type Type
     = Torrents
+    | Peers
 
 
 type Layout
@@ -40,12 +41,10 @@ type alias Column =
 
 
 type alias Config =
-    -- can we split into config that affects individual row content,
-    -- and config that affects row order?
     { tableType : Type
     , layout : Layout
     , columns : List Column
-    , sortBy : Maybe Model.Attribute.Sort
+    , sortBy : Model.Attribute.Sort
     }
 
 
@@ -76,6 +75,9 @@ typeFromAttribute attribute =
     case attribute of
         TorrentAttribute _ ->
             Torrents
+
+        PeerAttribute _ ->
+            Peers
 
 
 
@@ -173,6 +175,9 @@ encodeTableType val =
         Torrents ->
             E.string "torrents"
 
+        Peers ->
+            E.string "peers"
+
 
 encodeLayout : Layout -> E.Value
 encodeLayout val =
@@ -209,7 +214,7 @@ decoder =
         |> required "tableType" tableTypeDecoder
         |> required "layout" layoutDecoder
         |> required "columns" columnsDecoder
-        |> optional "sortBy" (D.map Just Model.Attribute.sortByDecoder) Nothing
+        |> required "sortBy" Model.Attribute.sortByDecoder
 
 
 tableTypeDecoder : D.Decoder Type
@@ -221,8 +226,11 @@ tableTypeDecoder =
                     "torrents" ->
                         D.succeed Torrents
 
+                    "peers" ->
+                        D.succeed Peers
+
                     _ ->
-                        D.fail <| "unknown tableType" ++ input
+                        D.fail <| "unknown tableType " ++ input
             )
 
 

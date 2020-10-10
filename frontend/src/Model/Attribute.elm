@@ -3,6 +3,8 @@ module Model.Attribute exposing (..)
 import Json.Decode as D
 import Json.Decode.Pipeline exposing (required)
 import Json.Encode as E
+import Model.Peer
+import Model.Sort exposing (SortDirection(..))
 import Model.Torrent
 
 
@@ -11,17 +13,13 @@ import Model.Torrent
 {- XXX: Sort and SortDirection probably don't belong here -}
 
 
-type SortDirection
-    = Asc
-    | Desc
-
-
 type Sort
     = SortBy Attribute SortDirection
 
 
 type Attribute
     = TorrentAttribute Model.Torrent.Attribute
+    | PeerAttribute Model.Peer.Attribute
 
 
 
@@ -40,28 +38,18 @@ encode attribute =
             TorrentAttribute _ ->
                 String.concat [ "torrent.", attributeToKey attribute ]
 
+            PeerAttribute _ ->
+                String.concat [ "peer.", attributeToKey attribute ]
 
-encodeSortBy : Maybe Sort -> E.Value
+
+encodeSortBy : Sort -> E.Value
 encodeSortBy sortBy =
     case sortBy of
-        Just (SortBy column direction) ->
+        SortBy column direction ->
             E.object
                 [ ( "column", encode column )
-                , ( "direction", encodeSortDirection direction )
+                , ( "direction", Model.Sort.encodeSortDirection direction )
                 ]
-
-        Nothing ->
-            E.null
-
-
-encodeSortDirection : SortDirection -> E.Value
-encodeSortDirection direction =
-    case direction of
-        Asc ->
-            E.string "asc"
-
-        Desc ->
-            E.string "desc"
 
 
 
@@ -82,14 +70,9 @@ attributeSplitterDecoder : String -> D.Decoder Attribute
 attributeSplitterDecoder input =
     case String.split "." input of
         [ t, attribute ] ->
-            case t of
-                "torrent" ->
-                    Model.Torrent.keyToAttribute attribute
-                        |> Maybe.map (D.succeed << TorrentAttribute)
-                        |> Maybe.withDefault (D.fail <| "unknown torrent key " ++ attribute)
-
-                _ ->
-                    D.fail <| "unknown attribute type " ++ t
+            keyToAttribute t attribute
+                |> Maybe.map D.succeed
+                |> Maybe.withDefault (D.fail <| "unknown key " ++ input)
 
         _ ->
             D.fail <| "attributes must be in format type.attribute"
@@ -99,28 +82,24 @@ sortByDecoder : D.Decoder Sort
 sortByDecoder =
     D.succeed SortBy
         |> required "column" decoder
-        |> required "direction" sortDirectionDecoder
-
-
-sortDirectionDecoder : D.Decoder SortDirection
-sortDirectionDecoder =
-    D.string
-        |> D.andThen
-            (\input ->
-                case input of
-                    "asc" ->
-                        D.succeed Asc
-
-                    "desc" ->
-                        D.succeed Desc
-
-                    _ ->
-                        D.fail <| "unknown direction " ++ input
-            )
+        |> required "direction" Model.Sort.sortDirectionDecoder
 
 
 
 -- Abstraction Wrappers
+
+
+keyToAttribute : String -> String -> Maybe Attribute
+keyToAttribute type_ attribute =
+    case type_ of
+        "torrent" ->
+            Model.Torrent.keyToAttribute attribute |> Maybe.map TorrentAttribute
+
+        "peer" ->
+            Model.Peer.keyToAttribute attribute |> Maybe.map PeerAttribute
+
+        _ ->
+            Nothing
 
 
 attributeToKey : Attribute -> String
@@ -129,12 +108,18 @@ attributeToKey attribute =
         TorrentAttribute torrentAttribute ->
             Model.Torrent.attributeToKey torrentAttribute
 
+        PeerAttribute peerAttribute ->
+            Model.Peer.attributeToKey peerAttribute
+
 
 attributeToTableHeaderId : Attribute -> String
 attributeToTableHeaderId attribute =
     case attribute of
         TorrentAttribute torrentAttribute ->
             Model.Torrent.attributeToTableHeaderId torrentAttribute
+
+        PeerAttribute peerAttribute ->
+            Model.Peer.attributeToTableHeaderId peerAttribute
 
 
 attributeToTableHeaderString : Attribute -> String
@@ -143,9 +128,15 @@ attributeToTableHeaderString attribute =
         TorrentAttribute torrentAttribute ->
             Model.Torrent.attributeToTableHeaderString torrentAttribute
 
+        PeerAttribute peerAttribute ->
+            Model.Peer.attributeToTableHeaderString peerAttribute
+
 
 textAlignment : Attribute -> Maybe String
 textAlignment attribute =
     case attribute of
         TorrentAttribute torrentAttribute ->
             Model.Torrent.attributeTextAlignment torrentAttribute
+
+        PeerAttribute peerAttribute ->
+            Model.Peer.attributeTextAlignment peerAttribute

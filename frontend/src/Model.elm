@@ -1,7 +1,6 @@
 module Model exposing (..)
 
 import Browser.Dom
-import Dict exposing (Dict)
 import DnDList
 import Html.Events.Extra.Mouse as Mouse
 import Json.Decode as JD
@@ -11,7 +10,7 @@ import Model.Message exposing (Message)
 import Model.Preferences
 import Model.SpeedChart
 import Model.Table
-import Model.Torrent exposing (Torrent, TorrentsByHash)
+import Model.Torrent exposing (TorrentsByHash)
 import Model.TorrentFilter exposing (TorrentFilter)
 import Model.Traffic exposing (Traffic)
 import Model.WebsocketData

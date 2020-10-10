@@ -1,9 +1,10 @@
 module Model.Config exposing (..)
 
 import Json.Decode as D
-import Json.Decode.Pipeline exposing (optional, required)
+import Json.Decode.Pipeline exposing (optional)
 import Json.Encode as E
-import Model.Attribute
+import Model.PeerTable
+import Model.Sort exposing (SortDirection(..))
 import Model.Table
 import Model.Torrent
 import Model.TorrentFilter
@@ -29,16 +30,17 @@ type alias Config =
     -- as an optimisation, torrent table sort is stored here, NOT in torrentTable.
     -- this is so when the sort changes, we don't invalidate the lazy cache of all
     -- the rows, because there could be thousands of them.
-    , sortBy : Model.Attribute.Sort
+    , sortBy : Model.Torrent.Sort
     , torrentTable : Model.Table.Config
     , filter : Model.TorrentFilter.Config
+    , peerTable : Model.Table.Config
     , humanise : Humanise
     , preferences : Model.Window.Config
     , logs : Model.Window.Config
     }
 
 
-setSortBy : Model.Attribute.Sort -> Config -> Config
+setSortBy : Model.Torrent.Sort -> Config -> Config
 setSortBy new config =
     { config | sortBy = new }
 
@@ -51,6 +53,11 @@ setTorrentTable new config =
 setFilter : Model.TorrentFilter.Config -> Config -> Config
 setFilter new config =
     { config | filter = new }
+
+
+setPeerTable : Model.Table.Config -> Config -> Config
+setPeerTable new config =
+    { config | peerTable = new }
 
 
 setPreferences : Model.Window.Config -> Config -> Config
@@ -70,9 +77,10 @@ setLogs new config =
 default : Config
 default =
     { refreshDelay = 5
-    , sortBy = Model.Attribute.SortBy (Model.Attribute.TorrentAttribute Model.Torrent.UploadRate) Model.Attribute.Desc
+    , sortBy = Model.Torrent.SortBy Model.Torrent.UploadRate Desc
     , torrentTable = Model.TorrentTable.defaultConfig
     , filter = Model.TorrentFilter.default
+    , peerTable = Model.PeerTable.defaultConfig
     , humanise =
         { size = { units = Utils.Filesize.Base2, decimalPlaces = 2, decimalSeparator = "." }
         , speed = { units = Utils.Filesize.Base10, decimalPlaces = 1, decimalSeparator = "." }
@@ -90,9 +98,10 @@ encode : Config -> E.Value
 encode config =
     E.object
         [ ( "refreshDelay", E.int config.refreshDelay )
-        , ( "sortBy", Model.Attribute.encodeSortBy (Just config.sortBy) )
+        , ( "sortBy", Model.Torrent.encodeSortBy config.sortBy )
         , ( "torrentTable", Model.Table.encode config.torrentTable )
         , ( "filter", Model.TorrentFilter.encode config.filter )
+        , ( "peerTable", Model.Table.encode config.peerTable )
         , ( "humanise", encodeHumanise config.humanise )
         , ( "preferences", Model.Window.encode config.preferences )
         , ( "logs", Model.Window.encode config.logs )
@@ -126,9 +135,10 @@ decoder : D.Decoder Config
 decoder =
     D.succeed Config
         |> optional "refreshDelay" D.int default.refreshDelay
-        |> optional "sortBy" Model.Attribute.sortByDecoder default.sortBy
+        |> optional "sortBy" Model.Torrent.sortByDecoder default.sortBy
         |> optional "torrentTable" Model.Table.decoder default.torrentTable
         |> optional "filter" Model.TorrentFilter.decoder default.filter
+        |> optional "peerTable" Model.Table.decoder default.peerTable
         |> optional "humanise" humaniseDecoder default.humanise
         |> optional "preferences" Model.Window.decoder default.preferences
         |> optional "logs" Model.Window.decoder default.logs

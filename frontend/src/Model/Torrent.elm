@@ -2,8 +2,9 @@ module Model.Torrent exposing (..)
 
 import Dict exposing (Dict)
 import Json.Decode as D
-import Json.Decode.Pipeline as Pipeline exposing (custom)
+import Json.Decode.Pipeline as Pipeline exposing (custom, required)
 import Json.Encode as E
+import Model.Sort exposing (SortDirection(..))
 
 
 type Status
@@ -20,6 +21,10 @@ type HashingStatus
     | InitialHash
     | FinishHash
     | Rehash
+
+
+type Sort
+    = SortBy Attribute SortDirection
 
 
 type Attribute
@@ -83,6 +88,18 @@ type alias TorrentsByHash =
 encodeAttribute : Attribute -> E.Value
 encodeAttribute attribute =
     E.string <| attributeToKey attribute
+
+
+encodeSortBy : Sort -> E.Value
+encodeSortBy sortBy =
+    let
+        (SortBy column direction) =
+            sortBy
+    in
+    E.object
+        [ ( "column", encodeAttribute column )
+        , ( "direction", Model.Sort.encodeSortDirection direction )
+        ]
 
 
 
@@ -221,6 +238,13 @@ attributeDecoder =
                     Nothing ->
                         D.fail <| "unknown torrent key " ++ input
             )
+
+
+sortByDecoder : D.Decoder Sort
+sortByDecoder =
+    D.succeed SortBy
+        |> required "column" attributeDecoder
+        |> required "direction" Model.Sort.sortDirectionDecoder
 
 
 intToBoolDecoder : D.Decoder Bool

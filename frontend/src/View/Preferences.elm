@@ -134,8 +134,13 @@ torrentsTableColumnsOptions dnd tableConfig =
 torrentsTableColumnsOption : DnDList.Model -> Int -> Model.Table.Column -> Html Msg
 torrentsTableColumnsOption dnd index column =
     let
-        (Model.Attribute.TorrentAttribute attribute) =
-            column.attribute
+        attribute =
+            case column.attribute of
+                Model.Attribute.TorrentAttribute a ->
+                    a
+
+                Model.Attribute.PeerAttribute _ ->
+                    Debug.todo "work out what to do here"
 
         itemId =
             "dndlist-torrentsTable-" ++ Model.Torrent.attributeToKey attribute
@@ -166,8 +171,13 @@ torrentsTableColumnsOption dnd index column =
 
 torrentsTableColumnsOptionLi itemId column dndEvents dndStyles =
     let
-        (Model.Attribute.TorrentAttribute attribute) =
-            column.attribute
+        attribute =
+            case column.attribute of
+                Model.Attribute.TorrentAttribute a ->
+                    a
+
+                Model.Attribute.PeerAttribute _ ->
+                    Debug.todo "work out what to do here"
 
         visibility =
             if column.visible then

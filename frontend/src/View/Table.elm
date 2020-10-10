@@ -1,15 +1,33 @@
 module View.Table exposing (..)
 
+{- generic table rendering from a Model.Table.Config and list of items (how?) -}
+
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Html.Events.Extra.Mouse
-import Html.Keyed as Keyed
-import Html.Lazy
 import Model exposing (..)
 import Model.Attribute
 import Model.Config exposing (Config)
+import Model.Item exposing (Item)
+import Model.Sort exposing (SortDirection(..))
 import Model.Table
+import Model.Torrent
+import View.Item
+
+
+view : Config -> Model.Table.Config -> List (Item t) -> Html Msg
+view config tableConfig items =
+    section []
+        [ table []
+            [ header config tableConfig
+            , body config tableConfig items
+            ]
+        ]
+
+
+
+-- HEADER
 
 
 header : Config -> Model.Table.Config -> Html Msg
@@ -24,10 +42,6 @@ header config tableConfig =
         ]
 
 
-
--- HEADER CELLS
-
-
 headerCell : Config -> Model.Table.Config -> Model.Table.Column -> Html Msg
 headerCell config tableConfig column =
     let
@@ -37,72 +51,85 @@ headerCell config tableConfig column =
         maybeResizeDiv =
             case tableConfig.layout of
                 Model.Table.Fixed ->
-                    Just <| div (headerCellResizeHandleAttributes column.attribute) []
+                    Just <| div (headerCellResizeHandleAttributes column) []
 
                 Model.Table.Fluid ->
                     Nothing
+
+        {- torrentTable is a special case here -}
+        sortBy =
+            case tableConfig.tableType of
+                Model.Table.Torrents ->
+                    let
+                        (Model.Torrent.SortBy attr dir) =
+                            config.sortBy
+                    in
+                    Model.Attribute.SortBy (Model.Attribute.TorrentAttribute attr) dir
+
+                _ ->
+                    tableConfig.sortBy
     in
-    th (headerCellAttributes config.sortBy column.attribute)
+    th (headerCellAttributes sortBy column)
         (List.filterMap identity
             [ Just <|
-                div (headerCellContentDivAttributes tableConfig column.attribute)
+                div (headerCellContentDivAttributes tableConfig column)
                     [ div [ class "content" ] [ text attrString ] ]
             , maybeResizeDiv
             ]
         )
 
 
-headerCellAttributes : Model.Attribute.Sort -> Model.Attribute.Attribute -> List (Attribute Msg)
-headerCellAttributes sortBy attribute =
+headerCellAttributes : Model.Attribute.Sort -> Model.Table.Column -> List (Attribute Msg)
+headerCellAttributes sortBy column =
     List.filterMap identity
-        [ headerCellIdAttribute attribute
-        , cellTextAlign attribute
-        , headerCellSortClass sortBy attribute
+        [ headerCellIdAttribute column
+        , cellTextAlign column
+        , headerCellSortClass sortBy column
         ]
 
 
-headerCellIdAttribute : Model.Attribute.Attribute -> Maybe (Attribute Msg)
-headerCellIdAttribute attribute =
-    Just <| id (Model.Attribute.attributeToTableHeaderId attribute)
+headerCellIdAttribute : Model.Table.Column -> Maybe (Attribute Msg)
+headerCellIdAttribute column =
+    Just <| id (Model.Attribute.attributeToTableHeaderId column.attribute)
 
 
-headerCellSortClass : Model.Attribute.Sort -> Model.Attribute.Attribute -> Maybe (Attribute Msg)
-headerCellSortClass sortBy attribute =
+headerCellSortClass : Model.Attribute.Sort -> Model.Table.Column -> Maybe (Attribute Msg)
+headerCellSortClass sortBy column =
     let
         (Model.Attribute.SortBy currentSortAttribute currentSortDirection) =
             sortBy
     in
-    if currentSortAttribute == attribute then
+    if currentSortAttribute == column.attribute then
         case currentSortDirection of
-            Model.Attribute.Asc ->
+            Asc ->
                 Just <| class "sorted ascending"
 
-            Model.Attribute.Desc ->
+            Desc ->
                 Just <| class "sorted descending"
 
     else
         Nothing
 
 
-headerCellContentDivAttributes : Model.Table.Config -> Model.Attribute.Attribute -> List (Attribute Msg)
-headerCellContentDivAttributes tableConfig attribute =
+headerCellContentDivAttributes : Model.Table.Config -> Model.Table.Column -> List (Attribute Msg)
+headerCellContentDivAttributes tableConfig column =
     let
         maybeWidthAttr =
             case tableConfig.layout of
                 Model.Table.Fixed ->
-                    thWidthAttribute tableConfig attribute
+                    thWidthAttribute tableConfig column
 
                 Model.Table.Fluid ->
                     Nothing
     in
     List.filterMap identity
         [ maybeWidthAttr
-        , Just <| onClick (SetSortBy attribute)
+        , Just <| onClick (SetSortBy column.attribute)
         ]
 
 
-headerCellResizeHandleAttributes : Model.Attribute.Attribute -> List (Attribute Msg)
-headerCellResizeHandleAttributes attribute =
+headerCellResizeHandleAttributes : Model.Table.Column -> List (Attribute Msg)
+headerCellResizeHandleAttributes column =
     let
         {- this mess converts (x, y) to { x: x, y: y } -}
         reconstructClientPos =
@@ -115,46 +142,58 @@ headerCellResizeHandleAttributes attribute =
     in
     [ class "resize-handle"
     , Html.Events.Extra.Mouse.onDown
-        (\e ->
-            MouseDown
-                attribute
-                (reconstructClientPos e)
-                e.button
-                e.keys
-        )
+        (\e -> MouseDown column.attribute (reconstructClientPos e) e.button e.keys)
     ]
 
 
 
--- BODY CELLS
+-- BODY
 
 
-cell : Model.Table.Config -> Model.Attribute.Attribute -> Html Msg -> Html Msg
-cell tableConfig attribute content =
-    td [] [ div (cellAttributes tableConfig attribute) [ content ] ]
+body : Config -> Model.Table.Config -> List (Item t) -> Html Msg
+body config tableConfig items =
+    tbody [] <| List.map (row config tableConfig) items
 
 
-cellAttributes : Model.Table.Config -> Model.Attribute.Attribute -> List (Attribute Msg)
-cellAttributes tableConfig attribute =
+row : Config -> Model.Table.Config -> Item t -> Html Msg
+row config tableConfig item =
+    let
+        visibleColumns =
+            List.filter .visible tableConfig.columns
+    in
+    tr [] (List.map (cell tableConfig item) visibleColumns)
+
+
+cell : Model.Table.Config -> Item t -> Model.Table.Column -> Html Msg
+cell tableConfig item column =
+    td []
+        [ div (cellAttributes tableConfig column)
+            [ cellContent item column ]
+        ]
+
+
+cellAttributes : Model.Table.Config -> Model.Table.Column -> List (Attribute Msg)
+cellAttributes tableConfig column =
     let
         maybeWidthAttr =
             case tableConfig.layout of
                 Model.Table.Fixed ->
-                    tdWidthAttribute tableConfig attribute
+                    tdWidthAttribute tableConfig column
 
                 Model.Table.Fluid ->
                     Nothing
     in
-    List.filterMap identity [ maybeWidthAttr, cellTextAlign attribute ]
+    List.filterMap identity [ maybeWidthAttr, cellTextAlign column ]
 
 
+cellTextAlign : Model.Table.Column -> Maybe (Attribute Msg)
+cellTextAlign column =
+    Maybe.map class (Model.Attribute.textAlignment column.attribute)
 
---
 
-
-cellTextAlign : Model.Attribute.Attribute -> Maybe (Attribute Msg)
-cellTextAlign attribute =
-    Maybe.map class (Model.Attribute.textAlignment attribute)
+cellContent : Item t -> Model.Table.Column -> Html Msg
+cellContent item column =
+    View.Item.attributeAccessor item column.attribute
 
 
 
@@ -171,24 +210,20 @@ cellTextAlign attribute =
 -}
 
 
-thWidthAttribute : Model.Table.Config -> Model.Attribute.Attribute -> Maybe (Attribute Msg)
-thWidthAttribute tableConfig attribute =
-    widthAttribute tableConfig attribute 10
+thWidthAttribute : Model.Table.Config -> Model.Table.Column -> Maybe (Attribute Msg)
+thWidthAttribute tableConfig column =
+    widthAttribute tableConfig column 10
 
 
-tdWidthAttribute : Model.Table.Config -> Model.Attribute.Attribute -> Maybe (Attribute Msg)
-tdWidthAttribute tableConfig attribute =
-    widthAttribute tableConfig attribute 8
+tdWidthAttribute : Model.Table.Config -> Model.Table.Column -> Maybe (Attribute Msg)
+tdWidthAttribute tableConfig column =
+    widthAttribute tableConfig column 8
 
 
-widthAttribute : Model.Table.Config -> Model.Attribute.Attribute -> Float -> Maybe (Attribute Msg)
-widthAttribute tableConfig attribute subtract =
-    let
-        tableColumn =
-            Model.Table.getColumn tableConfig attribute
-    in
-    if tableColumn.auto then
+widthAttribute : Model.Table.Config -> Model.Table.Column -> Float -> Maybe (Attribute Msg)
+widthAttribute tableConfig column subtract =
+    if column.auto then
         Nothing
 
     else
-        Just <| style "width" (String.fromFloat (tableColumn.width - subtract) ++ "px")
+        Just <| style "width" (String.fromFloat (column.width - subtract) ++ "px")

@@ -1,15 +1,24 @@
 module Model.Sort.Torrent exposing (sort)
 
 import List.Extra
-import Model.Attribute exposing (Attribute(..), Sort(..), SortDirection(..))
-import Model.Torrent exposing (Attribute(..), Status(..), Torrent)
+import Model.Sort exposing (SortDirection(..))
+import Model.Torrent
+    exposing
+        ( Attribute(..)
+        , Sort(..)
+        , Status(..)
+        , Torrent
+        )
 
 
-sort : Model.Torrent.Attribute -> SortDirection -> List Torrent -> List String
-sort attribute direction torrents =
+sort : Model.Torrent.Sort -> List Torrent -> List String
+sort sortBy torrents =
     let
         comparators =
             List.map (comparator direction) (resolveSort attribute)
+
+        (SortBy attribute direction) =
+            sortBy
     in
     List.map .hash <|
         List.foldl List.Extra.stableSortWith torrents comparators

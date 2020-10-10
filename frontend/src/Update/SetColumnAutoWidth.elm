@@ -2,7 +2,8 @@ module Update.SetColumnAutoWidth exposing (update)
 
 import Browser.Dom
 import Model exposing (..)
-import Model.Attribute exposing (Attribute(..))
+import Model.Attribute
+import Model.Peer
 import Model.Table
 import Model.Torrent
 import Task
@@ -19,6 +20,11 @@ update attribute model =
                     , Model.Table.Torrents
                     )
 
+                Model.Attribute.PeerAttribute a ->
+                    ( Model.Peer.attributeToTableHeaderId a
+                    , Model.Table.Peers
+                    )
+
         tableConfig =
             getTableConfig model.config tableType
 
@@ -31,6 +37,10 @@ update attribute model =
         newConfig =
             model.config |> tableConfigSetter tableType newTableConfig
     in
-    ( model |> setConfig newConfig
-    , Task.attempt (GotColumnWidth attribute) <| Browser.Dom.getElement id
-    )
+    model
+        |> setConfig newConfig
+        |> addCmd
+            (Task.attempt
+                (GotColumnWidth attribute)
+                (Browser.Dom.getElement id)
+            )

@@ -1,5 +1,15 @@
 module View.TorrentTable exposing (view)
 
+{- this is for rendering Torrent Tables as they're slightly special.
+
+   it calls out to View.Table for some common functionality but Torrent Tables
+   are special enough that they need some of their own functionality
+
+   * keyed rows
+   * filtering
+   * separate sorted list/hash to avoid invalidating lazy cache
+-}
+
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -16,6 +26,7 @@ import Round
 import Utils.Filesize
 import View.DragBar
 import View.Table
+import View.Torrent
 import View.Utils.LocalTimeNode
 
 
@@ -29,9 +40,7 @@ view model =
         section [ class "torrents" ]
             [ table []
                 [ Html.Lazy.lazy View.DragBar.view model.resizeOp
-                , Html.Lazy.lazy2 View.Table.header
-                    model.config
-                    model.config.torrentTable
+                , Html.Lazy.lazy2 View.Table.header model.config model.config.torrentTable
                 , Html.Lazy.lazy5 body
                     model.config.humanise
                     model.config.torrentTable
@@ -83,24 +92,21 @@ row humanise tableConfig torrent =
         -}
         visibleColumns =
             List.filter .visible tableConfig.columns
-
-        cell =
-            \column ->
-                View.Table.cell
-                    tableConfig
-                    column.attribute
-                    (cellContent
-                        humanise
-                        torrent
-                        column.attribute
-                    )
     in
-    tr [] (List.map cell visibleColumns)
+    tr [] (List.map (cell tableConfig humanise torrent) visibleColumns)
 
 
-cellContent : Model.Config.Humanise -> Torrent -> Model.Attribute.Attribute -> Html Msg
-cellContent humanise torrent attribute =
-    case attribute of
+cell : Model.Table.Config -> Model.Config.Humanise -> Torrent -> Model.Table.Column -> Html Msg
+cell tableConfig humanise torrent column =
+    td []
+        [ div (View.Table.cellAttributes tableConfig column)
+            [ cellContent humanise torrent column ]
+        ]
+
+
+cellContent : Model.Config.Humanise -> Torrent -> Model.Table.Column -> Html Msg
+cellContent humanise torrent column =
+    case column.attribute of
         Model.Attribute.TorrentAttribute Model.Torrent.Status ->
             torrentStatusCell torrent
 
@@ -108,7 +114,10 @@ cellContent humanise torrent attribute =
             donePercentCell torrent
 
         Model.Attribute.TorrentAttribute torrentAttribute ->
-            attributeAccessor humanise torrent torrentAttribute
+            View.Torrent.attributeAccessor humanise torrent torrentAttribute
+
+        _ ->
+            Debug.todo "not reachable, can we remove this?"
 
 
 torrentStatusCell : Torrent -> Html Msg
@@ -160,109 +169,3 @@ donePercentCell torrent =
         , span []
             [ text (Round.round dp torrent.donePercent ++ "%") ]
         ]
-
-
-
--- convert a Torrent Attribute into content for a cell in this table
-
-
-attributeAccessor : Model.Config.Humanise -> Torrent -> Model.Torrent.Attribute -> Html Msg
-attributeAccessor humanise torrent attribute =
-    let
-        -- convert 0 speeds to Nothing
-        humanByteSpeed =
-            \bytes ->
-                case bytes of
-                    0 ->
-                        Nothing
-
-                    r ->
-                        Just <| Utils.Filesize.formatWith humanise.speed r ++ "/s"
-    in
-    case attribute of
-        Model.Torrent.Status ->
-            -- has an icon
-            text ""
-
-        Model.Torrent.Name ->
-            text <| torrent.name
-
-        Model.Torrent.Size ->
-            text <| Utils.Filesize.formatWith humanise.size torrent.size
-
-        Model.Torrent.CreationTime ->
-            nonZeroLocalTimeNode torrent.creationTime
-
-        Model.Torrent.StartedTime ->
-            nonZeroLocalTimeNode torrent.startedTime
-
-        Model.Torrent.FinishedTime ->
-            nonZeroLocalTimeNode torrent.finishedTime
-
-        Model.Torrent.DownloadedBytes ->
-            text <| Utils.Filesize.formatWith humanise.size torrent.downloadedBytes
-
-        Model.Torrent.DownloadRate ->
-            text <|
-                Maybe.withDefault "" (humanByteSpeed torrent.downloadRate)
-
-        Model.Torrent.UploadedBytes ->
-            text <| Utils.Filesize.formatWith humanise.size torrent.uploadedBytes
-
-        Model.Torrent.UploadRate ->
-            text <|
-                Maybe.withDefault "" (humanByteSpeed torrent.uploadRate)
-
-        Model.Torrent.Ratio ->
-            -- ratio can have a couple of special cases
-            text <|
-                case ( isInfinite torrent.ratio, isNaN torrent.ratio ) of
-                    ( False, False ) ->
-                        Round.round 3 torrent.ratio
-
-                    ( _, True ) ->
-                        "—"
-
-                    ( True, _ ) ->
-                        "∞"
-
-        Model.Torrent.Seeders ->
-            text <|
-                String.fromInt torrent.seedersConnected
-                    ++ " ("
-                    ++ String.fromInt torrent.seedersTotal
-                    ++ ")"
-
-        Model.Torrent.SeedersConnected ->
-            text <| String.fromInt torrent.seedersConnected
-
-        Model.Torrent.SeedersTotal ->
-            text <| String.fromInt torrent.seedersTotal
-
-        Model.Torrent.Peers ->
-            text <|
-                String.fromInt torrent.peersConnected
-                    ++ " ("
-                    ++ String.fromInt torrent.peersTotal
-                    ++ ")"
-
-        Model.Torrent.PeersConnected ->
-            text <| String.fromInt torrent.peersConnected
-
-        Model.Torrent.PeersTotal ->
-            text <| String.fromInt torrent.peersTotal
-
-        Model.Torrent.Label ->
-            text <| torrent.label
-
-        Model.Torrent.DonePercent ->
-            text <| String.fromFloat torrent.donePercent
-
-
-nonZeroLocalTimeNode : Int -> Html Msg
-nonZeroLocalTimeNode time =
-    if time == 0 then
-        text ""
-
-    else
-        View.Utils.LocalTimeNode.view time

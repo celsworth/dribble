@@ -1,6 +1,6 @@
-module View.Utils.LocalTimeNode exposing (view)
+module View.Utils.LocalTimeNode exposing (nonZeroView, view)
 
-import Html exposing (Html, node)
+import Html exposing (Html, node, text)
 import Html.Attributes exposing (attribute)
 
 
@@ -17,3 +17,12 @@ view time =
     node "local-time"
         [ attribute "posix" (String.fromInt time) ]
         []
+
+
+nonZeroView : Int -> Html msg
+nonZeroView time =
+    if time == 0 then
+        text ""
+
+    else
+        view time

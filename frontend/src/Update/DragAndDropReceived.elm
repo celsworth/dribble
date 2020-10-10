@@ -2,7 +2,6 @@ module Update.DragAndDropReceived exposing (update)
 
 import DnDList
 import Model exposing (..)
-import Model.Config exposing (Config)
 import Model.Table
 import Update.Shared.ConfigHelpers exposing (getTableConfig, tableConfigSetter)
 

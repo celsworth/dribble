@@ -1,6 +1,7 @@
 module Model.TorrentTable exposing (..)
 
 import Model.Attribute exposing (Attribute(..))
+import Model.Sort exposing (SortDirection(..))
 import Model.Table
 import Model.Torrent exposing (Attribute(..))
 
@@ -11,8 +12,8 @@ defaultConfig =
     , layout = Model.Table.Fixed
     , columns = defaultColumns
 
-    -- stored in config.sortBy for now
-    , sortBy = Nothing
+    -- not actually used, stored in config.sortBy for now
+    , sortBy = Model.Attribute.SortBy (Model.Attribute.TorrentAttribute Model.Torrent.CreationTime) Desc
     }
 
 
