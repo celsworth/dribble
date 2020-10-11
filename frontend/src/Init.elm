@@ -28,6 +28,7 @@ init flags =
             Model.TorrentFilter.filterFromConfig config.filter
     in
     ( { config = config
+      , rtorrentSystemInfo = Nothing
       , dnd = (dndSystem Model.Table.Torrents).model
       , websocketConnected = False
       , sortedTorrents = []

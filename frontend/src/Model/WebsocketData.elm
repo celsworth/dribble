@@ -1,5 +1,6 @@
 module Model.WebsocketData exposing (..)
 
+import Model.Rtorrent
 import Model.Torrent exposing (Torrent)
 import Model.Traffic exposing (Traffic)
 
@@ -14,6 +15,7 @@ import Model.Traffic exposing (Traffic)
 
 
 type Data
-    = TorrentsReceived (List Torrent)
+    = SystemInfoReceived Model.Rtorrent.Info
+    | TorrentsReceived (List Torrent)
     | TrafficReceived Traffic
     | Error String

@@ -63,6 +63,10 @@ body {
   text-align: right;
 }
 
+.flex {
+  display: flex;
+}
+
 .resizing-x {
   cursor: col-resize;
 
@@ -366,7 +370,6 @@ body {
 }
 
 .summary {
-  font-size: .7rem;
   display: flex;
   position: relative;
   align-items: stretch;
@@ -376,8 +379,9 @@ body {
   padding: 2px;
   width: 100%;
   height: $summary-height;
-
   white-space: nowrap;
+  font-size: .7rem;
+
   i {
     font-size: .5rem;
   }
@@ -389,6 +393,10 @@ body {
   .disconnected {
     color: red;
   }
+}
+
+.system-info {
+  padding: 0 5px;
 }
 
 .session-traffic {

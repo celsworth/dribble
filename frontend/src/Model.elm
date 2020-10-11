@@ -8,6 +8,7 @@ import Model.Attribute exposing (Attribute)
 import Model.Config exposing (Config)
 import Model.Message exposing (Message)
 import Model.Preferences
+import Model.Rtorrent
 import Model.SpeedChart
 import Model.Table
 import Model.Torrent exposing (TorrentsByHash)
@@ -57,6 +58,7 @@ dndSystem tableType =
 
 type alias Model =
     { config : Config
+    , rtorrentSystemInfo : Maybe Model.Rtorrent.Info
     , dnd : DnDList.Model
     , websocketConnected : Bool
     , sortedTorrents : List String
@@ -76,6 +78,11 @@ type alias Model =
 setConfig : Config -> Model -> Model
 setConfig new model =
     { model | config = new }
+
+
+setRtorrentSystemInfo : Model.Rtorrent.Info -> Model -> Model
+setRtorrentSystemInfo new model =
+    { model | rtorrentSystemInfo = Just new }
 
 
 setWebsocketConnected : Bool -> Model -> Model

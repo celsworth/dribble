@@ -27,14 +27,14 @@ port observeWindowResize : String -> Cmd msg
 port windowResizeObserved : (JE.Value -> msg) -> Sub msg
 
 
-getFullTorrents : Model -> Cmd Msg
-getFullTorrents model =
-    sendMessage (Model.Rtorrent.getFullTorrents model)
+getRtorrentSystemInfo : Cmd Msg
+getRtorrentSystemInfo =
+    sendMessage Model.Rtorrent.getSystemInfo
 
 
-getUpdatedTorrents : Cmd Msg
-getUpdatedTorrents =
-    sendMessage Model.Rtorrent.getUpdatedTorrents
+getTorrents : Model -> Cmd Msg
+getTorrents model =
+    sendMessage (Model.Rtorrent.getTorrents model.config)
 
 
 getTraffic : Cmd Msg

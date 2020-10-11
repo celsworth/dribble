@@ -4,6 +4,7 @@ import Json.Decode as JD
 import Model exposing (..)
 import Model.Message
 import Model.WebsocketData
+import Update.ProcessSystemInfo
 import Update.ProcessTorrents
 import Update.ProcessTraffic
 
@@ -35,6 +36,9 @@ handleWebsocketError errStr model =
 processWebsocketData : Model.WebsocketData.Data -> Model -> ( Model, Cmd Msg )
 processWebsocketData data model =
     case data of
+        Model.WebsocketData.SystemInfoReceived systemInfo ->
+            model |> Update.ProcessSystemInfo.update systemInfo
+
         Model.WebsocketData.TorrentsReceived torrents ->
             model |> Update.ProcessTorrents.update torrents
 

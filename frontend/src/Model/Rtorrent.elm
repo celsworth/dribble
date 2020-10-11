@@ -1,18 +1,70 @@
-module Model.Rtorrent exposing (getFullTorrents, getTraffic, getUpdatedTorrents)
+module Model.Rtorrent exposing (Info, decoder, getSystemInfo, getTorrents, getTraffic, getUpdatedTorrents)
 
+import Json.Decode as D
+import Json.Decode.Pipeline exposing (custom)
 import Json.Encode as E
-import Model exposing (Model)
-import Model.Traffic exposing (Traffic)
+import Model.Config exposing (Config)
 
 
-type alias State =
-    { traffic : List Traffic
-    , version : String
+type alias Info =
+    { hostname : String
+    , listenPort : Int
+    , systemVersion : String
+    , libraryVersion : String
     }
 
 
 
--- WEBSOCKET REQUESTS; TRAFFIC
+-- JSON DECODER
+
+
+decoder : D.Decoder Info
+decoder =
+    D.succeed Info
+        |> custom (D.index 0 stringFromArrayDecoder)
+        |> custom (D.index 1 intFromArrayDecoder)
+        |> custom (D.index 2 stringFromArrayDecoder)
+        |> custom (D.index 3 stringFromArrayDecoder)
+
+
+intFromArrayDecoder : D.Decoder Int
+intFromArrayDecoder =
+    D.index 0 D.int
+
+
+stringFromArrayDecoder : D.Decoder String
+stringFromArrayDecoder =
+    D.index 0 D.string
+
+
+
+-- WEBSOCKET; SYSTEM INFO
+
+
+getSystemInfo : String
+getSystemInfo =
+    E.encode 0 <|
+        E.object
+            [ ( "name", E.string "systemInfo" )
+            , ( "command", getSystemInfoFields )
+            ]
+
+
+getSystemInfoFields : E.Value
+getSystemInfoFields =
+    E.list identity
+        [ E.string "system.multicall"
+        , E.list identity
+            [ encodeMethodWithParams "system.hostname" []
+            , encodeMethodWithParams "network.listen.port" []
+            , encodeMethodWithParams "system.client_version" []
+            , encodeMethodWithParams "system.library_version" []
+            ]
+        ]
+
+
+
+-- WEBSOCKET; TRAFFIC
 
 
 getTraffic : String
@@ -42,13 +94,13 @@ getTrafficFields =
 -- WEBSOCKET; TORRENTS
 
 
-getFullTorrents : Model -> String
-getFullTorrents model =
+getTorrents : Config -> String
+getTorrents config =
     E.encode 0 <|
         E.object
             [ ( "subscribe", E.string "torrentList" )
             , ( "diff", E.bool True )
-            , ( "interval", E.int model.config.refreshDelay )
+            , ( "interval", E.int config.refreshDelay )
             , ( "command", getTorrentFields )
             ]
 

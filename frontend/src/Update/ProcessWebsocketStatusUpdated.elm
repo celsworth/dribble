@@ -17,7 +17,8 @@ update result model =
                 cmd =
                     if connected then
                         Cmd.batch
-                            [ Ports.getFullTorrents model
+                            [ Ports.getRtorrentSystemInfo
+                            , Ports.getTorrents model
                             , Ports.getTraffic
                             ]
 

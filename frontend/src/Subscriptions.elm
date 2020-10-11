@@ -2,6 +2,7 @@ module Subscriptions exposing (..)
 
 import Json.Decode as D
 import Model exposing (..)
+import Model.Rtorrent
 import Model.Table
 import Model.Torrent
 import Model.Traffic
@@ -51,6 +52,7 @@ websocketMessageDecoder : D.Decoder Model.WebsocketData.Data
 websocketMessageDecoder =
     D.oneOf
         [ errorDecoder
+        , systemInfoDecoder
         , torrentListDecoder
         , trafficDecoder
         ]
@@ -60,6 +62,12 @@ errorDecoder : D.Decoder Model.WebsocketData.Data
 errorDecoder =
     D.map Model.WebsocketData.Error <|
         D.field "error" D.string
+
+
+systemInfoDecoder : D.Decoder Model.WebsocketData.Data
+systemInfoDecoder =
+    D.map Model.WebsocketData.SystemInfoReceived <|
+        D.field "systemInfo" Model.Rtorrent.decoder
 
 
 torrentListDecoder : D.Decoder Model.WebsocketData.Data

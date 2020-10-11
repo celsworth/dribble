@@ -83,8 +83,9 @@ class Dribble < Sinatra::Application
                              command: data['command'])
       websocket.add_subscription(s, sub)
     else
-      # TODO; non-subscribe commands
-      raise NotImplementedError
+      # TODO: move this into a class?
+      rtorrent = Rtorrent.new(settings.rtorrent_host, settings.rtorrent_port)
+      websocket.send(data['name'] => rtorrent.call(*data['command']))
     end
   end
 end

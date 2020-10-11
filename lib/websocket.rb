@@ -23,8 +23,12 @@ class Websocket
 
       data = run_handling_error(name, subscription)
 
-      @socket.send(JSON.generate(data)) if data
+      send(data) if data
     end
+  end
+
+  def send(data)
+    @socket.send(JSON.generate(data))
   end
 
   private
