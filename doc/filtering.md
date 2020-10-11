@@ -47,15 +47,22 @@ Valid fields and operators are listed below. Note the difference in behaviour be
 Most of these are self explanatory.
 
 ```
-name    (string)
-size    (size)
-done    (float)  # percentage, use 0-100
-label   (string)
-peers   (int)    # Peers Total
-ratio   (float)
+name       (string)
+label      (string)
+done       (float)  # percentage, use 0-100
+ratio      (float)
+size       (size)
+downloaded (size)   # bytes downloaded
+uploaded   (size)   # bytes uploaded
+down       (size)   # download speed (bytes/sec)
+up         (size)   # up speed (bytes/sec)
+seeders    (int)    # Seeders Total
+seedersc   (int)    # Seeders Connected
+peers      (int)    # Peers Total
+peersc     (int)    # Peers Connected
 ```
 
-> TODO: add the rest :)
+> TODO: dates..
 
 
 ### Operators
@@ -82,8 +89,6 @@ For size/int/float fields:
 <=      # less than or equal to
 ```
 
-> TODO: add more, anything you could think of
-
 Size fields (torrent size, downloaded, uploaded) behave like int fields but also accept suffixes to make writing sizes easier. These are `K`, `M`, `G`, and `T`. You can also add on an `i` to make them Base2, eg `Mi`. The trailing `b` is optional, so `M` and `MB` are equivalent. Finally, all these suffixes are entirely case-insensitive. `Mi`, `MiB`, `mi`, and `mib` are all equivalent.
 
 ```
@@ -93,9 +98,4 @@ size<100MB   # size below 100MB
 size<100mib  # size below 100MiB ; suffixes are all case-insensitive
 ```
 
-
-
-TODO: exact match in field operators?
-
-> name="foo"
 

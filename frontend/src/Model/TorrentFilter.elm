@@ -61,8 +61,15 @@ type FilterComponent
     = Name StringOp
     | Label StringOp
     | Size NumberOp Int SizeSuffix
+    | Downloaded NumberOp Int SizeSuffix
+    | Uploaded NumberOp Int SizeSuffix
+    | DownRate NumberOp Int SizeSuffix
+    | UpRate NumberOp Int SizeSuffix
     | Done NumberOp Float
-    | Peers NumberOp Int
+    | SeedersConnected NumberOp Int
+    | SeedersTotal NumberOp Int
+    | PeersConnected NumberOp Int
+    | PeersTotal NumberOp Int
     | Ratio NumberOp Float
 
 
@@ -151,7 +158,28 @@ torrentMatchesComponent torrent filter =
         Size op num suffix ->
             sizeSuffixMatcher torrent .size op num suffix
 
-        Peers op num ->
+        Downloaded op num suffix ->
+            sizeSuffixMatcher torrent .downloadedBytes op num suffix
+
+        Uploaded op num suffix ->
+            sizeSuffixMatcher torrent .uploadedBytes op num suffix
+
+        DownRate op num suffix ->
+            sizeSuffixMatcher torrent .downloadRate op num suffix
+
+        UpRate op num suffix ->
+            sizeSuffixMatcher torrent .uploadRate op num suffix
+
+        SeedersConnected op num ->
+            numberMatcher torrent .seedersConnected op num
+
+        SeedersTotal op num ->
+            numberMatcher torrent .seedersTotal op num
+
+        PeersConnected op num ->
+            numberMatcher torrent .peersConnected op num
+
+        PeersTotal op num ->
             numberMatcher torrent .peersTotal op num
 
         Done op num ->
@@ -302,11 +330,11 @@ parseFilterComponents filters =
 
 parseFilterComponent : Parser FilterComponent
 parseFilterComponent =
-    oneOf [ parseExactMatch, parseOp, parseShortcutRegex ]
+    oneOf [ parseShortcutNameContains, parseFieldOp, parseShortcutNameRegex ]
 
 
-parseOp : Parser FilterComponent
-parseOp =
+parseFieldOp : Parser FilterComponent
+parseFieldOp =
     oneOf [ parseStringField, parseSizeField, parseIntField, parseFloatOp ]
 
 
@@ -363,10 +391,13 @@ parseReStringOp =
 parseIntField : Parser FilterComponent
 parseIntField =
     oneOf
-        [ P.map (\_ -> Peers) (P.keyword "peers")
+        [ P.map (\_ -> SeedersTotal) (P.keyword "seeders")
+        , P.map (\_ -> SeedersConnected) (P.keyword "seedersc")
+        , P.map (\_ -> PeersTotal) (P.keyword "peers")
+        , P.map (\_ -> PeersConnected) (P.keyword "peersc")
         ]
         |. P.spaces
-        |= numberOpParser
+        |= parseNumberOp
         |. P.spaces
         |= P.int
 
@@ -378,7 +409,7 @@ parseFloatOp =
         , P.map (\_ -> Done) (P.keyword "done")
         ]
         |. P.spaces
-        |= numberOpParser
+        |= parseNumberOp
         |. P.spaces
         |= P.float
 
@@ -387,16 +418,20 @@ parseSizeField : Parser FilterComponent
 parseSizeField =
     oneOf
         [ P.map (\_ -> Size) (P.keyword "size")
+        , P.map (\_ -> Downloaded) (P.keyword "downloaded")
+        , P.map (\_ -> Uploaded) (P.keyword "uploaded")
+        , P.map (\_ -> DownRate) (P.keyword "down")
+        , P.map (\_ -> UpRate) (P.keyword "up")
         ]
         |. P.spaces
-        |= numberOpParser
+        |= parseNumberOp
         |. P.spaces
         |= P.int
-        |= sizeSuffixParser
+        |= parseSizeSuffix
 
 
-numberOpParser : Parser NumberOp
-numberOpParser =
+parseNumberOp : Parser NumberOp
+parseNumberOp =
     oneOf
         [ P.map (\_ -> EqNum) (symbol "=")
         , P.map (\_ -> NotEqNum) (symbol "!=")
@@ -407,8 +442,8 @@ numberOpParser =
         ]
 
 
-sizeSuffixParser : Parser SizeSuffix
-sizeSuffixParser =
+parseSizeSuffix : Parser SizeSuffix
+parseSizeSuffix =
     oneOf
         [ P.map (\_ -> KiB) <| oneOf [ symbol "Ki", symbol "ki" ]
         , P.map (\_ -> MiB) <| oneOf [ symbol "Mi", symbol "mi" ]
@@ -426,8 +461,8 @@ sizeSuffixParser =
             ]
 
 
-parseExactMatch : Parser FilterComponent
-parseExactMatch =
+parseShortcutNameContains : Parser FilterComponent
+parseShortcutNameContains =
     P.map (Name << Contains << toCs) <|
         P.succeed identity
             |. symbol "\""
@@ -435,8 +470,8 @@ parseExactMatch =
             |. symbol "\""
 
 
-parseShortcutRegex : Parser FilterComponent
-parseShortcutRegex =
+parseShortcutNameRegex : Parser FilterComponent
+parseShortcutNameRegex =
     P.map (Name << Matches << toRe) <|
         P.succeed identity
             |= (P.getChompedString <| P.chompUntilEndOr " ")
