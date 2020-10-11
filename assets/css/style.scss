@@ -13,8 +13,9 @@ $progress-fill-color: #8d8;
 $white: #fff;
 
 $header-height: 40px;
-$footer-height: 200px;
-$torrents-height: calc(100vh - #{$footer-height} - #{$header-height});
+$details-height: 200px;
+$summary-height: 20px;
+$torrents-height: calc(100vh - #{$summary-height} - #{$details-height} - #{$header-height});
 
 
 @mixin unselectable {
@@ -129,8 +130,9 @@ body {
     display: flex;
   }
 
-  .name-filter {
+  .filter {
     margin-right: 10px;
+    width: 200px;
 
     &.error {
       background-color: #ecc;
@@ -329,7 +331,7 @@ body {
   }
 }
 
-.footer {
+.details {
   display: flex;
   position: relative;
   align-items: stretch;
@@ -338,7 +340,7 @@ body {
   background: #eee;
   padding: 5px;
   width: 100%;
-  height: $footer-height;
+  height: $details-height;
 }
 
 .speed-chart {
@@ -348,10 +350,10 @@ body {
   // 1000x400 in SpeedChart.elm though this is plot area only. Margins and axes
   // etc end up making it around 1132x474 = 2.388
   //
-  // width must be set, height auto-calculated. Remove some footer-height
+  // width must be set, height auto-calculated. Remove some details-height
   // to account for padding and borders etc. It's close enough tbh. If it's too wide
   // then content disappears off the bottom of the chart.
-  width: ($footer-height - 13px) * 2.4;
+  width: ($details-height - 13px) * 2.4;
   font-size: .8rem;
 
   &:hover {
@@ -360,6 +362,45 @@ body {
     bottom: 5px;
     width: 90%;
     height: auto;
+  }
+}
+
+.summary {
+  font-size: .7rem;
+  display: flex;
+  position: relative;
+  align-items: stretch;
+  justify-content: space-between;
+  border-top: 1px solid $table-border-colour;
+  background: #eee;
+  padding: 2px;
+  width: 100%;
+  height: $summary-height;
+
+  white-space: nowrap;
+  i {
+    font-size: .5rem;
+  }
+
+  .connected {
+    color: green;
+  }
+
+  .disconnected {
+    color: red;
+  }
+}
+
+.session-traffic {
+  display: flex;
+
+  .fas {
+    padding-right: 5px;
+  }
+
+  .stat {
+    border-left: 1px solid #888;
+    padding: 0 5px;
   }
 }
 

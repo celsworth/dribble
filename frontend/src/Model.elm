@@ -30,7 +30,7 @@ type Msg
     | TogglePreferencesVisible
     | ToggleLogsVisible
     | SetHamburgerMenuVisible Bool
-    | TorrentNameFilterChanged String
+    | TorrentFilterChanged String
     | ToggleTorrentAttributeVisibility Model.Torrent.Attribute
     | SetSortBy Model.Attribute.Attribute
     | SpeedChartHover (List Model.SpeedChart.DataSeries)

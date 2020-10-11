@@ -18,16 +18,21 @@ import Model.Traffic exposing (Traffic)
 update : Traffic -> Model -> ( Model, Cmd Msg )
 update traffic model =
     let
+        prevTraffic =
+            Maybe.withDefault traffic model.prevTraffic
+
+        newPrevTraffic =
+            trafficDiff traffic prevTraffic
+
         newTraffic =
-            Maybe.map (appendTrafficDiff model traffic) model.prevTraffic
-                |> Maybe.withDefault []
+            appendTraffic model newPrevTraffic
     in
-    { model | prevTraffic = Just traffic, traffic = newTraffic } |> noCmd
+    { model | prevTraffic = Just newPrevTraffic, traffic = newTraffic } |> noCmd
 
 
-appendTrafficDiff : Model -> Traffic -> Traffic -> List Traffic
-appendTrafficDiff model traffic prevTraffic =
-    List.append model.traffic [ trafficDiff traffic prevTraffic ]
+appendTraffic : Model -> Traffic -> List Traffic
+appendTraffic model new =
+    List.append model.traffic [ new ]
 
 
 trafficDiff : Traffic -> Traffic -> Traffic

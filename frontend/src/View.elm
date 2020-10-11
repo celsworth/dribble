@@ -11,6 +11,7 @@ import View.Logs
 import View.Messages
 import View.Preferences
 import View.SpeedChart
+import View.Summary
 import View.TorrentTable
 
 
@@ -22,10 +23,11 @@ view model =
         , View.Messages.view model
         , navigation model
         , View.TorrentTable.view model
-        , section [ class "footer" ]
+        , section [ class "details" ]
             [ div [] [ text "test" ]
             , View.SpeedChart.view model
             ]
+        , View.Summary.view model
         ]
 
 
@@ -68,19 +70,19 @@ navigation model =
             , button [ onClick SaveConfigClicked ] [ text "Save Config" ]
             ]
         , div [ class "flex-container" ]
-            [ Html.Lazy.lazy nameFilterInput model.config.filter.filter
+            [ Html.Lazy.lazy filterInput model.config.filter.filter
             , Html.Lazy.lazy hamburgerButton model.hamburgerMenuVisible
             ]
         ]
 
 
-nameFilterInput : String -> Html Msg
-nameFilterInput nameFilter =
+filterInput : String -> Html Msg
+filterInput filter =
     input
-        [ placeholder "Regex Filter"
-        , class "name-filter"
-        , value nameFilter
-        , onInput TorrentNameFilterChanged
+        [ placeholder "Filter"
+        , class "filter"
+        , value filter
+        , onInput TorrentFilterChanged
         , type_ "text"
         ]
         []

@@ -19,7 +19,7 @@ import Update.SetSortBy
 import Update.StartResizeOp
 import Update.ToggleTorrentAttributeVisibility
 import Update.ToggleWindowVisible
-import Update.TorrentNameFilterChanged
+import Update.TorrentFilterChanged
 import Update.WindowResized
 
 
@@ -81,8 +81,8 @@ update msg model =
                 |> andThen (Update.ToggleWindowVisible.update Model.Window.Logs)
                 |> andThen Update.SaveConfig.update
 
-        TorrentNameFilterChanged value ->
-            r |> andThen (Update.TorrentNameFilterChanged.update value)
+        TorrentFilterChanged value ->
+            r |> andThen (Update.TorrentFilterChanged.update value)
 
         ToggleTorrentAttributeVisibility attribute ->
             r

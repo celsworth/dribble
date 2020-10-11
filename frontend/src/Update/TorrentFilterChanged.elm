@@ -1,4 +1,4 @@
-module Update.TorrentNameFilterChanged exposing (update)
+module Update.TorrentFilterChanged exposing (update)
 
 import Model exposing (..)
 import Model.Config
