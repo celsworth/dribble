@@ -73,7 +73,7 @@ getTraffic =
         E.object
             [ ( "subscribe", E.string "trafficRate" )
             , ( "diff", E.bool False )
-            , ( "interval", E.int 5 )
+            , ( "interval", E.int 10 )
             , ( "command", getTrafficFields )
             ]
 
