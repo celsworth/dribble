@@ -78,7 +78,9 @@ For string fields:
 !~      # does not match
 ```
 
-For size/int/float fields:
+Granted, some of these read a bit oddly, but I started with `~` to mean Regex, then figured that entire string equality wouldn't be used that often so relegated it to the longer `==`, which left `=` for contains. Suggestions for other symbols welcome.
+
+size/int/float fields make a bit more sense:
 
 ```
 =       # equal to

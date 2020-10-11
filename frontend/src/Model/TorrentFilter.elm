@@ -19,7 +19,6 @@ import Regex exposing (Regex)
 
 type Filter
     = Filters (List FilterComponent)
-    | Unset
 
 
 type StringOp
@@ -138,9 +137,6 @@ torrentMatches torrent filter =
     case filter.filter of
         Ok (Filters filters) ->
             List.all (torrentMatchesComponent torrent) filters
-
-        Ok Unset ->
-            True
 
         Err _ ->
             False
