@@ -5,6 +5,7 @@ import Model.Sort exposing (SortDirection(..))
 import Model.Torrent
     exposing
         ( Attribute(..)
+        , Priority(..)
         , Sort(..)
         , Status(..)
         , Torrent
@@ -78,6 +79,9 @@ comparator direction attribute a b =
 
         Ratio ->
             maybeReverse direction <| cmp a b (.ratio >> infiniteToFloat)
+
+        Priority ->
+            maybeReverse direction <| cmp a b (.priority >> priorityToInt)
 
         Seeders ->
             -- NOTREACHED
@@ -183,3 +187,20 @@ statusToInt status =
 
         Hashing ->
             5
+
+
+priorityToInt : Priority -> Int
+priorityToInt priority =
+    {- convert Priority to a comparable value for sorting -}
+    case priority of
+        Off ->
+            0
+
+        LowPriority ->
+            1
+
+        NormalPriority ->
+            2
+
+        HighPriority ->
+            3

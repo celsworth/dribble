@@ -81,6 +81,11 @@ defaultColumns =
       , auto = False
       , visible = True
       }
+    , { attribute = TorrentAttribute Priority
+      , width = 60
+      , auto = False
+      , visible = True
+      }
     , { attribute = TorrentAttribute Seeders
       , width = 60
       , auto = False

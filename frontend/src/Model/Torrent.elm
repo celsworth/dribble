@@ -23,6 +23,13 @@ type HashingStatus
     | Rehash
 
 
+type Priority
+    = Off
+    | LowPriority
+    | NormalPriority
+    | HighPriority
+
+
 type Sort
     = SortBy Attribute SortDirection
 
@@ -40,6 +47,7 @@ type Attribute
     | UploadRate
     | Ratio
     | Seeders
+    | Priority
     | SeedersConnected
     | SeedersTotal
     | Peers
@@ -66,6 +74,7 @@ type alias Torrent =
     , isActive : Bool
     , hashing : HashingStatus
     , message : String
+    , priority : Priority
     , seedersConnected : Int
     , seedersTotal : Int
     , peersConnected : Int
@@ -145,21 +154,23 @@ decoder =
         |> custom (D.index 12 intToHashingStatusDecoder)
         -- message
         |> custom (D.index 13 D.string)
+        -- priority
+        |> custom (D.index 14 intToPriorityDecoder)
         -- seedersConnected
-        |> custom (D.index 14 D.int)
+        |> custom (D.index 15 D.int)
         -- seedersTotal
-        |> custom (D.index 15 D.string)
+        |> custom (D.index 16 D.string)
         -- peersConnected
-        |> custom (D.index 16 D.int)
+        |> custom (D.index 17 D.int)
         -- peersTotal
-        |> custom (D.index 17 D.string)
-        -- label
         |> custom (D.index 18 D.string)
+        -- label
+        |> custom (D.index 19 D.string)
         |> Pipeline.resolve
 
 
-internalDecoder : String -> String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Bool -> Bool -> HashingStatus -> String -> Int -> String -> Int -> String -> String -> D.Decoder Torrent
-internalDecoder hash name size creationTime startedTime finishedTime downloadedBytes downloadRate uploadedBytes uploadRate isOpen isActive hashing message seedersConnected seedersTotal peersConnected peersTotal label =
+internalDecoder : String -> String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Bool -> Bool -> HashingStatus -> String -> Priority -> Int -> String -> Int -> String -> String -> D.Decoder Torrent
+internalDecoder hash name size creationTime startedTime finishedTime downloadedBytes downloadRate uploadedBytes uploadRate isOpen isActive hashing message priority seedersConnected seedersTotal peersConnected peersTotal label =
     let
         -- after decoder is done, we can add further internal fields here
         donePercent =
@@ -192,6 +203,7 @@ internalDecoder hash name size creationTime startedTime finishedTime downloadedB
             isActive
             hashing
             message
+            priority
             seedersConnected
             (Maybe.withDefault 0 <| String.toInt seedersTotal)
             peersConnected
@@ -288,46 +300,47 @@ intToHashingStatusDecoder =
             )
 
 
+intToPriorityDecoder : D.Decoder Priority
+intToPriorityDecoder =
+    D.int
+        |> D.andThen
+            (\input ->
+                case input of
+                    0 ->
+                        D.succeed Off
+
+                    1 ->
+                        D.succeed LowPriority
+
+                    2 ->
+                        D.succeed NormalPriority
+
+                    3 ->
+                        D.succeed HighPriority
+
+                    _ ->
+                        D.fail <| "cannot convert to Priority: " ++ String.fromInt input
+            )
+
+
 
 -- MISC
 
 
-infiniteToFloat : Float -> Float
-infiniteToFloat ratio =
-    case ( isNaN ratio, isInfinite ratio ) of
-        ( True, _ ) ->
-            -- keep NaN at the bottom
-            -1
+priorityToString : Priority -> String
+priorityToString priority =
+    case priority of
+        Off ->
+            "off"
 
-        ( _, True ) ->
-            -- keep infinite at the top
-            99999999999
+        LowPriority ->
+            "low"
 
-        ( _, _ ) ->
-            ratio
+        NormalPriority ->
+            "normal"
 
-
-statusToInt : Status -> Int
-statusToInt status =
-    {- convert Status to a comparable value for sorting -}
-    case status of
-        Seeding ->
-            0
-
-        Errored ->
-            1
-
-        Downloading ->
-            2
-
-        Paused ->
-            3
-
-        Stopped ->
-            4
-
-        Hashing ->
-            5
+        HighPriority ->
+            "high"
 
 
 
@@ -372,6 +385,9 @@ attributeToKey attribute =
 
         Seeders ->
             "seeders"
+
+        Priority ->
+            "priority"
 
         SeedersConnected ->
             "seedersConnected"
@@ -430,6 +446,9 @@ keyToAttribute str =
 
         "ratio" ->
             Just Ratio
+
+        "priority" ->
+            Just Priority
 
         "seedersConnected" ->
             Just SeedersConnected
@@ -527,6 +546,9 @@ attributeToString attribute =
 
         Ratio ->
             "Ratio"
+
+        Priority ->
+            "Priority"
 
         SeedersConnected ->
             "Seeders Connected"

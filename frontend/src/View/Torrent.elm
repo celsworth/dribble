@@ -70,6 +70,9 @@ attributeAccessor humanise torrent attribute =
                     ( True, _ ) ->
                         "∞"
 
+        Model.Torrent.Priority ->
+            text <| Model.Torrent.priorityToString torrent.priority
+
         Model.Torrent.Seeders ->
             text <|
                 String.fromInt torrent.seedersConnected

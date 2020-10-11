@@ -139,6 +139,7 @@ getTorrentFields =
         , "d.is_active="
         , "d.hashing="
         , "d.message="
+        , "d.priority="
 
         -- seeders (connected)?
         , "d.peers_complete="
