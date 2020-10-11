@@ -42,17 +42,17 @@ defaultColumns =
       , visible = True
       }
     , { attribute = TorrentAttribute CreationTime
-      , width = 146
+      , width = 150
       , auto = False
       , visible = True
       }
     , { attribute = TorrentAttribute StartedTime
-      , width = 146
+      , width = 150
       , auto = False
       , visible = True
       }
     , { attribute = TorrentAttribute FinishedTime
-      , width = 146
+      , width = 150
       , auto = False
       , visible = True
       }

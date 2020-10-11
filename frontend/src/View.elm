@@ -68,7 +68,7 @@ navigation model =
             , button [ onClick SaveConfigClicked ] [ text "Save Config" ]
             ]
         , div [ class "flex-container" ]
-            [ Html.Lazy.lazy nameFilterInput model.config.filter.name
+            [ Html.Lazy.lazy nameFilterInput model.config.filter.filter
             , Html.Lazy.lazy hamburgerButton model.hamburgerMenuVisible
             ]
         ]

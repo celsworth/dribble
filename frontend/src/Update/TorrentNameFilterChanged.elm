@@ -9,7 +9,7 @@ update : String -> Model -> ( Model, Cmd Msg )
 update value model =
     let
         newFilterConfig =
-            model.config.filter |> Model.TorrentFilter.setName value
+            model.config.filter |> Model.TorrentFilter.setFilter value
 
         newConfig =
             model.config |> Model.Config.setFilter newFilterConfig
