@@ -26,8 +26,8 @@ type StringOp
     | NotEqStr CaseSensititivy
     | Contains CaseSensititivy
     | NotContains CaseSensititivy
-    | Matches (Maybe Regex)
-    | NotMatches (Maybe Regex)
+    | Matches Regex
+    | NotMatches Regex
 
 
 type CaseSensititivy
@@ -265,14 +265,9 @@ csContains cs str =
             String.contains term (String.toLower str)
 
 
-reMatch : Maybe Regex -> String -> Bool
+reMatch : Regex -> String -> Bool
 reMatch re str =
-    case re of
-        Just x ->
-            Regex.contains x str
-
-        _ ->
-            False
+    Regex.contains re str
 
 
 numberMatcher : Torrent -> (Torrent -> number) -> NumberOp -> number -> Bool
@@ -358,7 +353,7 @@ parseCsExactStringOp =
         ]
         |. P.spaces
         |. symbol "\""
-        |= P.map toCs (P.getChompedString <| P.chompUntil "\"")
+        |= (P.chompUntilEndOr "\"" |> P.getChompedString |> P.andThen toCs)
         |. symbol "\""
 
 
@@ -371,7 +366,7 @@ parseCsStringOp =
         , P.map (\_ -> NotEqStr) (symbol "!==")
         ]
         |. P.spaces
-        |= P.map toCs (P.getChompedString <| P.chompUntilEndOr " ")
+        |= (P.chompUntilEndOr " " |> P.getChompedString |> P.andThen toCs)
 
 
 parseReStringOp : Parser StringOp
@@ -381,7 +376,7 @@ parseReStringOp =
         , P.map (\_ -> NotMatches) (symbol "!~")
         ]
         |. P.spaces
-        |= P.map toRe (P.getChompedString <| P.chompUntilEndOr " ")
+        |= (P.chompUntilEndOr " " |> P.getChompedString |> P.andThen toRe)
 
 
 parseIntField : Parser FilterComponent
@@ -459,36 +454,42 @@ parseSizeSuffix =
 
 parseShortcutNameContains : Parser FilterComponent
 parseShortcutNameContains =
-    P.map (Name << Contains << toCs) <|
-        P.succeed identity
+    P.map Name <|
+        P.succeed Contains
             |. symbol "\""
-            |= (P.getChompedString <| P.chompUntil "\"")
+            |= (P.chompUntil "\"" |> P.getChompedString |> P.andThen toCs)
             |. symbol "\""
 
 
 parseShortcutNameRegex : Parser FilterComponent
 parseShortcutNameRegex =
-    P.map (Name << Matches << toRe) <|
-        P.succeed identity
-            |= (P.getChompedString <| P.chompUntilEndOr " ")
+    P.map Name <|
+        P.map Matches <|
+            (P.chompUntilEndOr " " |> P.getChompedString |> P.andThen toRe)
 
 
-toCs : String -> CaseSensititivy
+toCs : String -> Parser CaseSensititivy
 toCs str =
     -- this enables smart case search.
     -- If the term has any uppercase, store it under CaseSensitive.
     -- later we will not do toLower on the target string to make this work.
     if String.any Char.isUpper str then
-        CaseSensitive str
+        P.succeed <| CaseSensitive str
 
     else
-        CaseInsensitive str
+        P.succeed <| CaseInsensitive str
 
 
-toRe : String -> Maybe Regex
+toRe : String -> Parser Regex
 toRe str =
     let
         caseInsensitive =
             not (String.any Char.isUpper str)
     in
-    str |> Regex.fromStringWith { caseInsensitive = caseInsensitive, multiline = False }
+    str
+        |> Regex.fromStringWith
+            { caseInsensitive = caseInsensitive
+            , multiline = False
+            }
+        |> Maybe.map P.succeed
+        |> Maybe.withDefault (P.problem "invalid regexp")
