@@ -34,6 +34,7 @@ type Msg
     | TorrentFilterChanged String
     | ToggleTorrentAttributeVisibility Model.Torrent.Attribute
     | SetSortBy Model.Attribute.Attribute
+    | TorrentRowSelected String
     | SpeedChartHover (List Model.SpeedChart.DataSeries)
     | Tick Time.Posix
     | WebsocketData (Result JD.Error Model.WebsocketData.Data)
@@ -61,6 +62,7 @@ type alias Model =
     , rtorrentSystemInfo : Maybe Model.Rtorrent.Info
     , dnd : DnDList.Model
     , websocketConnected : Bool
+    , selectedTorrentHash : Maybe String
     , sortedTorrents : List String
     , torrentsByHash : TorrentsByHash
     , torrentFilter : TorrentFilter
@@ -93,6 +95,11 @@ setWebsocketConnected new model =
 setSortedTorrents : List String -> Model -> Model
 setSortedTorrents new model =
     { model | sortedTorrents = new }
+
+
+setSelectedTorrentHash : String -> Model -> Model
+setSelectedTorrentHash new model =
+    { model | selectedTorrentHash = Just new }
 
 
 setTorrentsByHash : TorrentsByHash -> Model -> Model

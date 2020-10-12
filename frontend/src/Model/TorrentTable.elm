@@ -76,6 +76,11 @@ defaultColumns =
       , auto = False
       , visible = True
       }
+    , { attribute = TorrentAttribute SkippedBytes
+      , width = 75
+      , auto = False
+      , visible = True
+      }
     , { attribute = TorrentAttribute Ratio
       , width = 60
       , auto = False

@@ -53,6 +53,9 @@ attributeAccessor humanise torrent attribute =
         Model.Torrent.UploadedBytes ->
             text <| Utils.Filesize.formatWith humanise.size torrent.uploadedBytes
 
+        Model.Torrent.SkippedBytes ->
+            text <| Utils.Filesize.formatWith humanise.size torrent.skippedBytes
+
         Model.Torrent.UploadRate ->
             text <|
                 Maybe.withDefault "" (humanByteSpeed torrent.uploadRate)

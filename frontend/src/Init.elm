@@ -31,6 +31,7 @@ init flags =
       , rtorrentSystemInfo = Nothing
       , dnd = (dndSystem Model.Table.Torrents).model
       , websocketConnected = False
+      , selectedTorrentHash = Nothing
       , sortedTorrents = []
       , torrentsByHash = Dict.empty
       , torrentFilter = torrentFilter

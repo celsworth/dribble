@@ -176,10 +176,10 @@ body {
   color: #555;
 
   ul {
-    white-space: nowrap;
-    list-style: none;
-    padding: 0;
     margin: 0;
+    padding: 0;
+    list-style: none;
+    white-space: nowrap;
 
     i {
       width: 30px;
@@ -190,8 +190,8 @@ body {
       padding: 10px 20px;
 
       &:hover {
-        color: white;
         background: #6af;
+        color: white;
       }
     }
 
@@ -501,6 +501,13 @@ thead {
   position: sticky; // don't scroll off top
   top: 0;
   z-index: 1; // stop progress-bars overlaying headers
+}
+
+tr {
+  &.selected {
+    background-color: rgb(58, 121, 245);
+    color: #fff;
+  }
 }
 
 th {

@@ -7,10 +7,10 @@ import Html.Events.Extra.Mouse
 import Html.Lazy
 import Model exposing (..)
 import Model.Table
+import View.Details
 import View.Logs
 import View.Messages
 import View.Preferences
-import View.SpeedChart
 import View.Summary
 import View.TorrentTable
 
@@ -23,10 +23,7 @@ view model =
         , View.Messages.view model
         , navigation model
         , View.TorrentTable.view model
-        , section [ class "details" ]
-            [ div [] [ text "test" ]
-            , View.SpeedChart.view model
-            ]
+        , View.Details.view model
         , View.Summary.view model
         ]
 

@@ -94,6 +94,9 @@ update msg model =
                 |> andThen (Update.SetSortBy.update attribute)
                 |> andThen Update.SaveConfig.update
 
+        TorrentRowSelected hash ->
+            r |> andThen (call setSelectedTorrentHash hash)
+
         SpeedChartHover data ->
             r |> andThen (call setSpeedChartHover data)
 

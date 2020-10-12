@@ -113,8 +113,8 @@ getUpdatedTorrents =
 
 getTorrentFields : E.Value
 getTorrentFields =
-    -- TODO: status, ratio
-    -- peers, seeds, priority, remaining, save path
+    -- TODO:
+    -- remaining, save path
     -- ratio group, channel, tracker update time (last_scrape)
     --
     -- probably don't need everything immediately, some can wait..
@@ -135,19 +135,20 @@ getTorrentFields =
         , "d.down.rate="
         , "d.up.total="
         , "d.up.rate="
+        , "d.skip.total="
         , "d.is_open="
         , "d.is_active="
         , "d.hashing="
         , "d.message="
         , "d.priority="
 
-        -- seeders (connected)?
+        -- seeders (connected)
         , "d.peers_complete="
 
         -- seeders (not connected)
         , "cat=\"$t.multicall=d.hash=,t.scrape_complete=,cat={}\""
 
-        -- peers connected ?
+        -- peers (connected)
         , "d.peers_accounted="
 
         -- peers (not connected)

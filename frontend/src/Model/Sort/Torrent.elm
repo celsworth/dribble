@@ -77,6 +77,9 @@ comparator direction attribute a b =
         UploadRate ->
             maybeReverse direction <| cmp a b .uploadRate
 
+        SkippedBytes ->
+            maybeReverse direction <| cmp a b .skippedBytes
+
         Ratio ->
             maybeReverse direction <| cmp a b (.ratio >> infiniteToFloat)
 

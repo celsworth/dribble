@@ -45,6 +45,7 @@ type Attribute
     | DownloadRate
     | UploadedBytes
     | UploadRate
+    | SkippedBytes
     | Ratio
     | Seeders
     | Priority
@@ -69,6 +70,7 @@ type alias Torrent =
     , downloadRate : Int
     , uploadedBytes : Int
     , uploadRate : Int
+    , skippedBytes : Int
     , ratio : Float
     , isOpen : Bool
     , isActive : Bool
@@ -146,31 +148,33 @@ decoder =
         |> custom (D.index 8 D.int)
         -- uploadRate
         |> custom (D.index 9 D.int)
+        -- skippedBytes
+        |> custom (D.index 10 D.int)
         -- open
-        |> custom (D.index 10 intToBoolDecoder)
-        -- active
         |> custom (D.index 11 intToBoolDecoder)
+        -- active
+        |> custom (D.index 12 intToBoolDecoder)
         -- hashing
-        |> custom (D.index 12 intToHashingStatusDecoder)
+        |> custom (D.index 13 intToHashingStatusDecoder)
         -- message
-        |> custom (D.index 13 D.string)
+        |> custom (D.index 14 D.string)
         -- priority
-        |> custom (D.index 14 intToPriorityDecoder)
+        |> custom (D.index 15 intToPriorityDecoder)
         -- seedersConnected
-        |> custom (D.index 15 D.int)
+        |> custom (D.index 16 D.int)
         -- seedersTotal
-        |> custom (D.index 16 D.string)
+        |> custom (D.index 17 D.string)
         -- peersConnected
-        |> custom (D.index 17 D.int)
+        |> custom (D.index 18 D.int)
         -- peersTotal
-        |> custom (D.index 18 D.string)
-        -- label
         |> custom (D.index 19 D.string)
+        -- label
+        |> custom (D.index 20 D.string)
         |> Pipeline.resolve
 
 
-internalDecoder : String -> String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Bool -> Bool -> HashingStatus -> String -> Priority -> Int -> String -> Int -> String -> String -> D.Decoder Torrent
-internalDecoder hash name size creationTime startedTime finishedTime downloadedBytes downloadRate uploadedBytes uploadRate isOpen isActive hashing message priority seedersConnected seedersTotal peersConnected peersTotal label =
+internalDecoder : String -> String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Bool -> Bool -> HashingStatus -> String -> Priority -> Int -> String -> Int -> String -> String -> D.Decoder Torrent
+internalDecoder hash name size creationTime startedTime finishedTime downloadedBytes downloadRate uploadedBytes uploadRate skippedBytes isOpen isActive hashing message priority seedersConnected seedersTotal peersConnected peersTotal label =
     let
         -- after decoder is done, we can add further internal fields here
         donePercent =
@@ -198,6 +202,7 @@ internalDecoder hash name size creationTime startedTime finishedTime downloadedB
             downloadRate
             uploadedBytes
             uploadRate
+            skippedBytes
             ratio
             isOpen
             isActive
@@ -380,6 +385,9 @@ attributeToKey attribute =
         UploadRate ->
             "uploadRate"
 
+        SkippedBytes ->
+            "skippedBytes"
+
         Ratio ->
             "ratio"
 
@@ -443,6 +451,9 @@ keyToAttribute str =
 
         "uploadRate" ->
             Just UploadRate
+
+        "skippedBytes" ->
+            Just SkippedBytes
 
         "ratio" ->
             Just Ratio
@@ -544,6 +555,9 @@ attributeToString attribute =
         UploadRate ->
             "Upload Rate"
 
+        SkippedBytes ->
+            "Skipped"
+
         Ratio ->
             "Ratio"
 
@@ -591,6 +605,9 @@ attributeTextAlignment attribute =
             Just "text-right"
 
         UploadRate ->
+            Just "text-right"
+
+        SkippedBytes ->
             Just "text-right"
 
         CreationTime ->
