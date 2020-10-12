@@ -10,6 +10,9 @@ $th-border-left: #fff;
 $progress-border-color: #bbb;
 $progress-fill-color: #8d8;
 
+$selected-row-color: #fff;
+$selected-row-background-color: rgb(58, 121, 245);
+
 $white: #fff;
 
 $header-height: 40px;
@@ -184,17 +187,16 @@ body {
     i {
       width: 30px;
     }
+  }
 
-    li {
-      cursor: default;
-      padding: 10px 20px;
+  li {
+    cursor: default;
+    padding: 10px 20px;
 
-      &:hover {
-        background: #6af;
-        color: white;
-      }
+    &:hover {
+      background: $selected-row-background-color;
+      color: $selected-row-color;
     }
-
   }
 }
 
@@ -203,9 +205,9 @@ body {
   height: 600px;
 
   ol {
-    padding-left: 10px;
-    margin: 0;
     flex-grow: 1;
+    margin: 0;
+    padding-left: 10px;
   }
 
   .column {
@@ -486,6 +488,8 @@ table {
   border-spacing: 0;
   font-size: 11px;
 
+  cursor: default;
+
   &.fixed {
     table-layout: fixed;
   }
@@ -498,15 +502,19 @@ table {
 thead {
   @include unselectable;
 
-  position: sticky; // don't scroll off top
+  position: sticky;
   top: 0;
   z-index: 1; // stop progress-bars overlaying headers
 }
 
 tr {
+  &:hover {
+    background-color: lighten($selected-row-background-color, 35%);
+  }
+
   &.selected {
-    background-color: rgb(58, 121, 245);
-    color: #fff;
+    background-color: $selected-row-background-color;
+    color: $selected-row-color;
   }
 }
 
@@ -518,8 +526,6 @@ th {
   border-left: 1px solid $th-border-left;
 
   background: $table-header-background;
-
-  cursor: default;
 
   // changing this 4px l/r padding requires a change in elm.
   // see TorrentTable widthAttribute methods
