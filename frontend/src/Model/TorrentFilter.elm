@@ -13,12 +13,17 @@ import Json.Decode as D
 import Json.Decode.Pipeline exposing (optional)
 import Json.Encode as E
 import Model.Torrent exposing (Torrent)
-import Parser as P exposing ((|.), (|=), Parser, Step(..), oneOf, symbol)
+import Parser as P
+    exposing
+        ( (|.)
+        , (|=)
+        , Parser
+        , Step(..)
+        , keyword
+        , oneOf
+        , symbol
+        )
 import Regex exposing (Regex)
-
-
-type Filter
-    = Filters (List FilterComponent)
 
 
 type StringOp
@@ -56,8 +61,16 @@ type SizeSuffix
     | Nothing
 
 
-type FilterComponent
-    = Name StringOp
+type Operator
+    = And
+    | Or
+
+
+type Expr
+    = AndFilter Expr Expr
+    | OrFilter Expr Expr
+    | Unset
+    | Name StringOp
     | Label StringOp
     | Size NumberOp Int SizeSuffix
     | Downloaded NumberOp Int SizeSuffix
@@ -74,7 +87,7 @@ type FilterComponent
 
 type alias TorrentFilter =
     {- generated at runtime and used for filtering -}
-    { filter : Result (List P.DeadEnd) Filter
+    { filter : Result (List P.DeadEnd) Expr
     }
 
 
@@ -135,16 +148,27 @@ filterFromConfig config =
 torrentMatches : Torrent -> TorrentFilter -> Bool
 torrentMatches torrent filter =
     case filter.filter of
-        Ok (Filters filters) ->
-            List.all (torrentMatchesComponent torrent) filters
+        Ok e ->
+            torrentMatchesComponent torrent e
 
         Err _ ->
             False
 
 
-torrentMatchesComponent : Torrent -> FilterComponent -> Bool
+torrentMatchesComponent : Torrent -> Expr -> Bool
 torrentMatchesComponent torrent filter =
     case filter of
+        Unset ->
+            True
+
+        AndFilter e1 e2 ->
+            torrentMatchesComponent torrent e1
+                && torrentMatchesComponent torrent e2
+
+        OrFilter e1 e2 ->
+            torrentMatchesComponent torrent e1
+                || torrentMatchesComponent torrent e2
+
         Name op ->
             stringMatcher torrent .name op
 
@@ -296,44 +320,104 @@ numberMatcher torrent meth op num =
 -- PARSER
 
 
-parse : String -> Result (List P.DeadEnd) Filter
+parse : String -> Result (List P.DeadEnd) Expr
 parse input =
-    P.run parseFilter input
+    P.run expression input
 
 
-parseFilter : Parser Filter
-parseFilter =
-    P.map Filters <|
-        P.loop [] parseFilterComponents
+expression : Parser Expr
+expression =
+    component |> P.andThen (expressionHelp [])
 
 
-parseFilterComponents : List FilterComponent -> Parser (Step (List FilterComponent) (List FilterComponent))
-parseFilterComponents filters =
+
+{- currently unused..  this enables precedence by using () around expressions.
+
+   this sort of works, but the () really confuse parseShortcutNameRegex,
+   because it wants to match until a space or end, so it captures trailing
+   ) .. which then breaks the rest of the parsing.
+
+   we sort of need "chomp until space, or end, or )
+   but that doesn't exist..
+
+   component : Parser Expr
+   component =
+     oneOf
+         [ P.succeed identity
+             |. P.symbol "("
+             |. P.spaces
+             |= P.lazy (\_ -> expression)
+             |. P.spaces
+             |. P.symbol ")"
+         , parseExpr
+         ]
+-}
+
+
+component : Parser Expr
+component =
+    parseExpr
+
+
+expressionHelp : List ( Expr, Operator ) -> Expr -> Parser Expr
+expressionHelp revOps expr =
     oneOf
-        [ P.succeed ()
+        [ P.succeed (finalize revOps expr)
             |. P.end
-            |> P.map (\_ -> P.Done filters)
-        , P.succeed (\filter -> P.Loop (filter :: filters))
-            |= parseFilterComponent
+        , P.succeed Tuple.pair
             |. P.spaces
+            |= operator
+            |. P.spaces
+            |= component
+            |> P.andThen
+                (\( op, newExpr ) ->
+                    expressionHelp (( expr, op ) :: revOps) newExpr
+                )
+        , P.lazy (\_ -> P.succeed (finalize revOps expr))
         ]
 
 
-parseFilterComponent : Parser FilterComponent
-parseFilterComponent =
-    oneOf [ parseShortcutNameContains, parseFieldOp, parseShortcutNameRegex ]
+operator : Parser Operator
+operator =
+    oneOf
+        [ P.map (\_ -> Or) <| oneOf [ keyword "OR", keyword "or" ]
+        , P.map (\_ -> And) <| oneOf [ keyword "AND", keyword "and", P.spaces ]
+        ]
 
 
-parseFieldOp : Parser FilterComponent
+finalize : List ( Expr, Operator ) -> Expr -> Expr
+finalize revOps finalExpr =
+    case revOps of
+        [] ->
+            finalExpr
+
+        ( expr, And ) :: otherRevOps ->
+            finalize otherRevOps (AndFilter expr finalExpr)
+
+        ( expr, Or ) :: otherRevOps ->
+            OrFilter (finalize otherRevOps expr) finalExpr
+
+
+parseExpr : Parser Expr
+parseExpr =
+    oneOf
+        [ parseShortcutNameContains
+        , parseFieldOp
+        , P.map (\_ -> Unset) P.end
+        , parseShortcutNameRegex
+        ]
+
+
+parseFieldOp : Parser Expr
 parseFieldOp =
     oneOf [ parseStringField, parseSizeField, parseIntField, parseFloatOp ]
 
 
-parseStringField : Parser FilterComponent
+parseStringField : Parser Expr
 parseStringField =
     oneOf
-        [ P.map (\_ -> Name) (P.keyword "name")
-        , P.map (\_ -> Label) (P.keyword "label")
+        [ P.map (\_ -> Name) (keyword "name")
+        , P.map (\_ -> Label) (keyword "label")
         ]
         |. P.spaces
         |= oneOf
@@ -379,13 +463,13 @@ parseReStringOp =
         |= (P.chompUntilEndOr " " |> P.getChompedString |> P.andThen toRe)
 
 
-parseIntField : Parser FilterComponent
+parseIntField : Parser Expr
 parseIntField =
     oneOf
-        [ P.map (\_ -> SeedersTotal) (P.keyword "seeders")
-        , P.map (\_ -> SeedersConnected) (P.keyword "seedersc")
-        , P.map (\_ -> PeersTotal) (P.keyword "peers")
-        , P.map (\_ -> PeersConnected) (P.keyword "peersc")
+        [ P.map (\_ -> SeedersTotal) (keyword "seeders")
+        , P.map (\_ -> SeedersConnected) (keyword "seedersc")
+        , P.map (\_ -> PeersTotal) (keyword "peers")
+        , P.map (\_ -> PeersConnected) (keyword "peersc")
         ]
         |. P.spaces
         |= parseNumberOp
@@ -393,11 +477,11 @@ parseIntField =
         |= P.int
 
 
-parseFloatOp : Parser FilterComponent
+parseFloatOp : Parser Expr
 parseFloatOp =
     oneOf
-        [ P.map (\_ -> Ratio) (P.keyword "ratio")
-        , P.map (\_ -> Done) (P.keyword "done")
+        [ P.map (\_ -> Ratio) (keyword "ratio")
+        , P.map (\_ -> Done) (keyword "done")
         ]
         |. P.spaces
         |= parseNumberOp
@@ -405,14 +489,14 @@ parseFloatOp =
         |= P.float
 
 
-parseSizeField : Parser FilterComponent
+parseSizeField : Parser Expr
 parseSizeField =
     oneOf
-        [ P.map (\_ -> Size) (P.keyword "size")
-        , P.map (\_ -> Downloaded) (P.keyword "downloaded")
-        , P.map (\_ -> Uploaded) (P.keyword "uploaded")
-        , P.map (\_ -> DownRate) (P.keyword "down")
-        , P.map (\_ -> UpRate) (P.keyword "up")
+        [ P.map (\_ -> Size) (keyword "size")
+        , P.map (\_ -> Downloaded) (keyword "downloaded")
+        , P.map (\_ -> Uploaded) (keyword "uploaded")
+        , P.map (\_ -> DownRate) (keyword "down")
+        , P.map (\_ -> UpRate) (keyword "up")
         ]
         |. P.spaces
         |= parseNumberOp
@@ -452,7 +536,7 @@ parseSizeSuffix =
             ]
 
 
-parseShortcutNameContains : Parser FilterComponent
+parseShortcutNameContains : Parser Expr
 parseShortcutNameContains =
     P.map Name <|
         P.succeed Contains
@@ -461,7 +545,7 @@ parseShortcutNameContains =
             |. symbol "\""
 
 
-parseShortcutNameRegex : Parser FilterComponent
+parseShortcutNameRegex : Parser Expr
 parseShortcutNameRegex =
     P.map Name <|
         P.map Matches <|
@@ -492,4 +576,4 @@ toRe str =
             , multiline = False
             }
         |> Maybe.map P.succeed
-        |> Maybe.withDefault (P.problem "invalid regexp")
+        |> Maybe.withDefault (P.problem ("invalid regexp " ++ str))

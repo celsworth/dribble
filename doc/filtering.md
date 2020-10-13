@@ -100,4 +100,26 @@ size<100MB   # size below 100MB
 size<100mib  # size below 100MiB ; suffixes are all case-insensitive
 ```
 
+## AND/OR keywords
 
+By default, all terms entered are `AND`ed together. You can specify AND explicitly if you like. These are equivalent:
+
+```
+boo hoo
+boo and hoo
+boo AND hoo # and/AND is case-insensitive
+```
+
+If you actually want to search for and, quote it: `"and"`.
+
+The other keyword is `OR`, which is again case-insensitive:
+
+```
+boo or hoo
+```
+
+And naturally this works for fields:
+
+```
+up>0 or down>0    # torrents with any activity
+```

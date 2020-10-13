@@ -7,6 +7,7 @@ import Html.Events.Extra.Mouse
 import Html.Lazy
 import Model exposing (..)
 import Model.Table
+import Model.TorrentFilter
 import View.Details
 import View.Logs
 import View.Messages
@@ -67,18 +68,29 @@ navigation model =
             , button [ onClick SaveConfigClicked ] [ text "Save Config" ]
             ]
         , div [ class "flex-container" ]
-            [ Html.Lazy.lazy filterInput model.config.filter.filter
+            [ Html.Lazy.lazy2 filterInput
+                model.config.filter
+                model.torrentFilter
             , Html.Lazy.lazy hamburgerButton model.hamburgerMenuVisible
             ]
         ]
 
 
-filterInput : String -> Html Msg
-filterInput filter =
+filterInput : Model.TorrentFilter.Config -> Model.TorrentFilter.TorrentFilter -> Html Msg
+filterInput filterConfig filter =
+    let
+        kls =
+            case filter.filter of
+                Err _ ->
+                    class "filter error"
+
+                _ ->
+                    class "filter"
+    in
     input
         [ placeholder "Filter"
-        , class "filter"
-        , value filter
+        , kls
+        , value filterConfig.filter
         , onInput TorrentFilterChanged
         , type_ "text"
         ]
