@@ -16,11 +16,11 @@ b.o     # .. with names containing b, followed by any single char, followed by o
 boo hoo # .. with both boo, and hoo, anywhere in the name (not necessarily in that order)
 ```
 
-For the time being, this is always case-insensitive (this is a TODO to add smartcase like below)
+This is smart-case sensitive. If you type an uppercase character then only exact-case matching is performed. If it's all lowercase, then case-insensitive matching is done.
 
 ## Exact Substring Matching
 
-If you don't want regex, surround a term with quotes. This will disable the regex engine and do an exact (case-insensitive) match. This is normally most useful if you want to search for a space, or other regex operator characters:
+If you don't want regex, surround a term with quotes. This will disable the regex engine and do an exact match. This is normally most useful if you want to search for a space, or other regex operator characters:
 
 ```
 "^boo"      # containing ^boo
@@ -38,7 +38,7 @@ name=^boo       # contains ^boo
 name="boo hoo"
 ```
 
-Valid fields and operators are listed below. Note the difference in behaviour between `~` and `=`. One considers the term to be a regex, the other uses it as a substring.
+Valid fields and operators are listed below. Note the difference in behaviour between `~` and `=`. One considers the term to be a regex, the other uses it as a substring; see Operators below.
 
 
 
@@ -62,7 +62,7 @@ peers      (int)    # Peers Total
 peersc     (int)    # Peers Connected
 ```
 
-> TODO: dates..
+> TODO: dates.. .. status?
 
 
 ### Operators
@@ -78,7 +78,7 @@ For string fields:
 !~      # does not match
 ```
 
-Granted, some of these read a bit oddly, but I started with `~` to mean Regex, then figured that entire string equality wouldn't be used that often so relegated it to the longer `==`, which left `=` for contains. Suggestions for other symbols welcome.
+Granted, some of these read a bit oddly, but I started with `~` to mean regex, then figured that entire string equality wouldn't be used that often so relegated it to the longer `==`, which left `=` for contains. Suggestions for other symbols welcome.
 
 size/int/float fields make a bit more sense:
 
@@ -110,7 +110,7 @@ boo and hoo
 boo AND hoo # and/AND is case-insensitive
 ```
 
-If you actually want to search for and, quote it: `"and"`.
+If you actually want to search for the term and, quote it: `"and"`.
 
 The other keyword is `OR`, which is again case-insensitive:
 
@@ -122,4 +122,12 @@ And naturally this works for fields:
 
 ```
 up>0 or down>0    # torrents with any activity
+```
+
+## Aliases
+
+To ease filtering for some common expressions, there are some defined shortcut aliases:
+
+```
+$active           # equal to   up>0 or down>0
 ```

@@ -67,8 +67,8 @@ type Operator
 
 
 type Expr
-    = AndFilter Expr Expr
-    | OrFilter Expr Expr
+    = AndExpr Expr Expr
+    | OrExpr Expr Expr
     | Unset
     | Name StringOp
     | Label StringOp
@@ -161,11 +161,11 @@ torrentMatchesComponent torrent filter =
         Unset ->
             True
 
-        AndFilter e1 e2 ->
+        AndExpr e1 e2 ->
             torrentMatchesComponent torrent e1
                 && torrentMatchesComponent torrent e2
 
-        OrFilter e1 e2 ->
+        OrExpr e1 e2 ->
             torrentMatchesComponent torrent e1
                 || torrentMatchesComponent torrent e2
 
@@ -393,10 +393,10 @@ finalize revOps finalExpr =
             finalExpr
 
         ( expr, And ) :: otherRevOps ->
-            finalize otherRevOps (AndFilter expr finalExpr)
+            finalize otherRevOps (AndExpr expr finalExpr)
 
         ( expr, Or ) :: otherRevOps ->
-            OrFilter (finalize otherRevOps expr) finalExpr
+            OrExpr (finalize otherRevOps expr) finalExpr
 
 
 parseExpr : Parser Expr
@@ -404,8 +404,20 @@ parseExpr =
     oneOf
         [ P.map (\_ -> Unset) P.end
         , parseShortcutNameContains
+        , parseFieldAlias
         , parseFieldOp
         , parseShortcutNameRegex
+        ]
+
+
+parseFieldAlias : Parser Expr
+parseFieldAlias =
+    oneOf
+        [ P.map
+            (\_ ->
+                OrExpr (UpRate GT 0 Nothing) (DownRate GT 0 Nothing)
+            )
+            (keyword "$active")
         ]
 
 
