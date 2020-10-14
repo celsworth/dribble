@@ -343,7 +343,8 @@ expression =
    component : Parser Expr
    component =
      oneOf
-         [ P.succeed identity
+         [ P.map (\_ -> Unset) P.end
+         , P.succeed identity
              |. P.symbol "("
              |. P.spaces
              |= P.lazy (\_ -> expression)
@@ -401,9 +402,9 @@ finalize revOps finalExpr =
 parseExpr : Parser Expr
 parseExpr =
     oneOf
-        [ parseShortcutNameContains
+        [ P.map (\_ -> Unset) P.end
+        , parseShortcutNameContains
         , parseFieldOp
-        , P.map (\_ -> Unset) P.end
         , parseShortcutNameRegex
         ]
 
