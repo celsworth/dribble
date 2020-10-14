@@ -24,6 +24,13 @@ import Parser as P
         , symbol
         )
 import Regex exposing (Regex)
+import Time
+import Time.Extra
+
+
+type CaseSensititivy
+    = CaseSensitive String
+    | CaseInsensitive String
 
 
 type StringOp
@@ -35,11 +42,6 @@ type StringOp
     | NotMatches Regex
 
 
-type CaseSensititivy
-    = CaseSensitive String
-    | CaseInsensitive String
-
-
 type NumberOp
     = EqNum
     | NotEqNum
@@ -47,6 +49,20 @@ type NumberOp
     | GTE
     | LT
     | LTE
+
+
+type TimeComparison
+    = Absolute Int
+    | Relative Int
+
+
+type RelativeTimeSuffix
+    = Second
+    | Hour
+    | Minute
+    | Day
+    | Week
+    | Year
 
 
 type SizeSuffix
@@ -77,6 +93,9 @@ type Expr
     | Uploaded NumberOp Int SizeSuffix
     | DownRate NumberOp Int SizeSuffix
     | UpRate NumberOp Int SizeSuffix
+    | Created NumberOp TimeComparison
+    | Started NumberOp TimeComparison
+    | Finished NumberOp TimeComparison
     | Done NumberOp Float
     | SeedersConnected NumberOp Int
     | SeedersTotal NumberOp Int
@@ -145,29 +164,29 @@ filterFromConfig config =
 -- FILTERS
 
 
-torrentMatches : Torrent -> TorrentFilter -> Bool
-torrentMatches torrent filter =
+torrentMatches : Time.Posix -> Torrent -> TorrentFilter -> Bool
+torrentMatches currentTime torrent filter =
     case filter.filter of
         Ok e ->
-            torrentMatchesComponent torrent e
+            torrentMatchesComponent currentTime torrent e
 
         Err _ ->
             False
 
 
-torrentMatchesComponent : Torrent -> Expr -> Bool
-torrentMatchesComponent torrent filter =
+torrentMatchesComponent : Time.Posix -> Torrent -> Expr -> Bool
+torrentMatchesComponent currentTime torrent filter =
     case filter of
         Unset ->
             True
 
         AndExpr e1 e2 ->
-            torrentMatchesComponent torrent e1
-                && torrentMatchesComponent torrent e2
+            torrentMatchesComponent currentTime torrent e1
+                && torrentMatchesComponent currentTime torrent e2
 
         OrExpr e1 e2 ->
-            torrentMatchesComponent torrent e1
-                || torrentMatchesComponent torrent e2
+            torrentMatchesComponent currentTime torrent e1
+                || torrentMatchesComponent currentTime torrent e2
 
         Name op ->
             stringMatcher torrent .name op
@@ -189,6 +208,15 @@ torrentMatchesComponent torrent filter =
 
         UpRate op num suffix ->
             sizeSuffixMatcher torrent .uploadRate op num suffix
+
+        Created op tc ->
+            timeMatcher currentTime torrent .creationTime op tc
+
+        Started op tc ->
+            timeMatcher currentTime torrent .startedTime op tc
+
+        Finished op tc ->
+            timeMatcher currentTime torrent .finishedTime op tc
 
         SeedersConnected op num ->
             numberMatcher torrent .seedersConnected op num
@@ -265,6 +293,19 @@ stringMatcher torrent meth op =
 
         NotMatches re ->
             not <| reMatch re (meth torrent)
+
+
+timeMatcher : Time.Posix -> Torrent -> (Torrent -> Int) -> NumberOp -> TimeComparison -> Bool
+timeMatcher currentTime torrent meth op tc =
+    case tc of
+        Absolute time ->
+            numberMatcher torrent meth op time
+
+        Relative age ->
+            {- note the negation here. this is because for "started<1w" we
+               actually want .startedTime > now-1w
+            -}
+            not <| numberMatcher torrent meth op (Time.posixToMillis currentTime - age)
 
 
 csEq : CaseSensititivy -> String -> Bool
@@ -418,12 +459,23 @@ parseFieldAlias =
                 OrExpr (UpRate GT 0 Nothing) (DownRate GT 0 Nothing)
             )
             (keyword "$active")
+        , P.map
+            (\_ ->
+                AndExpr (UpRate EqNum 0 Nothing) (DownRate EqNum 0 Nothing)
+            )
+            (keyword "$idle")
         ]
 
 
 parseFieldOp : Parser Expr
 parseFieldOp =
-    oneOf [ parseStringField, parseSizeField, parseIntField, parseFloatOp ]
+    oneOf
+        [ parseStringField
+        , parseTimeField
+        , parseSizeField
+        , parseIntField
+        , parseFloatField
+        ]
 
 
 parseStringField : Parser Expr
@@ -476,6 +528,55 @@ parseReStringOp =
         |= (P.chompUntilEndOr " " |> P.getChompedString |> P.andThen toRe)
 
 
+parseTimeField : Parser Expr
+parseTimeField =
+    oneOf
+        [ P.map (\_ -> Created) (keyword "created")
+        , P.map (\_ -> Started) (keyword "started")
+        , P.map (\_ -> Finished) (keyword "finished")
+        ]
+        |. P.spaces
+        |= parseNumberOp
+        |. P.spaces
+        |= oneOf [ P.backtrackable parseAbsoluteTime, parseRelativeTime ]
+
+
+parseAbsoluteTime : Parser TimeComparison
+parseAbsoluteTime =
+    -- 2020/01/01 or 2020-01-01 -> TimeComparison Absolute <millis>
+    P.succeed
+        (\y m d -> Absolute <| partsToMillis y m d)
+        |= P.int
+        |. oneOf [ P.symbol "/", P.symbol "-" ]
+        -- ignore leading 0s which P.int barfs on
+        |. oneOf [ symbol "0", P.succeed () ]
+        |= P.int
+        |. oneOf [ P.symbol "/", P.symbol "-" ]
+        |. oneOf [ symbol "0", P.succeed () ]
+        |= P.int
+
+
+partsToMillis : Int -> Int -> Int -> Int
+partsToMillis y m d =
+    Time.Extra.partsToPosix Time.utc
+        (Time.Extra.Parts y (translateMonthIntToPart m) d 0 0 0 0)
+        |> Time.posixToMillis
+
+
+parseRelativeTime : Parser TimeComparison
+parseRelativeTime =
+    P.succeed (\i s -> Relative <| translateRelativeTime i s * 1000)
+        |= P.int
+        |= oneOf
+            [ P.map (\_ -> Year) (keyword "y")
+            , P.map (\_ -> Week) (keyword "w")
+            , P.map (\_ -> Day) (keyword "d")
+            , P.map (\_ -> Hour) (keyword "h")
+            , P.map (\_ -> Minute) (keyword "m")
+            , P.map (\_ -> Second) (oneOf [ keyword "s", P.succeed () ])
+            ]
+
+
 parseIntField : Parser Expr
 parseIntField =
     oneOf
@@ -490,8 +591,8 @@ parseIntField =
         |= P.int
 
 
-parseFloatOp : Parser Expr
-parseFloatOp =
+parseFloatField : Parser Expr
+parseFloatField =
     oneOf
         [ P.map (\_ -> Ratio) (keyword "ratio")
         , P.map (\_ -> Done) (keyword "done")
@@ -565,6 +666,10 @@ parseShortcutNameRegex =
             (P.chompUntilEndOr " " |> P.getChompedString |> P.andThen toRe)
 
 
+
+-- MISC
+
+
 toCs : String -> Parser CaseSensititivy
 toCs str =
     -- this enables smart case search.
@@ -590,3 +695,65 @@ toRe str =
             }
         |> Maybe.map P.succeed
         |> Maybe.withDefault (P.problem ("invalid regexp " ++ str))
+
+
+translateRelativeTime : Int -> RelativeTimeSuffix -> Int
+translateRelativeTime i suffix =
+    case suffix of
+        Second ->
+            i
+
+        Minute ->
+            i * 60
+
+        Hour ->
+            i * 3600
+
+        Day ->
+            i * 86400
+
+        Week ->
+            i * 604800
+
+        Year ->
+            i * 31536000
+
+
+translateMonthIntToPart : Int -> Time.Month
+translateMonthIntToPart month =
+    case month of
+        1 ->
+            Time.Jan
+
+        2 ->
+            Time.Feb
+
+        3 ->
+            Time.Mar
+
+        4 ->
+            Time.Apr
+
+        5 ->
+            Time.May
+
+        6 ->
+            Time.Jun
+
+        7 ->
+            Time.Jul
+
+        8 ->
+            Time.Aug
+
+        9 ->
+            Time.Sep
+
+        10 ->
+            Time.Oct
+
+        11 ->
+            Time.Nov
+
+        _ ->
+            Time.Dec

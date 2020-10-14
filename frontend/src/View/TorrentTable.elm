@@ -25,6 +25,7 @@ import Model.Table
 import Model.Torrent exposing (Torrent, TorrentsByHash)
 import Model.TorrentFilter exposing (TorrentFilter)
 import Round
+import Time
 import View.DragBar
 import View.Table
 import View.Torrent
@@ -41,7 +42,8 @@ view model =
             [ table []
                 [ Html.Lazy.lazy View.DragBar.view model.resizeOp
                 , Html.Lazy.lazy2 View.Table.header model.config model.config.torrentTable
-                , Html.Lazy.lazy6 body
+                , Html.Lazy.lazy7 body
+                    model.currentTime
                     model.config.humanise
                     model.config.torrentTable
                     model.torrentFilter
@@ -52,12 +54,13 @@ view model =
             ]
 
 
-body : Model.Config.Humanise -> Model.Table.Config -> TorrentFilter -> TorrentsByHash -> List String -> Maybe String -> Html Msg
-body humanise tableConfig torrentFilter torrentsByHash sortedTorrents selectedTorrentHash =
+body : Time.Posix -> Model.Config.Humanise -> Model.Table.Config -> TorrentFilter -> TorrentsByHash -> List String -> Maybe String -> Html Msg
+body currentTime humanise tableConfig torrentFilter torrentsByHash sortedTorrents selectedTorrentHash =
     Keyed.node "tbody" [] <|
         List.filterMap identity
             (List.map
-                (keyedRow humanise
+                (keyedRow currentTime
+                    humanise
                     tableConfig
                     torrentFilter
                     torrentsByHash
@@ -67,12 +70,13 @@ body humanise tableConfig torrentFilter torrentsByHash sortedTorrents selectedTo
             )
 
 
-keyedRow : Model.Config.Humanise -> Model.Table.Config -> TorrentFilter -> TorrentsByHash -> Maybe String -> String -> Maybe ( String, Html Msg )
-keyedRow humanise tableConfig torrentFilter torrentsByHash selectedTorrentHash hash =
+keyedRow : Time.Posix -> Model.Config.Humanise -> Model.Table.Config -> TorrentFilter -> TorrentsByHash -> Maybe String -> String -> Maybe ( String, Html Msg )
+keyedRow currentTime humanise tableConfig torrentFilter torrentsByHash selectedTorrentHash hash =
     Maybe.map
         (\torrent ->
             ( hash
             , lazyRow
+                currentTime
                 humanise
                 tableConfig
                 (Just torrentFilter)
@@ -83,11 +87,11 @@ keyedRow humanise tableConfig torrentFilter torrentsByHash selectedTorrentHash h
         (Dict.get hash torrentsByHash)
 
 
-lazyRow : Model.Config.Humanise -> Model.Table.Config -> Maybe TorrentFilter -> Maybe String -> Torrent -> Html Msg
-lazyRow humanise tableConfig torrentFilter selectedTorrentHash torrent =
+lazyRow : Time.Posix -> Model.Config.Humanise -> Model.Table.Config -> Maybe TorrentFilter -> Maybe String -> Torrent -> Html Msg
+lazyRow currentTime humanise tableConfig torrentFilter selectedTorrentHash torrent =
     let
         matches =
-            Maybe.map (Model.TorrentFilter.torrentMatches torrent) torrentFilter
+            Maybe.map (Model.TorrentFilter.torrentMatches currentTime torrent) torrentFilter
                 |> Maybe.withDefault True
 
         rowIsSelected =

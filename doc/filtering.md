@@ -51,6 +51,9 @@ name       (string)
 label      (string)
 done       (float)  # percentage, use 0-100
 ratio      (float)
+started    (time)
+finished   (time)
+created    (time)
 size       (size)
 downloaded (size)   # bytes downloaded
 uploaded   (size)   # bytes uploaded
@@ -80,7 +83,7 @@ For string fields:
 
 Granted, some of these read a bit oddly, but I started with `~` to mean regex, then figured that entire string equality wouldn't be used that often so relegated it to the longer `==`, which left `=` for contains. Suggestions for other symbols welcome.
 
-size/int/float fields make a bit more sense:
+size/time/int/float fields make a bit more sense:
 
 ```
 =       # equal to
@@ -99,6 +102,19 @@ size<100M    # size below 100MB
 size<100MB   # size below 100MB
 size<100mib  # size below 100MiB ; suffixes are all case-insensitive
 ```
+
+Time fields accept relative intervals or absolute dates, like so:
+
+```
+started<1w         # started less than a week ago
+created>2y         # created more than 2 years ago
+started>2020-01-01 # started after January 1st, 2020
+started>2020/01/01 # started after January 1st, 2020
+```
+
+Valid suffixes here are `s` (second), `m` (minute), `h` (hour), `d` (day), `w` (week), and `y` (year).
+
+Note that the absolute date implicitly nails the time to midnight. So you can't currently do `started=2020-01-01` and expect useful results I'm afraid. Maybe in future.
 
 ## AND/OR keywords
 
@@ -130,4 +146,5 @@ To ease filtering for some common expressions, there are some defined shortcut a
 
 ```
 $active           # equal to   up>0 or down>0
+$idle             # equal to   up=0 and down=0
 ```
