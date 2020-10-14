@@ -41,12 +41,12 @@ name="boo hoo"
 Valid fields and operators are listed below. Note the difference in behaviour between `~` and `=`. One considers the term to be a regex, the other uses it as a substring; see Operators below.
 
 
-
 ### Fields
 
 Most of these are self explanatory.
 
 ```
+status     (status)
 name       (string)
 label      (string)
 done       (float)  # percentage, use 0-100
@@ -65,10 +65,16 @@ peers      (int)    # Peers Total
 peersc     (int)    # Peers Connected
 ```
 
-> TODO: dates.. .. status?
-
-
 ### Operators
+
+There are different types of fields as indicated in the brackets above.
+
+The status field only has one operator; `=`. It accepts the following options `seeding`, `error`, `downloading`, `paused`, `stopped`, `hashing`. For example:
+
+```
+status=paused
+```
+
 
 For string fields:
 

@@ -86,6 +86,7 @@ type Expr
     = AndExpr Expr Expr
     | OrExpr Expr Expr
     | Unset
+    | Status Model.Torrent.Status
     | Name StringOp
     | Label StringOp
     | Size NumberOp Int SizeSuffix
@@ -187,6 +188,9 @@ torrentMatchesComponent currentTime torrent filter =
         OrExpr e1 e2 ->
             torrentMatchesComponent currentTime torrent e1
                 || torrentMatchesComponent currentTime torrent e2
+
+        Status s ->
+            torrent.status == s
 
         Name op ->
             stringMatcher torrent .name op
@@ -471,6 +475,7 @@ parseFieldOp : Parser Expr
 parseFieldOp =
     oneOf
         [ parseStringField
+        , parseStatusField
         , parseTimeField
         , parseSizeField
         , parseIntField
@@ -528,6 +533,24 @@ parseReStringOp =
         |= (P.chompUntilEndOr " " |> P.getChompedString |> P.andThen toRe)
 
 
+parseStatusField : Parser Expr
+parseStatusField =
+    P.succeed (\s -> Status s)
+        |. keyword "status"
+        |. P.spaces
+        |. P.symbol "="
+        |. P.spaces
+        |= oneOf
+            [ P.map (\_ -> Model.Torrent.Seeding) (keyword "seeding")
+            , P.map (\_ -> Model.Torrent.Errored)
+                (oneOf [ keyword "error", keyword "errored" ])
+            , P.map (\_ -> Model.Torrent.Downloading) (keyword "downloading")
+            , P.map (\_ -> Model.Torrent.Paused) (keyword "paused")
+            , P.map (\_ -> Model.Torrent.Stopped) (keyword "stopped")
+            , P.map (\_ -> Model.Torrent.Hashing) (keyword "hashing")
+            ]
+
+
 parseTimeField : Parser Expr
 parseTimeField =
     oneOf
@@ -544,8 +567,7 @@ parseTimeField =
 parseAbsoluteTime : Parser TimeComparison
 parseAbsoluteTime =
     -- 2020/01/01 or 2020-01-01 -> TimeComparison Absolute <millis>
-    P.succeed
-        (\y m d -> Absolute <| partsToMillis y m d)
+    P.succeed (\y m d -> Absolute <| partsToMillis y m d)
         |= P.int
         |. oneOf [ P.symbol "/", P.symbol "-" ]
         -- ignore leading 0s which P.int barfs on
