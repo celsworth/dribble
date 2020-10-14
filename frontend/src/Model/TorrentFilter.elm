@@ -457,10 +457,10 @@ parseCsExactStringOp =
 parseCsStringOp : Parser StringOp
 parseCsStringOp =
     oneOf
-        [ P.map (\_ -> Contains) (symbol "=")
+        [ P.map (\_ -> NotEqStr) (symbol "!==")
         , P.map (\_ -> NotContains) (symbol "!=")
         , P.map (\_ -> EqStr) (symbol "==")
-        , P.map (\_ -> NotEqStr) (symbol "!==")
+        , P.map (\_ -> Contains) (symbol "=")
         ]
         |. P.spaces
         |= (P.chompUntilEndOr " " |> P.getChompedString |> P.andThen toCs)
