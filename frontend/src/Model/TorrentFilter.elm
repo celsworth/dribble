@@ -511,10 +511,10 @@ parseNumberOp =
     oneOf
         [ P.map (\_ -> EqNum) (symbol "=")
         , P.map (\_ -> NotEqNum) (symbol "!=")
-        , P.map (\_ -> GT) (symbol ">")
         , P.map (\_ -> GTE) (symbol ">=")
-        , P.map (\_ -> LT) (symbol "<")
+        , P.map (\_ -> GT) (symbol ">")
         , P.map (\_ -> LTE) (symbol "<=")
+        , P.map (\_ -> LT) (symbol "<")
         ]
 
 
