@@ -81,5 +81,4 @@ The speed chart in the bottom right oesn't render binary unit (KiB/s) ticks on t
 
 ### Known Bugs
 
-* resize bar is in the wrong place when torrent table is scrolled to the right. this is cosmetic only, resizing still works as expected
 * Safari refuses to let you make a resizeable element smaller than its initial size, which becomes apparent when resizing Preferences/Logs. Silly Safari, other browsers get it right.

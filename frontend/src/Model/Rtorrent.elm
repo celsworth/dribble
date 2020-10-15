@@ -114,13 +114,9 @@ getUpdatedTorrents =
 getTorrentFields : E.Value
 getTorrentFields =
     -- TODO:
-    -- remaining, save path
-    -- ratio group, channel, tracker update time (last_scrape)
+    -- save path, ratio group, channel, tracker update time (last_scrape)
     --
-    -- probably don't need everything immediately, some can wait..
-    --
-    -- this order MUST match Model/Torrent.elm #decoder
-    -- and Torrent model definition!
+    -- this order MUST match Model/Torrent.elm #decoder and Torrent model definition!
     E.list E.string
         [ "d.multicall2"
         , ""
@@ -156,6 +152,44 @@ getTorrentFields =
 
         -- label
         , "d.custom1="
+        ]
+
+
+getFileFields : E.Value
+getFileFields =
+    -- this order MUST match Model/File.elm #decoder and File model definition!
+    E.list E.string
+        [ "f.multicall"
+        , ""
+        , ""
+        , "d.path="
+        , "d.size_bytes="
+        , "d.size_chunks="
+        , "d.completed_chunks="
+        , "d.priority="
+        ]
+
+
+getPeerFields : E.Value
+getPeerFields =
+    -- this order MUST match Model/Peer.elm #decoder and Peer model definition!
+    E.list E.string
+        [ "p.multicall"
+        , ""
+        , ""
+        , "p.address="
+        , "p.client_version="
+        , "p.completed_percent="
+
+        -- peer_rate / peer_total
+        -- down_rate or down_total ?
+        -- up_rate or up_total ?
+        -- is_encrypted
+        -- is_incoming
+        -- is_obsfucated
+        -- is_preferred
+        -- is_unwanted
+        -- is_snubbed
         ]
 
 

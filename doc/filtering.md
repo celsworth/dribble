@@ -154,3 +154,7 @@ To ease filtering for some common expressions, there are some defined shortcut a
 $active           # equal to   up>0 or down>0
 $idle             # equal to   up=0 and down=0
 ```
+
+## TODO
+
+  * precedence isn't currently supported. I tried, but reached the limits of my elm/parser knowhow. Parsing the trailing `)` got problematic :(

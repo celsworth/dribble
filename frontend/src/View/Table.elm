@@ -1,6 +1,6 @@
 module View.Table exposing (..)
 
-{- generic table rendering from a Model.Table.Config and list of items (how?) -}
+{- generic table rendering from a Model.Table.Config and list of items -}
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -16,12 +16,12 @@ import Model.Torrent
 import View.Item
 
 
-view : Config -> Model.Table.Config -> List (Item t) -> Html Msg
+view : Config -> Model.Table.Config -> List Item -> Html Msg
 view config tableConfig items =
     section []
         [ table []
             [ header config tableConfig
-            , body config tableConfig items
+            , body tableConfig items
             ]
         ]
 
@@ -150,13 +150,13 @@ headerCellResizeHandleAttributes column =
 -- BODY
 
 
-body : Config -> Model.Table.Config -> List (Item t) -> Html Msg
-body config tableConfig items =
-    tbody [] <| List.map (row config tableConfig) items
+body : Model.Table.Config -> List Item -> Html Msg
+body tableConfig items =
+    tbody [] <| List.map (row tableConfig) items
 
 
-row : Config -> Model.Table.Config -> Item t -> Html Msg
-row config tableConfig item =
+row : Model.Table.Config -> Item -> Html Msg
+row tableConfig item =
     let
         visibleColumns =
             List.filter .visible tableConfig.columns
@@ -164,7 +164,7 @@ row config tableConfig item =
     tr [] (List.map (cell tableConfig item) visibleColumns)
 
 
-cell : Model.Table.Config -> Item t -> Model.Table.Column -> Html Msg
+cell : Model.Table.Config -> Item -> Model.Table.Column -> Html Msg
 cell tableConfig item column =
     td []
         [ div (cellAttributes tableConfig column)
@@ -191,7 +191,7 @@ cellTextAlign column =
     Maybe.map class (Model.Attribute.textAlignment column.attribute)
 
 
-cellContent : Item t -> Model.Table.Column -> Html Msg
+cellContent : Item -> Model.Table.Column -> Html Msg
 cellContent item column =
     View.Item.attributeAccessor item column.attribute
 

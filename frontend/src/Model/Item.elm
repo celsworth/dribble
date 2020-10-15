@@ -11,5 +11,5 @@ import Model.Peer exposing (Peer)
 -}
 
 
-type Item t
+type Item
     = Peer Peer

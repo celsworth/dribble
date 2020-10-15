@@ -11,20 +11,20 @@ defaultConfig =
     { tableType = Model.Table.Peers
     , layout = Model.Table.Fixed
     , columns = defaultColumns
-    , sortBy = Model.Attribute.SortBy (PeerAttribute Status) Desc
+    , sortBy = Model.Attribute.SortBy (PeerAttribute Address) Desc
     }
 
 
 defaultColumns : List Model.Table.Column
 defaultColumns =
-    -- used for new torrentTable initialiation only.
+    -- used for new table initialiation only.
     -- changes to this are not picked up in existing configs!
-    [ { attribute = PeerAttribute Status
+    [ { attribute = PeerAttribute Address
       , width = 50
       , auto = False
       , visible = True
       }
-    , { attribute = PeerAttribute Address
+    , { attribute = PeerAttribute ClientVersion
       , width = 50
       , auto = False
       , visible = True
