@@ -1,0 +1,31 @@
+name: Build
+
+on: push
+
+jobs:
+  rspec:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7
+
+      - name: Cache gems
+        uses: actions/cache@v1
+        with:
+          path: vendor/bundle
+          key: bundle-use-ruby-${{ runner.os }}-${{ hashFiles('.ruby-version') }}-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            bundle-use-ruby-${{ runner.os }}-${{ hashFiles('.ruby-version') }}-
+
+      - name: bundle install
+        run: |
+          bundle config path vendor/bundle
+          bundle install --jobs 4 --retry 3
+
+      - name: RSpec
+        run: rspec
