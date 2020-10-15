@@ -28,4 +28,4 @@ jobs:
           bundle install --jobs 4 --retry 3
 
       - name: RSpec
-        run: rspec
+        run: bundle exec rspec
