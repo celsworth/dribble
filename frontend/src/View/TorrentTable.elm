@@ -24,7 +24,6 @@ import Model.Config
 import Model.Table
 import Model.Torrent exposing (Torrent, TorrentsByHash)
 import Model.TorrentFilter exposing (TorrentFilter)
-import Round
 import Time
 import View.DragBar
 import View.Table
@@ -147,7 +146,7 @@ cellContent humanise torrent column =
             torrentStatusCell torrent
 
         Model.Attribute.TorrentAttribute Model.Torrent.DonePercent ->
-            donePercentCell torrent
+            View.Table.donePercentCell torrent.donePercent
 
         Model.Attribute.TorrentAttribute torrentAttribute ->
             View.Torrent.attributeAccessor humanise torrent torrentAttribute
@@ -183,25 +182,4 @@ torrentStatusIcon kls icon =
     span [ class ("torrent-status " ++ kls ++ " fa-stack") ]
         [ i [ class "fas fa-square fa-stack-2x" ] []
         , i [ class ("fas " ++ icon ++ " fa-inverse fa-stack-1x") ] []
-        ]
-
-
-donePercentCell : Torrent -> Html Msg
-donePercentCell torrent =
-    let
-        dp =
-            if torrent.donePercent == 100 then
-                0
-
-            else
-                1
-    in
-    div [ class "progress-container" ]
-        [ progress
-            [ Html.Attributes.max "100"
-            , Html.Attributes.value <| Round.round 0 torrent.donePercent
-            ]
-            []
-        , span []
-            [ text (Round.round dp torrent.donePercent ++ "%") ]
         ]

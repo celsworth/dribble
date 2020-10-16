@@ -1,6 +1,6 @@
 module Update.ProcessTorrents exposing (update)
 
-import Dict exposing (Dict)
+import Dict
 import Model exposing (..)
 import Model.Sort.Torrent
 import Model.Torrent exposing (Torrent)
@@ -11,24 +11,22 @@ update torrents model =
     let
         byHash =
             torrentsByHash model torrents
-
-        sortedTorrents =
-            Model.Sort.Torrent.sort model.config.sortBy (Dict.values byHash)
     in
     model
-        |> setSortedTorrents sortedTorrents
+        |> setSortedTorrents (sortedTorrents byHash model.config.sortBy)
         |> setTorrentsByHash byHash
         |> noCmd
 
 
-torrentsByHash : Model -> List Torrent -> Dict String Torrent
+sortedTorrents : Model.Torrent.TorrentsByHash -> Model.Torrent.Sort -> List String
+sortedTorrents byHash sortBy =
+    Model.Sort.Torrent.sort sortBy (Dict.values byHash)
+
+
+torrentsByHash : Model -> List Torrent -> Model.Torrent.TorrentsByHash
 torrentsByHash model torrentList =
     let
         newDict =
             Dict.fromList <| List.map (\t -> ( t.hash, t )) torrentList
     in
-    if Dict.isEmpty model.torrentsByHash then
-        newDict
-
-    else
-        Dict.union newDict model.torrentsByHash
+    Dict.union newDict model.torrentsByHash

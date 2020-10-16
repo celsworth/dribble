@@ -3,6 +3,7 @@ module Model.Config exposing (..)
 import Json.Decode as D
 import Json.Decode.Pipeline exposing (optional)
 import Json.Encode as E
+import Model.FileTable
 import Model.PeerTable
 import Model.Sort exposing (SortDirection(..))
 import Model.Table
@@ -33,6 +34,7 @@ type alias Config =
     , sortBy : Model.Torrent.Sort
     , torrentTable : Model.Table.Config
     , filter : Model.TorrentFilter.Config
+    , fileTable : Model.Table.Config
     , peerTable : Model.Table.Config
     , humanise : Humanise
     , preferences : Model.Window.Config
@@ -53,6 +55,11 @@ setTorrentTable new config =
 setFilter : Model.TorrentFilter.Config -> Config -> Config
 setFilter new config =
     { config | filter = new }
+
+
+setFileTable : Model.Table.Config -> Config -> Config
+setFileTable new config =
+    { config | fileTable = new }
 
 
 setPeerTable : Model.Table.Config -> Config -> Config
@@ -77,9 +84,10 @@ setLogs new config =
 default : Config
 default =
     { refreshDelay = 5
-    , sortBy = Model.Torrent.SortBy Model.Torrent.UploadRate Desc
+    , sortBy = Model.Torrent.SortBy Model.Torrent.StartedTime Desc
     , torrentTable = Model.TorrentTable.defaultConfig
     , filter = Model.TorrentFilter.default
+    , fileTable = Model.FileTable.defaultConfig
     , peerTable = Model.PeerTable.defaultConfig
     , humanise =
         { size = { units = Utils.Filesize.Base2, decimalPlaces = 2, decimalSeparator = "." }
@@ -101,6 +109,7 @@ encode config =
         , ( "sortBy", Model.Torrent.encodeSortBy config.sortBy )
         , ( "torrentTable", Model.Table.encode config.torrentTable )
         , ( "filter", Model.TorrentFilter.encode config.filter )
+        , ( "fileTable", Model.Table.encode config.fileTable )
         , ( "peerTable", Model.Table.encode config.peerTable )
         , ( "humanise", encodeHumanise config.humanise )
         , ( "preferences", Model.Window.encode config.preferences )
@@ -138,6 +147,7 @@ decoder =
         |> optional "sortBy" Model.Torrent.sortByDecoder default.sortBy
         |> optional "torrentTable" Model.Table.decoder default.torrentTable
         |> optional "filter" Model.TorrentFilter.decoder default.filter
+        |> optional "fileTable" Model.Table.decoder default.fileTable
         |> optional "peerTable" Model.Table.decoder default.peerTable
         |> optional "humanise" humaniseDecoder default.humanise
         |> optional "preferences" Model.Window.decoder default.preferences

@@ -9,21 +9,11 @@ import Html.Events.Extra.Mouse
 import Model exposing (..)
 import Model.Attribute
 import Model.Config exposing (Config)
-import Model.Item exposing (Item)
 import Model.Sort exposing (SortDirection(..))
 import Model.Table
 import Model.Torrent
-import View.Item
-
-
-view : Config -> Model.Table.Config -> List Item -> Html Msg
-view config tableConfig items =
-    section []
-        [ table []
-            [ header config tableConfig
-            , body tableConfig items
-            ]
-        ]
+import Round
+import View.Attribute
 
 
 
@@ -150,28 +140,6 @@ headerCellResizeHandleAttributes column =
 -- BODY
 
 
-body : Model.Table.Config -> List Item -> Html Msg
-body tableConfig items =
-    tbody [] <| List.map (row tableConfig) items
-
-
-row : Model.Table.Config -> Item -> Html Msg
-row tableConfig item =
-    let
-        visibleColumns =
-            List.filter .visible tableConfig.columns
-    in
-    tr [] (List.map (cell tableConfig item) visibleColumns)
-
-
-cell : Model.Table.Config -> Item -> Model.Table.Column -> Html Msg
-cell tableConfig item column =
-    td []
-        [ div (cellAttributes tableConfig column)
-            [ cellContent item column ]
-        ]
-
-
 cellAttributes : Model.Table.Config -> Model.Table.Column -> List (Attribute Msg)
 cellAttributes tableConfig column =
     let
@@ -188,12 +156,32 @@ cellAttributes tableConfig column =
 
 cellTextAlign : Model.Table.Column -> Maybe (Attribute Msg)
 cellTextAlign column =
-    Maybe.map class (Model.Attribute.textAlignment column.attribute)
+    Maybe.map class (View.Attribute.attributeTextAlignment column.attribute)
 
 
-cellContent : Item -> Model.Table.Column -> Html Msg
-cellContent item column =
-    View.Item.attributeAccessor item column.attribute
+
+-- CONTENT CELL HELPERS
+
+
+donePercentCell : Float -> Html Msg
+donePercentCell donePercent =
+    let
+        dp =
+            if donePercent == 100 then
+                0
+
+            else
+                1
+    in
+    div [ class "progress-container" ]
+        [ progress
+            [ Html.Attributes.max "100"
+            , Html.Attributes.value <| Round.round 0 donePercent
+            ]
+            []
+        , span []
+            [ text (Round.round dp donePercent ++ "%") ]
+        ]
 
 
 

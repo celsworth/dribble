@@ -108,10 +108,3 @@ attributeToString attribute =
 
         CompletedPercent ->
             "Completed"
-
-
-attributeTextAlignment : Attribute -> Maybe String
-attributeTextAlignment attribute =
-    case attribute of
-        _ ->
-            Nothing

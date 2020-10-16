@@ -24,6 +24,7 @@ type alias ResizeOp =
 
 type Type
     = Torrents
+    | Files
     | Peers
 
 
@@ -75,6 +76,9 @@ typeFromAttribute attribute =
     case attribute of
         TorrentAttribute _ ->
             Torrents
+
+        FileAttribute _ ->
+            Files
 
         PeerAttribute _ ->
             Peers
@@ -175,6 +179,9 @@ encodeTableType val =
         Torrents ->
             E.string "torrents"
 
+        Files ->
+            E.string "files"
+
         Peers ->
             E.string "peers"
 
@@ -225,6 +232,9 @@ tableTypeDecoder =
                 case input of
                     "torrents" ->
                         D.succeed Torrents
+
+                    "files" ->
+                        D.succeed Files
 
                     "peers" ->
                         D.succeed Peers

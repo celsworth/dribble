@@ -3,6 +3,7 @@ module Model.Attribute exposing (..)
 import Json.Decode as D
 import Json.Decode.Pipeline exposing (required)
 import Json.Encode as E
+import Model.File
 import Model.Peer
 import Model.Sort exposing (SortDirection(..))
 import Model.Torrent
@@ -17,8 +18,15 @@ type Sort
     = SortBy Attribute SortDirection
 
 
+
+-- Instead of splitting attributes up between torrent/file/peer
+-- maybe this should just be one large definitive list.
+-- Then we wouldn't have three DonePercent..
+
+
 type Attribute
     = TorrentAttribute Model.Torrent.Attribute
+    | FileAttribute Model.File.Attribute
     | PeerAttribute Model.Peer.Attribute
 
 
@@ -37,6 +45,9 @@ encode attribute =
         case attribute of
             TorrentAttribute _ ->
                 String.concat [ "torrent.", attributeToKey attribute ]
+
+            FileAttribute _ ->
+                String.concat [ "file.", attributeToKey attribute ]
 
             PeerAttribute _ ->
                 String.concat [ "peer.", attributeToKey attribute ]
@@ -95,6 +106,9 @@ keyToAttribute type_ attribute =
         "torrent" ->
             Model.Torrent.keyToAttribute attribute |> Maybe.map TorrentAttribute
 
+        "file" ->
+            Model.File.keyToAttribute attribute |> Maybe.map FileAttribute
+
         "peer" ->
             Model.Peer.keyToAttribute attribute |> Maybe.map PeerAttribute
 
@@ -108,6 +122,9 @@ attributeToKey attribute =
         TorrentAttribute torrentAttribute ->
             Model.Torrent.attributeToKey torrentAttribute
 
+        FileAttribute fileAttribute ->
+            Model.File.attributeToKey fileAttribute
+
         PeerAttribute peerAttribute ->
             Model.Peer.attributeToKey peerAttribute
 
@@ -117,6 +134,9 @@ attributeToTableHeaderId attribute =
     case attribute of
         TorrentAttribute torrentAttribute ->
             Model.Torrent.attributeToTableHeaderId torrentAttribute
+
+        FileAttribute fileAttribute ->
+            Model.File.attributeToTableHeaderId fileAttribute
 
         PeerAttribute peerAttribute ->
             Model.Peer.attributeToTableHeaderId peerAttribute
@@ -128,15 +148,8 @@ attributeToTableHeaderString attribute =
         TorrentAttribute torrentAttribute ->
             Model.Torrent.attributeToTableHeaderString torrentAttribute
 
+        FileAttribute fileAttribute ->
+            Model.File.attributeToTableHeaderString fileAttribute
+
         PeerAttribute peerAttribute ->
             Model.Peer.attributeToTableHeaderString peerAttribute
-
-
-textAlignment : Attribute -> Maybe String
-textAlignment attribute =
-    case attribute of
-        TorrentAttribute torrentAttribute ->
-            Model.Torrent.attributeTextAlignment torrentAttribute
-
-        PeerAttribute peerAttribute ->
-            Model.Peer.attributeTextAlignment peerAttribute

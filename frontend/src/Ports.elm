@@ -37,6 +37,14 @@ getTorrents model =
     sendMessage (Model.Rtorrent.getTorrents model.config)
 
 
+getFiles : Model -> Cmd Msg
+getFiles model =
+    Maybe.withDefault Cmd.none <|
+        Maybe.map
+            (\hash -> sendMessage (Model.Rtorrent.getFiles hash model.config))
+            model.selectedTorrentHash
+
+
 getTraffic : Cmd Msg
 getTraffic =
     sendMessage Model.Rtorrent.getTraffic

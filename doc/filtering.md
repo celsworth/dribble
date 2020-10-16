@@ -69,10 +69,11 @@ peersc     (int)    # Peers Connected
 
 There are different types of fields as indicated in the brackets above.
 
-The status field only has one operator; `=`. It accepts the following options `seeding`, `error`, `downloading`, `paused`, `stopped`, `hashing`. For example:
+The status field only supports equality or non-equality; `=` or `!=`. It accepts the following options `seeding`, `error`, `downloading`, `paused`, `stopped`, `hashing`. For example:
 
 ```
 status=paused
+status!=seeding
 ```
 
 
@@ -118,9 +119,9 @@ started>2020-01-01 # started after January 1st, 2020
 started>2020/01/01 # started after January 1st, 2020
 ```
 
-Valid suffixes here are `s` (second), `m` (minute), `h` (hour), `d` (day), `w` (week), and `y` (year).
+Valid suffixes here are `s` (second), `m` (minute), `h` (hour), `d` (day), `w` (week), and `y` (year). Note that "years" are 31,536,000 seconds, not calendar years.
 
-Note that the absolute date implicitly nails the time to midnight. So you can't currently do `started=2020-01-01` and expect useful results I'm afraid. Maybe in future.
+The absolute date syntax implicitly nails the time to midnight. So you can't currently do `started=2020-01-01` and expect useful results I'm afraid (but `started>=2020-01-01 started<2020-01-02` would work). Maybe in future. Maybe also support times in future.
 
 ## AND/OR keywords
 
@@ -151,8 +152,9 @@ up>0 or down>0    # torrents with any activity
 To ease filtering for some common expressions, there are some defined shortcut aliases:
 
 ```
-$active           # equal to   up>0 or down>0
-$idle             # equal to   up=0 and down=0
+$active           # equal to up>0 or down>0
+$idle             #          up=0 down=0
+$stuck            #          done<100 down=0 status!=stopped status!=paused
 ```
 
 ## TODO

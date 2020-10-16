@@ -82,6 +82,10 @@ class Dribble < Sinatra::Application
                              diff: data['diff'],
                              command: data['command'])
       websocket.add_subscription(s, sub)
+      # immediately run all due subscriptions for this websocket when a new one
+      # is added. This reduces delay between selecting a torrent and seeing file
+      # list for it.
+      websocket.run_subscriptions
     else
       # TODO: move this into a class?
       rtorrent = Rtorrent.new(settings.rtorrent_host, settings.rtorrent_port)

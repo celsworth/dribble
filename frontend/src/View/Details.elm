@@ -5,6 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Model exposing (..)
 import Model.Torrent exposing (Torrent)
+import View.FileTable
 import View.SpeedChart
 
 
@@ -28,4 +29,7 @@ maybeTorrentDetails model =
 
 torrentDetails : Model -> Torrent -> Html Msg
 torrentDetails model torrent =
-    div [] [ text torrent.name ]
+    div []
+        [ text torrent.name
+        , View.FileTable.view model
+        ]

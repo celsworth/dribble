@@ -2,6 +2,7 @@ module Subscriptions exposing (..)
 
 import Json.Decode as D
 import Model exposing (..)
+import Model.File
 import Model.Rtorrent
 import Model.Table
 import Model.Torrent
@@ -54,6 +55,7 @@ websocketMessageDecoder =
         [ errorDecoder
         , systemInfoDecoder
         , torrentListDecoder
+        , fileListDecoder
         , trafficDecoder
         ]
 
@@ -75,6 +77,13 @@ torrentListDecoder =
     D.map Model.WebsocketData.TorrentsReceived <|
         D.field "torrentList" <|
             Model.Torrent.listDecoder
+
+
+fileListDecoder : D.Decoder Model.WebsocketData.Data
+fileListDecoder =
+    D.map Model.WebsocketData.FilesReceived <|
+        D.field "fileList" <|
+            Model.File.listDecoder
 
 
 trafficDecoder : D.Decoder Model.WebsocketData.Data

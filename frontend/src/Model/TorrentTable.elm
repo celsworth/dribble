@@ -13,7 +13,7 @@ defaultConfig =
     , columns = defaultColumns
 
     -- not actually used, stored in config.sortBy for now
-    , sortBy = Model.Attribute.SortBy (Model.Attribute.TorrentAttribute Model.Torrent.CreationTime) Desc
+    , sortBy = Model.Attribute.SortBy (TorrentAttribute StartedTime) Desc
     }
 
 

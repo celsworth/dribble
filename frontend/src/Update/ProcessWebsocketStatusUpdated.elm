@@ -19,6 +19,7 @@ update result model =
                         Cmd.batch
                             [ Ports.getRtorrentSystemInfo
                             , Ports.getTorrents model
+                            , Ports.getFiles model
                             , Ports.getTraffic
                             ]
 

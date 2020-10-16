@@ -33,6 +33,11 @@ type CaseSensititivy
     | CaseInsensitive String
 
 
+type StatusOp
+    = EqStatus
+    | NotEqStatus
+
+
 type StringOp
     = EqStr CaseSensititivy
     | NotEqStr CaseSensititivy
@@ -86,7 +91,7 @@ type Expr
     = AndExpr Expr Expr
     | OrExpr Expr Expr
     | Unset
-    | Status Model.Torrent.Status
+    | Status StatusOp Model.Torrent.Status
     | Name StringOp
     | Label StringOp
     | Size NumberOp Int SizeSuffix
@@ -189,8 +194,13 @@ torrentMatchesComponent currentTime torrent filter =
             torrentMatchesComponent currentTime torrent e1
                 || torrentMatchesComponent currentTime torrent e2
 
-        Status s ->
-            torrent.status == s
+        Status op s ->
+            case op of
+                EqStatus ->
+                    torrent.status == s
+
+                NotEqStatus ->
+                    torrent.status /= s
 
         Name op ->
             stringMatcher torrent .name op
@@ -238,7 +248,6 @@ torrentMatchesComponent currentTime torrent filter =
             numberMatcher torrent .donePercent op num
 
         Ratio op num ->
-            -- slightly special
             numberMatcher torrent .ratio op num
 
 
@@ -416,9 +425,7 @@ expressionHelp revOps expr =
             |. P.spaces
             |= component
             |> P.andThen
-                (\( op, newExpr ) ->
-                    expressionHelp (( expr, op ) :: revOps) newExpr
-                )
+                (\( op, newExpr ) -> expressionHelp (( expr, op ) :: revOps) newExpr)
         , P.lazy (\_ -> P.succeed (finalize revOps expr))
         ]
 
@@ -459,15 +466,12 @@ parseFieldAlias : Parser Expr
 parseFieldAlias =
     oneOf
         [ P.map
-            (\_ ->
-                OrExpr (UpRate GT 0 Nothing) (DownRate GT 0 Nothing)
-            )
+            (\_ -> OrExpr (UpRate GT 0 Nothing) (DownRate GT 0 Nothing))
             (keyword "$active")
         , P.map
-            (\_ ->
-                AndExpr (UpRate EqNum 0 Nothing) (DownRate EqNum 0 Nothing)
-            )
+            (\_ -> AndExpr (UpRate EqNum 0 Nothing) (DownRate EqNum 0 Nothing))
             (keyword "$idle")
+        , P.map (\_ -> stuck) (keyword "$stuck")
         ]
 
 
@@ -490,25 +494,7 @@ parseStringField =
         , P.map (\_ -> Label) (keyword "label")
         ]
         |. P.spaces
-        |= oneOf
-            [ P.backtrackable parseCsExactStringOp
-            , parseCsStringOp
-            , parseReStringOp
-            ]
-
-
-parseCsExactStringOp : Parser StringOp
-parseCsExactStringOp =
-    oneOf
-        [ P.map (\_ -> Contains) (symbol "=")
-        , P.map (\_ -> NotContains) (symbol "!=")
-        , P.map (\_ -> EqStr) (symbol "==")
-        , P.map (\_ -> NotEqStr) (symbol "!==")
-        ]
-        |. P.spaces
-        |. symbol "\""
-        |= (P.chompUntilEndOr "\"" |> P.getChompedString |> P.andThen toCs)
-        |. symbol "\""
+        |= oneOf [ parseCsStringOp, parseReStringOp ]
 
 
 parseCsStringOp : Parser StringOp
@@ -520,7 +506,14 @@ parseCsStringOp =
         , P.map (\_ -> Contains) (symbol "=")
         ]
         |. P.spaces
-        |= (P.chompUntilEndOr " " |> P.getChompedString |> P.andThen toCs)
+        |= oneOf
+            [ P.succeed identity
+                |. symbol "\""
+                |= (P.chompUntilEndOr "\"" |> P.getChompedString |> P.andThen toCs)
+                |. symbol "\""
+            , P.succeed identity
+                |= (P.chompUntilEndOr " " |> P.getChompedString |> P.andThen toCs)
+            ]
 
 
 parseReStringOp : Parser StringOp
@@ -535,10 +528,13 @@ parseReStringOp =
 
 parseStatusField : Parser Expr
 parseStatusField =
-    P.succeed (\s -> Status s)
+    P.succeed (\op status -> Status op status)
         |. keyword "status"
         |. P.spaces
-        |. P.symbol "="
+        |= oneOf
+            [ P.map (\_ -> NotEqStatus) (symbol "!=")
+            , P.map (\_ -> EqStatus) (symbol "=")
+            ]
         |. P.spaces
         |= oneOf
             [ P.map (\_ -> Model.Torrent.Seeding) (keyword "seeding")
@@ -686,6 +682,31 @@ parseShortcutNameRegex =
     P.map Name <|
         P.map Matches <|
             (P.chompUntilEndOr " " |> P.getChompedString |> P.andThen toRe)
+
+
+
+-- ALIASES
+
+
+stuck : Expr
+stuck =
+    let
+        not_done =
+            Done LT 100
+
+        down0 =
+            DownRate EqNum 0 Nothing
+
+        not_stopped =
+            Status NotEqStatus Model.Torrent.Stopped
+
+        not_paused =
+            Status NotEqStatus Model.Torrent.Paused
+
+        not_stopped_or_paused =
+            AndExpr not_stopped not_paused
+    in
+    AndExpr (AndExpr not_done down0) not_stopped_or_paused
 
 
 

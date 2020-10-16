@@ -1,4 +1,11 @@
-module Model.Rtorrent exposing (Info, decoder, getSystemInfo, getTorrents, getTraffic, getUpdatedTorrents)
+module Model.Rtorrent exposing
+    ( Info
+    , decoder
+    , getFiles
+    , getSystemInfo
+    , getTorrents
+    , getTraffic
+    )
 
 import Json.Decode as D
 import Json.Decode.Pipeline exposing (custom)
@@ -105,12 +112,6 @@ getTorrents config =
             ]
 
 
-getUpdatedTorrents : String
-getUpdatedTorrents =
-    E.encode 0 <|
-        E.object [ ( "load", E.string "torrentList" ) ]
-
-
 getTorrentFields : E.Value
 getTorrentFields =
     -- TODO:
@@ -155,19 +156,38 @@ getTorrentFields =
         ]
 
 
-getFileFields : E.Value
-getFileFields =
+
+-- WEBSOCKET; FILES
+
+
+getFiles : String -> Config -> String
+getFiles selectedTorrentHash config =
+    E.encode 0 <|
+        E.object
+            [ ( "subscribe", E.string "fileList" )
+            , ( "diff", E.bool True )
+            , ( "interval", E.int config.refreshDelay )
+            , ( "command", getFileFields selectedTorrentHash )
+            ]
+
+
+getFileFields : String -> E.Value
+getFileFields selectedTorrentHash =
     -- this order MUST match Model/File.elm #decoder and File model definition!
     E.list E.string
         [ "f.multicall"
+        , selectedTorrentHash
         , ""
-        , ""
-        , "d.path="
-        , "d.size_bytes="
-        , "d.size_chunks="
-        , "d.completed_chunks="
-        , "d.priority="
+        , "f.path="
+        , "f.size_bytes="
+        , "f.size_chunks="
+        , "f.completed_chunks="
+        , "f.priority="
         ]
+
+
+
+-- WEBSOCKET; PEERS
 
 
 getPeerFields : E.Value

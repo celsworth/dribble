@@ -1,4 +1,4 @@
-module View.Torrent exposing (attributeAccessor)
+module View.Torrent exposing (attributeAccessor, attributeTextAlignment)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -107,3 +107,58 @@ attributeAccessor humanise torrent attribute =
 
         Model.Torrent.DonePercent ->
             text <| String.fromFloat torrent.donePercent
+
+
+attributeTextAlignment : Model.Torrent.Attribute -> Maybe String
+attributeTextAlignment attribute =
+    case attribute of
+        Model.Torrent.Size ->
+            Just "text-right"
+
+        Model.Torrent.DownloadedBytes ->
+            Just "text-right"
+
+        Model.Torrent.DownloadRate ->
+            Just "text-right"
+
+        Model.Torrent.UploadedBytes ->
+            Just "text-right"
+
+        Model.Torrent.UploadRate ->
+            Just "text-right"
+
+        Model.Torrent.SkippedBytes ->
+            Just "text-right"
+
+        Model.Torrent.CreationTime ->
+            Just "text-right"
+
+        Model.Torrent.StartedTime ->
+            Just "text-right"
+
+        Model.Torrent.FinishedTime ->
+            Just "text-right"
+
+        Model.Torrent.Ratio ->
+            Just "text-right"
+
+        Model.Torrent.Seeders ->
+            Just "text-right"
+
+        Model.Torrent.SeedersConnected ->
+            Just "text-right"
+
+        Model.Torrent.SeedersTotal ->
+            Just "text-right"
+
+        Model.Torrent.Peers ->
+            Just "text-right"
+
+        Model.Torrent.PeersConnected ->
+            Just "text-right"
+
+        Model.Torrent.PeersTotal ->
+            Just "text-right"
+
+        _ ->
+            Nothing

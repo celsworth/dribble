@@ -78,8 +78,8 @@ filterTraffic traffic =
                 |> Maybe.withDefault 0
 
         limit =
-            {- keep 10 minutes for now -}
-            now - 600
+            {- keep 30 minutes for now -}
+            now - 1800
     in
     List.filterMap (newerThan limit) traffic
 

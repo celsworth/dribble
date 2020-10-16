@@ -16,6 +16,9 @@ getTableConfig config tableType =
         Model.Table.Torrents ->
             config.torrentTable
 
+        Model.Table.Files ->
+            config.fileTable
+
         Model.Table.Peers ->
             config.peerTable
 
@@ -25,6 +28,9 @@ tableConfigSetter tableType =
     case tableType of
         Model.Table.Torrents ->
             Model.Config.setTorrentTable
+
+        Model.Table.Files ->
+            Model.Config.setFileTable
 
         Model.Table.Peers ->
             Model.Config.setPeerTable

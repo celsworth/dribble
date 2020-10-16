@@ -139,6 +139,9 @@ torrentsTableColumnsOption dnd index column =
                 Model.Attribute.TorrentAttribute a ->
                     a
 
+                Model.Attribute.FileAttribute _ ->
+                    Debug.todo "work out what to do here"
+
                 Model.Attribute.PeerAttribute _ ->
                     Debug.todo "work out what to do here"
 
@@ -175,6 +178,9 @@ torrentsTableColumnsOptionLi itemId column dndEvents dndStyles =
             case column.attribute of
                 Model.Attribute.TorrentAttribute a ->
                     a
+
+                Model.Attribute.FileAttribute _ ->
+                    Debug.todo "work out what to do here"
 
                 Model.Attribute.PeerAttribute _ ->
                     Debug.todo "work out what to do here"

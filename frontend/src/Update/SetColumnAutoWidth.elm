@@ -3,6 +3,7 @@ module Update.SetColumnAutoWidth exposing (update)
 import Browser.Dom
 import Model exposing (..)
 import Model.Attribute
+import Model.File
 import Model.Peer
 import Model.Table
 import Model.Torrent
@@ -18,6 +19,11 @@ update attribute model =
                 Model.Attribute.TorrentAttribute a ->
                     ( Model.Torrent.attributeToTableHeaderId a
                     , Model.Table.Torrents
+                    )
+
+                Model.Attribute.FileAttribute a ->
+                    ( Model.File.attributeToTableHeaderId a
+                    , Model.Table.Files
                     )
 
                 Model.Attribute.PeerAttribute a ->

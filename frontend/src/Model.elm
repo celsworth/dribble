@@ -1,17 +1,19 @@
 module Model exposing (..)
 
 import Browser.Dom
+import Dict
 import DnDList
 import Html.Events.Extra.Mouse as Mouse
 import Json.Decode as JD
 import Model.Attribute exposing (Attribute)
 import Model.Config exposing (Config)
+import Model.File exposing (File, FilesByKey)
 import Model.Message exposing (Message)
 import Model.Preferences
 import Model.Rtorrent
 import Model.SpeedChart
 import Model.Table
-import Model.Torrent exposing (TorrentsByHash)
+import Model.Torrent exposing (Torrent, TorrentsByHash)
 import Model.TorrentFilter exposing (TorrentFilter)
 import Model.Traffic exposing (Traffic)
 import Model.WebsocketData
@@ -66,6 +68,8 @@ type alias Model =
     , sortedTorrents : List String
     , torrentsByHash : TorrentsByHash
     , torrentFilter : TorrentFilter
+    , sortedFiles : List String
+    , keyedFiles : FilesByKey
     , traffic : List Traffic
     , prevTraffic : Maybe Traffic
     , speedChartHover : List Model.SpeedChart.DataSeries
@@ -102,6 +106,12 @@ setSelectedTorrentHash new model =
     { model | selectedTorrentHash = Just new }
 
 
+selectedTorrent : Model -> Maybe Torrent
+selectedTorrent model =
+    Maybe.withDefault Nothing <|
+        Maybe.map (\h -> Dict.get h model.torrentsByHash) model.selectedTorrentHash
+
+
 setTorrentsByHash : TorrentsByHash -> Model -> Model
 setTorrentsByHash new model =
     { model | torrentsByHash = new }
@@ -110,6 +120,21 @@ setTorrentsByHash new model =
 setTorrentFilter : TorrentFilter -> Model -> Model
 setTorrentFilter new model =
     { model | torrentFilter = new }
+
+
+clearFiles : Model -> Model
+clearFiles model =
+    { model | sortedFiles = [], keyedFiles = Dict.empty }
+
+
+setSortedFiles : List String -> Model -> Model
+setSortedFiles new model =
+    { model | sortedFiles = new }
+
+
+setKeyedFiles : FilesByKey -> Model -> Model
+setKeyedFiles new model =
+    { model | keyedFiles = new }
 
 
 setMessages : List Message -> Model -> Model
@@ -150,6 +175,10 @@ setTimeZone new model =
 setCurrentTime : Time.Posix -> Model -> Model
 setCurrentTime new model =
     { model | currentTime = new }
+
+
+
+-- CMD HELPERS
 
 
 addCmd : Cmd Msg -> Model -> ( Model, Cmd Msg )

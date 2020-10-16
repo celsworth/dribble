@@ -4,8 +4,10 @@ import Dict
 import Model exposing (..)
 import Model.Attribute
 import Model.Config
+import Model.File
 import Model.Sort exposing (SortDirection(..))
 import Model.Sort.Torrent
+import Model.Table
 import Model.Torrent
 
 
@@ -14,6 +16,9 @@ update attribute model =
     case attribute of
         Model.Attribute.TorrentAttribute a ->
             model |> sortTorrents a
+
+        Model.Attribute.FileAttribute _ ->
+            Debug.todo "support file sorting"
 
         Model.Attribute.PeerAttribute _ ->
             Debug.todo "support peer sorting"
@@ -55,7 +60,24 @@ sortTorrents attribute model =
         |> noCmd
 
 
+sortFiles : Model.File.Attribute -> Model -> ( Model, Cmd Msg )
+sortFiles bute model =
+    let
+        config =
+            model.config
+    in
+    model
+        |> noCmd
 
+
+
+{-
+   unwrapFileTableSort : Model.Table.Config -> ( Model.File.Attribute, SortDirection )
+   unwrapFileTableSort tableConfig =
+       case tableConfig.sortBy of
+           Model.Attribute.SortBy (Model.Attribute.FileAttribute f) d ->
+               ( f, d )
+-}
 {-
 
    update : Model.Attribute.Attribute -> Model -> ( Model, Cmd Msg )

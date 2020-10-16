@@ -15,8 +15,10 @@ import Update.ResizeOpMoved
 import Update.SaveConfig
 import Update.SetColumnAutoWidth
 import Update.SetPreference
+import Update.SetSelectedTorrent
 import Update.SetSortBy
 import Update.StartResizeOp
+import Update.SubscribeToTorrent
 import Update.ToggleTorrentAttributeVisibility
 import Update.ToggleWindowVisible
 import Update.TorrentFilterChanged
@@ -95,7 +97,9 @@ update msg model =
                 |> andThen Update.SaveConfig.update
 
         TorrentRowSelected hash ->
-            r |> andThen (call setSelectedTorrentHash hash)
+            r
+                |> andThen (Update.SetSelectedTorrent.update hash)
+                |> andThen Update.SubscribeToTorrent.update
 
         SpeedChartHover data ->
             r |> andThen (call setSpeedChartHover data)

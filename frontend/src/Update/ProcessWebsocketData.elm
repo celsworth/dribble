@@ -4,6 +4,7 @@ import Json.Decode as JD
 import Model exposing (..)
 import Model.Message
 import Model.WebsocketData
+import Update.ProcessFiles
 import Update.ProcessSystemInfo
 import Update.ProcessTorrents
 import Update.ProcessTraffic
@@ -41,6 +42,9 @@ processWebsocketData data model =
 
         Model.WebsocketData.TorrentsReceived torrents ->
             model |> Update.ProcessTorrents.update torrents
+
+        Model.WebsocketData.FilesReceived torrents ->
+            model |> Update.ProcessFiles.update torrents
 
         Model.WebsocketData.TrafficReceived traffic ->
             model |> Update.ProcessTraffic.update traffic
