@@ -2,6 +2,7 @@
 
 source 'https://rubygems.org'
 
+gem 'excon'
 gem 'rake'
 gem 'sassc'
 gem 'sinatra'

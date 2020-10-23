@@ -2,6 +2,9 @@
 
 require 'sinatra/reloader'
 require 'sassc'
+require 'excon'
+
+Excon.defaults[:middlewares] << Excon::Middleware::RedirectFollower
 
 begin
   require 'pry'
@@ -70,6 +73,30 @@ class Dribble < Sinatra::Application
         settings.subscription_runner.remove_websocket(t)
       end
     end
+  end
+
+  # GET /proxy/foo.url/favicon.ico
+  #
+  # This is used by Elm to get favicons through us. It's not strictly necessary,
+  # Elm could render an <img> tag and fetch directly, but I found a few icons failed
+  # because a Referrer was set by the browser and some sites didn't like that.
+  # Plus, in future we could cache here to avoid hitting the sites too often.
+  # We pass along a load of headers to try quite hard to make caches work,
+  # and enforce some quite lax headers in the response as these don't change much.
+  get '/proxy/*' do |url|
+    response = Excon.get("http://#{url}", headers: proxy_cache_headers(request.env))
+    response.headers['Expires'] = [Time.now + 604_800]
+    response.headers['Cache-Control'] = ['public']
+    [response.status, response.headers, StringIO.new(response.body)]
+  end
+
+  def proxy_cache_headers(env)
+    {
+      'Accept' => env['HTTP_ACCEPT'],
+      'Accept-Encoding' => env['HTTP_ACCEPT_ENCODING'],
+      'If-None-Match' => env['HTTP_IF_NONE_MATCH'],
+      'If-Modified-Since' => env['HTTP_IF_MODIFIED_SINCE']
+    }
   end
 
   def process_websocket(websocket, data)

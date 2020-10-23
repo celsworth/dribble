@@ -64,15 +64,13 @@ navigation : Model -> Html Msg
 navigation model =
     section [ class "navigation" ]
         [ div [ class "flex-container" ]
-            [ button [ onMouseEnter ShowGroupLists ] [ text "Groups" ]
+            [ button [ onMouseEnter <| SetGroupListsVisible True ] [ text "Groups" ]
             , View.GroupLists.view model
             , button [ onClick ResetConfigClicked ] [ text "Reset Config" ]
             , button [ onClick SaveConfigClicked ] [ text "Save Config" ]
             ]
         , div [ class "flex-container" ]
-            [ Html.Lazy.lazy2 filterInput
-                model.config.filter
-                model.torrentFilter
+            [ Html.Lazy.lazy2 filterInput model.config.filter model.torrentFilter
             , Html.Lazy.lazy hamburgerButton model.hamburgerMenuVisible
             ]
         ]

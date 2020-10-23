@@ -22,6 +22,16 @@ $details-height: 200px;
 $summary-height: 20px;
 $torrents-height: calc(100vh - #{$summary-height} - #{$details-height} - #{$header-height});
 
+$thead-z-index: 1;
+$messages-z-index: 5;
+$resize-handle-z-index: 5;
+$speed-chart-z-index: 5;
+$dragbar-z-index: 10;
+$group-lists-z-index: 20;
+$hamburger-menu-z-index: 50;
+$context-menu-z-index: 50;
+$window-z-index: 50;
+
 
 @mixin unselectable {
   -webkit-user-select: none;
@@ -64,7 +74,7 @@ body {
 }
 
 .context-menu {
-  z-index: 1000;
+  z-index: $context-menu-z-index;
   border: 1px solid #ddd;
   border-radius: 5px;
   box-shadow: 0 0 15px 5px #aaa;
@@ -75,7 +85,7 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 5; // do we need this?
+  z-index: $dragbar-z-index;
   border-left: 1px solid $dragbar-color;
   width: 1px;
   height: 100%;
@@ -84,7 +94,7 @@ body {
 .window {
   display: none;
   position: absolute;
-  z-index: 1000;
+  z-index: $window-z-index;
   margin: 40px;
   border: 1px solid #ddd;
   border-radius: 5px;
@@ -155,22 +165,65 @@ body {
 }
 
 .group-lists {
-  z-index: 20;
-  opacity: .9;
+  display: flex;
   position: absolute;
   top: 10px;
   left: 10px;
-  width: 200px;
-  height: 200px;
-  background: white;
-  border: 1px solid black;
+  z-index: $group-lists-z-index;
+  border: 1px solid #000;
+  background: #fff;
+
+  box-shadow: 0 0 15px 10px #888;
+
+  .group-list {
+    border-right: 1px solid #ccc;
+
+    &:last-child {
+      border-right: 0;
+    }
+  }
+
+  .header {
+    margin: 0;
+    background: $table-header-background;
+    padding: 5px 10px;
+    font-weight: bold;
+    font-variant: small-caps;
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+  }
+
+  .label {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+  }
+
+  i,
+  img {
+    margin-right: 5px;
+  }
+
+  span {
+    padding: 0 5px;
+  }
 }
 
 .messages {
   position: absolute;
   top: $header-height - 10px; // 10px margin on first li
   right: 5px;
-  z-index: 5;
+  z-index: $messages-z-index;
 
   li {
     position: relative;
@@ -187,7 +240,7 @@ body {
   position: absolute;
   top: 0;
   right: 0;
-  z-index: 1000;
+  z-index: $hamburger-menu-z-index;
   border: 1px outset #555;
   background: #fff;
   color: #555;
@@ -368,7 +421,7 @@ body {
 
 .speed-chart {
   flex-shrink: 0;
-  z-index: 10;
+  z-index: $speed-chart-z-index;
   margin-left: 5px;
   border: 1px solid #888;
   background: #fff;
@@ -525,7 +578,7 @@ thead {
 
   position: sticky;
   top: 0;
-  z-index: 1; // stop progress-bars overlaying headers
+  z-index: $thead-z-index; // stop progress-bars overlaying headers
 }
 
 tr {
@@ -580,7 +633,7 @@ th {
     position: absolute;
     top: 0;
     right: 0;
-    z-index: 5;
+    z-index: $resize-handle-z-index;
     margin-right: -3px;
     cursor: col-resize;
     width: 6px;

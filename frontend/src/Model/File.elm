@@ -79,15 +79,11 @@ decoder =
 
 internalDecoder : String -> Int -> Int -> Int -> Int -> D.Decoder File
 internalDecoder path size sizeChunks completedChunks priority =
-    let
-        donePercent =
-            (toFloat completedChunks / toFloat sizeChunks) * 100.0
-    in
     D.succeed <|
         File
             path
             size
-            donePercent
+            {- donePercent -} ((toFloat completedChunks / toFloat sizeChunks) * 100.0)
 
 
 attributeDecoder : D.Decoder Attribute

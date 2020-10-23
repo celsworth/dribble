@@ -31,6 +31,7 @@ import Time
 import View.DragBar
 import View.Table
 import View.Torrent
+import View.Utils.TorrentStatusIcon
 
 
 view : Model -> Html Msg
@@ -275,40 +276,10 @@ cellContent : Model.Config.Humanise -> Torrent -> Column -> Html Msg
 cellContent humanise torrent column =
     case column.attribute of
         Model.Torrent.Status ->
-            torrentStatusCell torrent
+            View.Utils.TorrentStatusIcon.view torrent.status
 
         Model.Torrent.DonePercent ->
             View.Table.donePercentCell torrent.donePercent
 
         torrentAttribute ->
             View.Torrent.attributeAccessor humanise torrent torrentAttribute
-
-
-torrentStatusCell : Torrent -> Html Msg
-torrentStatusCell torrent =
-    case torrent.status of
-        Model.Torrent.Seeding ->
-            torrentStatusIcon "seeding" "fa-arrow-up"
-
-        Model.Torrent.Errored ->
-            torrentStatusIcon "errored" "fa-exclamation"
-
-        Model.Torrent.Downloading ->
-            torrentStatusIcon "downloading" "fa-arrow-down"
-
-        Model.Torrent.Paused ->
-            torrentStatusIcon "paused" "fa-pause"
-
-        Model.Torrent.Stopped ->
-            torrentStatusIcon "stopped" "fa-circle"
-
-        Model.Torrent.Hashing ->
-            torrentStatusIcon "hashing" "fa-sync"
-
-
-torrentStatusIcon : String -> String -> Html Msg
-torrentStatusIcon kls icon =
-    span [ class ("torrent-status " ++ kls ++ " fa-stack") ]
-        [ i [ class "fas fa-square fa-stack-2x" ] []
-        , i [ class ("fas " ++ icon ++ " fa-inverse fa-stack-1x") ] []
-        ]

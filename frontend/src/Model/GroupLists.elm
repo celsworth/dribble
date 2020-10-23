@@ -2,7 +2,6 @@ module Model.GroupLists exposing (..)
 
 import Dict exposing (Dict)
 import Model.Torrent exposing (Torrent)
-import Model.Tracker
 
 
 type alias Group =
@@ -26,10 +25,34 @@ empty =
 
 groups : List Torrent -> GroupLists
 groups torrents =
-    { byLabel = createByLabel torrents
+    { byStatus = createByStatus torrents
+    , byLabel = createByLabel torrents
     , byTracker = createByTracker torrents
-    , byStatus = Dict.empty
     }
+
+
+createByStatus : List Torrent -> Group
+createByStatus torrents =
+    List.foldr
+        (\torrent carry ->
+            incrementKey
+                (Model.Torrent.statusToString torrent.status)
+                carry
+        )
+        initialStatusDict
+        torrents
+
+
+initialStatusDict : Group
+initialStatusDict =
+    Dict.fromList
+        [ ( "Seeding", 0 )
+        , ( "Errored", 0 )
+        , ( "Downloading", 0 )
+        , ( "Paused", 0 )
+        , ( "Stopped", 0 )
+        , ( "Hashing", 0 )
+        ]
 
 
 createByLabel : List Torrent -> Group

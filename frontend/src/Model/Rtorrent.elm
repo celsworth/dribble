@@ -28,19 +28,19 @@ type alias Info =
 decoder : D.Decoder Info
 decoder =
     D.succeed Info
-        |> custom (D.index 0 stringFromArrayDecoder)
-        |> custom (D.index 1 intFromArrayDecoder)
-        |> custom (D.index 2 stringFromArrayDecoder)
-        |> custom (D.index 3 stringFromArrayDecoder)
+        |> custom (D.index 0 stringArrayDecoder)
+        |> custom (D.index 1 intArrayDecoder)
+        |> custom (D.index 2 stringArrayDecoder)
+        |> custom (D.index 3 stringArrayDecoder)
 
 
-intFromArrayDecoder : D.Decoder Int
-intFromArrayDecoder =
+intArrayDecoder : D.Decoder Int
+intArrayDecoder =
     D.index 0 D.int
 
 
-stringFromArrayDecoder : D.Decoder String
-stringFromArrayDecoder =
+stringArrayDecoder : D.Decoder String
+stringArrayDecoder =
     D.index 0 D.string
 
 
@@ -117,7 +117,7 @@ getTorrentFields =
     -- TODO:
     -- save path, ratio group, channel, tracker update time (last_scrape)
     --
-    -- this order MUST match Model/Torrent.elm #decoder and Torrent model definition!
+    -- this order MUST match Model/Torrent.elm #decoder
     E.list E.string
         [ "d.multicall2"
         , ""
@@ -143,19 +143,19 @@ getTorrentFields =
         -- seeders (connected)
         , "d.peers_complete="
 
-        -- seeders (total) -- array of ints
+        -- seeders (total) -- array of ints -- could use math.sum in 0.9.7
         , "t.multicall=d.hash=,t.scrape_complete="
 
         -- peers (connected)
         , "d.peers_accounted="
 
-        -- peers (total) -- array of ints
+        -- peers (total) -- array of ints -- could use math.sum in 0.9.7
         , "t.multicall=d.hash=,t.scrape_incomplete="
 
         -- label
         , "d.custom1="
 
-        -- tracker urls. this is included for the GroupLists functionality
+        -- tracker urls. this is included for GroupLists functionality
         -- note this is an array of arrays; [['urla.org'], ['urlb.net']]
         , "t.multicall=d.hash=,t.url="
         ]
@@ -178,7 +178,7 @@ getFiles selectedTorrentHash config =
 
 getFileFields : String -> E.Value
 getFileFields selectedTorrentHash =
-    -- this order MUST match Model/File.elm #decoder and File model definition!
+    -- this order MUST match Model/File.elm #decoder
     E.list E.string
         [ "f.multicall"
         , selectedTorrentHash
@@ -197,7 +197,7 @@ getFileFields selectedTorrentHash =
 
 getPeerFields : E.Value
 getPeerFields =
-    -- this order MUST match Model/Peer.elm #decoder and Peer model definition!
+    -- this order MUST match Model/Peer.elm #decoder
     E.list E.string
         [ "p.multicall"
         , ""

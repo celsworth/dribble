@@ -6,6 +6,7 @@ import Json.Decode.Pipeline as Pipeline exposing (custom, required)
 import Json.Encode as E
 import Model.Sort exposing (SortDirection(..))
 import Model.Tracker
+import Url
 
 
 type Status
@@ -130,7 +131,7 @@ decoder : D.Decoder Torrent
 decoder =
     -- this order MUST match Model/Rtorrent.elm #getTorrentFields
     --
-    -- this gets fed to internalDecoder (below) which populates a Torrent
+    -- this gets fed to internalDecoder (below) to populate a Torrent
     D.succeed internalDecoder
         -- hash
         |> custom (D.index 0 D.string)
@@ -169,33 +170,27 @@ decoder =
         -- seedersConnected
         |> custom (D.index 17 D.int)
         -- seedersTotal
-        |> custom (D.index 18 intArrayListDecoder)
+        |> custom (D.index 18 <| D.list intArrayDecoder)
         -- peersConnected
         |> custom (D.index 19 D.int)
         -- peersTotal
-        |> custom (D.index 20 intArrayListDecoder)
+        |> custom (D.index 20 <| D.list intArrayDecoder)
         -- label
         |> custom (D.index 21 D.string)
         -- tracker urls -> hosts
-        |> custom (D.index 22 trackerHostArrayListDecoder)
+        |> custom (D.index 22 <| D.list trackerHostArrayDecoder)
         |> Pipeline.resolve
 
 
 internalDecoder : String -> String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Bool -> Bool -> HashingStatus -> String -> Priority -> Int -> List Int -> Int -> List Int -> String -> List String -> D.Decoder Torrent
 internalDecoder hash name size fileCount creationTime startedTime finishedTime downloadedBytes downloadRate uploadedBytes uploadRate skippedBytes isOpen isActive hashing message priority seedersConnected seedersTotal peersConnected peersTotal label trackerHosts =
+    -- further postprocessing of JSON decoding, adding internal fields etc.
     let
-        -- after decoder is done, we can add further internal fields here
-        donePercent =
-            (toFloat downloadedBytes / toFloat size) * 100.0
-
         done =
             downloadedBytes == size
 
         status =
             resolveStatus message hashing isOpen isActive done
-
-        ratio =
-            toFloat uploadedBytes / toFloat downloadedBytes
     in
     D.succeed <|
         Torrent
@@ -212,7 +207,7 @@ internalDecoder hash name size fileCount creationTime startedTime finishedTime d
             uploadedBytes
             uploadRate
             skippedBytes
-            ratio
+            {- ratio -} (toFloat uploadedBytes / toFloat downloadedBytes)
             isOpen
             isActive
             hashing
@@ -222,9 +217,9 @@ internalDecoder hash name size fileCount creationTime startedTime finishedTime d
             (List.sum seedersTotal)
             peersConnected
             (List.sum peersTotal)
-            label
+            (Url.percentDecode label |> Maybe.withDefault label)
             trackerHosts
-            donePercent
+            {- donePercent -} ((toFloat downloadedBytes / toFloat size) * 100.0)
 
 
 resolveStatus : String -> HashingStatus -> Bool -> Bool -> Bool -> Status
@@ -335,19 +330,9 @@ intToPriorityDecoder =
             )
 
 
-trackerHostArrayListDecoder : D.Decoder (List String)
-trackerHostArrayListDecoder =
-    D.list trackerHostArrayDecoder
-
-
 trackerHostArrayDecoder : D.Decoder String
 trackerHostArrayDecoder =
     D.map Model.Tracker.domainFromURL <| D.index 0 D.string
-
-
-intArrayListDecoder : D.Decoder (List Int)
-intArrayListDecoder =
-    D.list intArrayDecoder
 
 
 intArrayDecoder : D.Decoder Int
@@ -373,6 +358,53 @@ priorityToString priority =
 
         HighPriority ->
             "high"
+
+
+statusToString : Status -> String
+statusToString status =
+    case status of
+        Seeding ->
+            "Seeding"
+
+        Errored ->
+            "Errored"
+
+        Paused ->
+            "Paused"
+
+        Stopped ->
+            "Stopped"
+
+        Downloading ->
+            "Downloading"
+
+        Hashing ->
+            "Hashing"
+
+
+stringToStatus : String -> Maybe Status
+stringToStatus string =
+    case string of
+        "Seeding" ->
+            Just Seeding
+
+        "Errored" ->
+            Just Errored
+
+        "Paused" ->
+            Just Paused
+
+        "Stopped" ->
+            Just Stopped
+
+        "Downloading" ->
+            Just Downloading
+
+        "Hashing" ->
+            Just Hashing
+
+        _ ->
+            Nothing
 
 
 

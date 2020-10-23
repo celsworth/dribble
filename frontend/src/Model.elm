@@ -31,7 +31,7 @@ type Msg
     | AttributeResizeEnded Model.Table.ResizeOp Model.Table.MousePosition
     | GotColumnWidth Attribute (Result Browser.Dom.Error Browser.Dom.Element)
     | SetPreference Model.Preferences.PreferenceUpdate
-    | ShowGroupLists
+    | SetGroupListsVisible Bool
     | ResetConfigClicked
     | SaveConfigClicked
     | TogglePreferencesVisible
