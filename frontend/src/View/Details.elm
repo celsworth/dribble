@@ -12,10 +12,7 @@ import View.SpeedChart
 view : Model -> Html Msg
 view model =
     section [ class "details" ]
-        [ div []
-            (List.filterMap identity
-                [ maybeTorrentDetails model ]
-            )
+        [ maybeTorrentDetails model |> Maybe.withDefault (div [] [])
         , View.SpeedChart.view model
         ]
 
@@ -29,7 +26,9 @@ maybeTorrentDetails model =
 
 torrentDetails : Model -> Torrent -> Html Msg
 torrentDetails model torrent =
-    div []
-        [ text torrent.name
-        , View.FileTable.view model
+    div
+        [ style "overflow" "auto"
+        , style "flex-grow" "1"
+        ]
+        [ View.FileTable.view model
         ]

@@ -1,8 +1,13 @@
 module Update.EndResizeOp exposing (update)
 
 import Model exposing (..)
+import Model.Attribute
+import Model.Config exposing (Config)
+import Model.File
+import Model.FileTable
 import Model.Table
-import Update.Shared.ConfigHelpers exposing (getTableConfig, tableConfigSetter)
+import Model.Torrent
+import Model.TorrentTable
 
 
 update : Model.Table.ResizeOp -> Model.Table.MousePosition -> Model -> ( Model, Cmd Msg )
@@ -15,22 +20,48 @@ update resizeOp mousePosition model =
             Model.Table.updateResizeOpIfValid resizeOp mousePosition
                 |> Maybe.withDefault resizeOp
 
-        tableType =
-            Model.Table.typeFromAttribute resizeOp.attribute
-
-        tableConfig =
-            getTableConfig model.config tableType
-
-        tableColumn =
-            Model.Table.getColumn tableConfig resizeOp.attribute
-
-        newTableConfig =
-            tableConfig |> Model.Table.setColumn { tableColumn | width = newResizeOp.currentWidth }
-
         newConfig =
-            model.config |> tableConfigSetter tableType newTableConfig
+            case resizeOp.attribute of
+                Model.Attribute.TorrentAttribute attribute ->
+                    torrentTable model attribute newResizeOp
+
+                Model.Attribute.FileAttribute attribute ->
+                    fileTable model attribute newResizeOp
+
+                _ ->
+                    Debug.todo "todo"
     in
     model
         |> setResizeOp Nothing
         |> setConfig newConfig
         |> noCmd
+
+
+torrentTable : Model -> Model.Torrent.Attribute -> Model.Table.ResizeOp -> Config
+torrentTable model attribute newResizeOp =
+    let
+        tableConfig =
+            model.config.torrentTable
+
+        tableColumn =
+            Model.TorrentTable.getColumn tableConfig attribute
+
+        newTableConfig =
+            tableConfig |> Model.Table.setColumn { tableColumn | width = newResizeOp.currentWidth }
+    in
+    model.config |> Model.Config.setTorrentTable newTableConfig
+
+
+fileTable : Model -> Model.File.Attribute -> Model.Table.ResizeOp -> Config
+fileTable model attribute newResizeOp =
+    let
+        tableConfig =
+            model.config.fileTable
+
+        tableColumn =
+            Model.FileTable.getColumn tableConfig attribute
+
+        newTableConfig =
+            tableConfig |> Model.Table.setColumn { tableColumn | width = newResizeOp.currentWidth }
+    in
+    model.config |> Model.Config.setFileTable newTableConfig

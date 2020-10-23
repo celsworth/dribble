@@ -1,9 +1,13 @@
 module Model.Peer exposing (..)
 
--- temporary placeholder
-
 import Json.Decode as D
-import Json.Decode.Pipeline as Pipeline exposing (custom)
+import Json.Decode.Pipeline as Pipeline exposing (custom, required)
+import Json.Encode as E
+import Model.Sort exposing (SortDirection(..))
+
+
+type Sort
+    = SortBy Attribute SortDirection
 
 
 type Attribute
@@ -17,6 +21,25 @@ type alias Peer =
     , clientVersion : String
     , completedPercent : Int
     }
+
+
+
+-- JSON ENCODING
+
+
+encodeAttribute : Attribute -> E.Value
+encodeAttribute attribute =
+    E.string <| attributeToKey attribute
+
+
+encodeSortBy : Sort -> E.Value
+encodeSortBy sortBy =
+    case sortBy of
+        SortBy column direction ->
+            E.object
+                [ ( "column", encodeAttribute column )
+                , ( "direction", Model.Sort.encodeSortDirection direction )
+                ]
 
 
 
@@ -50,6 +73,24 @@ internalDecoder ip clientVersion completedPercent =
             ip
             clientVersion
             completedPercent
+
+
+attributeDecoder : D.Decoder Attribute
+attributeDecoder =
+    D.string
+        |> D.andThen
+            (\input ->
+                keyToAttribute input
+                    |> Maybe.map D.succeed
+                    |> Maybe.withDefault (D.fail <| "unknown key ")
+            )
+
+
+sortByDecoder : D.Decoder Sort
+sortByDecoder =
+    D.succeed SortBy
+        |> required "column" attributeDecoder
+        |> required "direction" Model.Sort.sortDirectionDecoder
 
 
 

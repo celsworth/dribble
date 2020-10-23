@@ -15,15 +15,18 @@ import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import Html.Events.Extra.Mouse
 import Html.Keyed as Keyed
 import Html.Lazy
 import List
 import Model exposing (..)
 import Model.Attribute
 import Model.Config
+import Model.Sort
 import Model.Table
 import Model.Torrent exposing (Torrent, TorrentsByHash)
 import Model.TorrentFilter exposing (TorrentFilter)
+import Model.TorrentTable exposing (Column, Config)
 import Time
 import View.DragBar
 import View.Table
@@ -33,14 +36,14 @@ import View.Torrent
 view : Model -> Html Msg
 view model =
     if List.isEmpty model.sortedTorrents then
-        section [ class "torrents loading" ]
+        section [ class "torrent-table loading" ]
             [ i [ class "fas fa-spinner fa-pulse" ] [] ]
 
     else
-        section [ class "torrents" ]
+        section [ class "torrent-table" ]
             [ table []
                 [ Html.Lazy.lazy View.DragBar.view model.resizeOp
-                , Html.Lazy.lazy2 View.Table.header model.config model.config.torrentTable
+                , Html.Lazy.lazy2 header model.config model.config.torrentTable
                 , Html.Lazy.lazy7 body
                     model.currentTime
                     model.config.humanise
@@ -53,7 +56,117 @@ view model =
             ]
 
 
-body : Time.Posix -> Model.Config.Humanise -> Model.Table.Config -> TorrentFilter -> TorrentsByHash -> List String -> Maybe String -> Html Msg
+header : Model.Config.Config -> Config -> Html Msg
+header config tableConfig =
+    let
+        visibleOrder =
+            List.filter .visible tableConfig.columns
+    in
+    thead []
+        [ tr []
+            (List.map (headerCell config tableConfig) visibleOrder)
+        ]
+
+
+headerCell : Model.Config.Config -> Config -> Column -> Html Msg
+headerCell config tableConfig column =
+    let
+        attrString =
+            Model.Torrent.attributeToTableHeaderString column.attribute
+
+        maybeResizeDiv =
+            case tableConfig.layout of
+                Model.Table.Fixed ->
+                    Just <| div (headerCellResizeHandleAttributes column) []
+
+                Model.Table.Fluid ->
+                    Nothing
+
+        sortBy =
+            config.sortBy
+    in
+    th (headerCellAttributes sortBy column)
+        (List.filterMap identity
+            [ Just <|
+                div (headerCellContentDivAttributes tableConfig column)
+                    [ div [ class "content" ] [ text attrString ] ]
+            , maybeResizeDiv
+            ]
+        )
+
+
+headerCellAttributes : Model.Torrent.Sort -> Column -> List (Attribute Msg)
+headerCellAttributes sortBy column =
+    List.filterMap identity
+        [ headerCellIdAttribute column
+        , cellTextAlign column
+        , headerCellSortClass sortBy column
+        ]
+
+
+headerCellIdAttribute : Column -> Maybe (Attribute Msg)
+headerCellIdAttribute column =
+    Just <| id (Model.Torrent.attributeToTableHeaderId column.attribute)
+
+
+headerCellSortClass : Model.Torrent.Sort -> Column -> Maybe (Attribute Msg)
+headerCellSortClass sortBy column =
+    let
+        (Model.Torrent.SortBy currentSortAttribute currentSortDirection) =
+            sortBy
+    in
+    if currentSortAttribute == column.attribute then
+        case currentSortDirection of
+            Model.Sort.Asc ->
+                Just <| class "sorted ascending"
+
+            Model.Sort.Desc ->
+                Just <| class "sorted descending"
+
+    else
+        Nothing
+
+
+headerCellContentDivAttributes : Config -> Column -> List (Attribute Msg)
+headerCellContentDivAttributes tableConfig column =
+    let
+        maybeWidthAttr =
+            case tableConfig.layout of
+                Model.Table.Fixed ->
+                    View.Table.thWidthAttribute column
+
+                Model.Table.Fluid ->
+                    Nothing
+    in
+    List.filterMap identity
+        [ maybeWidthAttr
+        , Just <| onClick (SetSortBy (Model.Attribute.TorrentAttribute column.attribute))
+        ]
+
+
+headerCellResizeHandleAttributes : Column -> List (Attribute Msg)
+headerCellResizeHandleAttributes column =
+    let
+        {- this mess converts (x, y) to { x: x, y: y } -}
+        reconstructClientPos =
+            \event ->
+                let
+                    ( x, y ) =
+                        event.clientPos
+                in
+                { x = x, y = y }
+    in
+    [ class "resize-handle"
+    , Html.Events.Extra.Mouse.onDown
+        (\e -> MouseDown (Model.Attribute.TorrentAttribute column.attribute) (reconstructClientPos e) e.button e.keys)
+    ]
+
+
+
+-- BODY
+
+
+body : Time.Posix -> Model.Config.Humanise -> Config -> TorrentFilter -> TorrentsByHash -> List String -> Maybe String -> Html Msg
 body currentTime humanise tableConfig torrentFilter torrentsByHash sortedTorrents selectedTorrentHash =
     Keyed.node "tbody" [] <|
         List.filterMap identity
@@ -69,7 +182,7 @@ body currentTime humanise tableConfig torrentFilter torrentsByHash sortedTorrent
             )
 
 
-keyedRow : Time.Posix -> Model.Config.Humanise -> Model.Table.Config -> TorrentFilter -> TorrentsByHash -> Maybe String -> String -> Maybe ( String, Html Msg )
+keyedRow : Time.Posix -> Model.Config.Humanise -> Config -> TorrentFilter -> TorrentsByHash -> Maybe String -> String -> Maybe ( String, Html Msg )
 keyedRow currentTime humanise tableConfig torrentFilter torrentsByHash selectedTorrentHash hash =
     Maybe.map
         (\torrent ->
@@ -86,7 +199,7 @@ keyedRow currentTime humanise tableConfig torrentFilter torrentsByHash selectedT
         (Dict.get hash torrentsByHash)
 
 
-lazyRow : Time.Posix -> Model.Config.Humanise -> Model.Table.Config -> Maybe TorrentFilter -> Maybe String -> Torrent -> Html Msg
+lazyRow : Time.Posix -> Model.Config.Humanise -> Config -> Maybe TorrentFilter -> Maybe String -> Torrent -> Html Msg
 lazyRow currentTime humanise tableConfig torrentFilter selectedTorrentHash torrent =
     let
         matches =
@@ -105,7 +218,7 @@ lazyRow currentTime humanise tableConfig torrentFilter selectedTorrentHash torre
         text ""
 
 
-row : Model.Config.Humanise -> Model.Table.Config -> Bool -> Torrent -> Html Msg
+row : Model.Config.Humanise -> Config -> Bool -> Torrent -> Html Msg
 row humanise tableConfig rowIsSelected torrent =
     let
         {-
@@ -131,28 +244,44 @@ row humanise tableConfig rowIsSelected torrent =
         (List.map (cell tableConfig humanise torrent) visibleColumns)
 
 
-cell : Model.Table.Config -> Model.Config.Humanise -> Torrent -> Model.Table.Column -> Html Msg
+cell : Config -> Model.Config.Humanise -> Torrent -> Column -> Html Msg
 cell tableConfig humanise torrent column =
     td []
-        [ div (View.Table.cellAttributes tableConfig column)
+        [ div (cellAttributes tableConfig column)
             [ cellContent humanise torrent column ]
         ]
 
 
-cellContent : Model.Config.Humanise -> Torrent -> Model.Table.Column -> Html Msg
+cellAttributes : Config -> Column -> List (Attribute Msg)
+cellAttributes tableConfig column =
+    let
+        maybeWidthAttr =
+            case tableConfig.layout of
+                Model.Table.Fixed ->
+                    View.Table.tdWidthAttribute column
+
+                Model.Table.Fluid ->
+                    Nothing
+    in
+    List.filterMap identity [ maybeWidthAttr, cellTextAlign column ]
+
+
+cellTextAlign : Column -> Maybe (Attribute Msg)
+cellTextAlign column =
+    Maybe.map class (View.Torrent.attributeTextAlignment column.attribute)
+
+
+cellContent : Model.Config.Humanise -> Torrent -> Column -> Html Msg
 cellContent humanise torrent column =
     case column.attribute of
-        Model.Attribute.TorrentAttribute Model.Torrent.Status ->
+        Model.Torrent.Status ->
             torrentStatusCell torrent
 
-        Model.Attribute.TorrentAttribute Model.Torrent.DonePercent ->
+        Model.Torrent.DonePercent ->
             View.Table.donePercentCell torrent.donePercent
 
-        Model.Attribute.TorrentAttribute torrentAttribute ->
+        torrentAttribute ->
             View.Torrent.attributeAccessor humanise torrent torrentAttribute
-
-        _ ->
-            Debug.todo "not reachable, can we remove this?"
 
 
 torrentStatusCell : Torrent -> Html Msg
@@ -162,7 +291,7 @@ torrentStatusCell torrent =
             torrentStatusIcon "seeding" "fa-arrow-up"
 
         Model.Torrent.Errored ->
-            torrentStatusIcon "errored" "fa-times"
+            torrentStatusIcon "errored" "fa-exclamation"
 
         Model.Torrent.Downloading ->
             torrentStatusIcon "downloading" "fa-arrow-down"
@@ -171,7 +300,7 @@ torrentStatusCell torrent =
             torrentStatusIcon "paused" "fa-pause"
 
         Model.Torrent.Stopped ->
-            torrentStatusIcon "stopped" ""
+            torrentStatusIcon "stopped" "fa-circle"
 
         Model.Torrent.Hashing ->
             torrentStatusIcon "hashing" "fa-sync"

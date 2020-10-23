@@ -1,9 +1,9 @@
 module Update.SetPreference exposing (update)
 
 import Model exposing (..)
+import Model.Config exposing (Config)
 import Model.Preferences as MP
 import Model.Table
-import Update.Shared.ConfigHelpers exposing (getTableConfig, tableConfigSetter)
 
 
 update : MP.PreferenceUpdate -> Model -> ( Model, Cmd Msg )
@@ -18,13 +18,24 @@ update preferenceUpdate model =
 setTableLayout : Model.Table.Type -> Model.Table.Layout -> Model -> Model
 setTableLayout tableType layout model =
     let
+        newConfig =
+            case tableType of
+                Model.Table.Torrents ->
+                    torrentTableLayout model layout
+
+                _ ->
+                    Debug.todo "todo other table layouts"
+    in
+    model |> setConfig newConfig
+
+
+torrentTableLayout : Model -> Model.Table.Layout -> Config
+torrentTableLayout model layout =
+    let
         tableConfig =
-            getTableConfig model.config tableType
+            model.config.torrentTable
 
         newTableConfig =
             tableConfig |> Model.Table.setLayout layout
-
-        newConfig =
-            model.config |> tableConfigSetter tableType newTableConfig
     in
-    model |> setConfig newConfig
+    model.config |> Model.Config.setTorrentTable newTableConfig

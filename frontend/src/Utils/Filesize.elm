@@ -193,11 +193,6 @@ decimalSeparatorRegex =
     "\\." |> Regex.fromString |> Maybe.withDefault Regex.never
 
 
-removeTrailingZeroesRegex : Regex
-removeTrailingZeroesRegex =
-    "^(\\d+\\.[^0]*)(0+)$" |> Regex.fromString |> Maybe.withDefault Regex.never
-
-
 {-| Formats the given file size with the default settings.
 
 Convenience function for

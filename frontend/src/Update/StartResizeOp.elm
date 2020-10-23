@@ -2,30 +2,39 @@ module Update.StartResizeOp exposing (update)
 
 import Model exposing (..)
 import Model.Attribute
+import Model.Config exposing (Config)
+import Model.FileTable
 import Model.Table
-import Update.Shared.ConfigHelpers exposing (getTableConfig)
+import Model.TorrentTable
 
 
 update : Model.Attribute.Attribute -> Model.Table.MousePosition -> Model -> ( Model, Cmd Msg )
 update attribute mousePos model =
     let
-        tableType =
-            Model.Table.typeFromAttribute attribute
-
-        tableConfig =
-            getTableConfig model.config tableType
-
-        tableColumn =
-            Model.Table.getColumn tableConfig attribute
+        width =
+            currentWidth model.config attribute
 
         resizeOp =
             { attribute = attribute
-            , startWidth = tableColumn.width
+            , startWidth = width
             , startPosition = mousePos
-            , currentWidth = tableColumn.width
+            , currentWidth = width
             , currentPosition = mousePos
             }
     in
     model
         |> setResizeOp (Just resizeOp)
         |> noCmd
+
+
+currentWidth : Config -> Model.Attribute.Attribute -> Float
+currentWidth config attribute =
+    case attribute of
+        Model.Attribute.TorrentAttribute a ->
+            (Model.TorrentTable.getColumn config.torrentTable a).width
+
+        Model.Attribute.FileAttribute a ->
+            (Model.FileTable.getColumn config.fileTable a).width
+
+        _ ->
+            Debug.todo "todo"

@@ -3,8 +3,12 @@ module Update.ColumnWidthReceived exposing (update)
 import Browser.Dom
 import Model exposing (..)
 import Model.Attribute
+import Model.Config exposing (Config)
+import Model.File
+import Model.FileTable
 import Model.Table
-import Update.Shared.ConfigHelpers exposing (getTableConfig, tableConfigSetter)
+import Model.Torrent
+import Model.TorrentTable
 
 
 
@@ -18,35 +22,55 @@ import Update.Shared.ConfigHelpers exposing (getTableConfig, tableConfigSetter)
 
 update : Model.Attribute.Attribute -> Result Browser.Dom.Error Browser.Dom.Element -> Model -> ( Model, Cmd Msg )
 update attribute result model =
-    let
-        tableType =
-            Model.Table.typeFromAttribute attribute
-
-        tableConfig =
-            getTableConfig model.config tableType
-
-        tableColumn =
-            Model.Table.getColumn tableConfig attribute
-
-        newTableConfig =
-            \px ->
-                tableConfig
-                    |> Model.Table.setColumn
-                        { tableColumn
-                            | width = px
-                            , auto = False
-                        }
-
-        newConfig =
-            \px -> model.config |> tableConfigSetter tableType (newTableConfig px)
-    in
     case result of
         Ok r ->
-            model
-                |> setConfig (newConfig r.element.width)
+            processWidth r.element.width model attribute
                 |> noCmd
 
         Err _ ->
             -- XXX: could display error message
             model
                 |> noCmd
+
+
+processWidth : Float -> Model -> Model.Attribute.Attribute -> Model
+processWidth width model attribute =
+    case attribute of
+        Model.Attribute.TorrentAttribute a ->
+            model |> setConfig (torrentTable width model a)
+
+        Model.Attribute.FileAttribute a ->
+            model |> setConfig (fileTable width model a)
+
+        _ ->
+            Debug.todo "todo"
+
+
+torrentTable : Float -> Model -> Model.Torrent.Attribute -> Config
+torrentTable px model attribute =
+    let
+        tableConfig =
+            model.config.torrentTable
+
+        tableColumn =
+            Model.TorrentTable.getColumn tableConfig attribute
+
+        newTableConfig =
+            tableConfig |> Model.Table.setColumn { tableColumn | width = px, auto = False }
+    in
+    model.config |> Model.Config.setTorrentTable newTableConfig
+
+
+fileTable : Float -> Model -> Model.File.Attribute -> Config
+fileTable px model attribute =
+    let
+        tableConfig =
+            model.config.fileTable
+
+        tableColumn =
+            Model.FileTable.getColumn tableConfig attribute
+
+        newTableConfig =
+            tableConfig |> Model.Table.setColumn { tableColumn | width = px, auto = False }
+    in
+    model.config |> Model.Config.setFileTable newTableConfig

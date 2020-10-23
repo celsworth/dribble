@@ -21,7 +21,7 @@ subscriptions model =
             , Just <| Ports.messageReceiver (WebsocketData << decodeString)
             , Just <| Ports.windowResizeObserved (WindowResized << decodeWindowResizeDetails)
             , Just <| Ports.websocketStatusUpdated (WebsocketStatusUpdated << decodeStatus)
-            , Just <| (dndSystem Model.Table.Torrents).subscriptions model.dnd
+            , Just <| (dndSystemTorrent Model.Table.Torrents).subscriptions model.dnd
             ]
 
 

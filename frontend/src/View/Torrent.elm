@@ -34,6 +34,9 @@ attributeAccessor humanise torrent attribute =
         Model.Torrent.Size ->
             text <| Utils.Filesize.formatWith humanise.size torrent.size
 
+        Model.Torrent.FileCount ->
+            text <| String.fromInt torrent.fileCount
+
         Model.Torrent.CreationTime ->
             View.Utils.LocalTimeNode.nonZeroView torrent.creationTime
 
@@ -113,6 +116,9 @@ attributeTextAlignment : Model.Torrent.Attribute -> Maybe String
 attributeTextAlignment attribute =
     case attribute of
         Model.Torrent.Size ->
+            Just "text-right"
+
+        Model.Torrent.FileCount ->
             Just "text-right"
 
         Model.Torrent.DownloadedBytes ->

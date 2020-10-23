@@ -2,13 +2,14 @@ module View exposing (view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onInput, onMouseLeave)
+import Html.Events exposing (onClick, onInput, onMouseEnter, onMouseLeave)
 import Html.Events.Extra.Mouse
 import Html.Lazy
 import Model exposing (..)
 import Model.Table
 import Model.TorrentFilter
 import View.Details
+import View.GroupLists
 import View.Logs
 import View.Messages
 import View.Preferences
@@ -43,9 +44,9 @@ viewAttributesForResizeOp : Model.Table.ResizeOp -> List (Attribute Msg)
 viewAttributesForResizeOp resizeOp =
     [ class "resizing-x"
     , Html.Events.Extra.Mouse.onUp
-        (\e -> TorrentAttributeResizeEnded resizeOp (reconstructClientPos e))
+        (\e -> AttributeResizeEnded resizeOp (reconstructClientPos e))
     , Html.Events.Extra.Mouse.onMove
-        (\e -> TorrentAttributeResized resizeOp (reconstructClientPos e))
+        (\e -> AttributeResized resizeOp (reconstructClientPos e))
     ]
 
 
@@ -61,10 +62,11 @@ reconstructClientPos event =
 
 navigation : Model -> Html Msg
 navigation model =
-    section
-        [ class "navigation" ]
+    section [ class "navigation" ]
         [ div [ class "flex-container" ]
-            [ button [ onClick ResetConfigClicked ] [ text "Reset Config" ]
+            [ button [ onMouseEnter ShowGroupLists ] [ text "Groups" ]
+            , View.GroupLists.view model
+            , button [ onClick ResetConfigClicked ] [ text "Reset Config" ]
             , button [ onClick SaveConfigClicked ] [ text "Save Config" ]
             ]
         , div [ class "flex-container" ]

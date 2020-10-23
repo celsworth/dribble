@@ -2,8 +2,9 @@ module Init exposing (Flags, init)
 
 import Dict
 import Json.Decode as JD
-import Model exposing (Model, Msg(..), dndSystem)
+import Model exposing (Model, Msg(..), dndSystemTorrent)
 import Model.Config exposing (Config)
+import Model.GroupLists
 import Model.Message exposing (Message)
 import Model.Table
 import Model.TorrentFilter
@@ -29,9 +30,10 @@ init flags =
     in
     ( { config = config
       , rtorrentSystemInfo = Nothing
-      , dnd = (dndSystem Model.Table.Torrents).model
+      , dnd = (dndSystemTorrent Model.Table.Torrents).model
       , websocketConnected = False
       , selectedTorrentHash = Nothing
+      , groupLists = Model.GroupLists.empty
       , sortedTorrents = []
       , torrentsByHash = Dict.empty
       , torrentFilter = torrentFilter
@@ -41,6 +43,7 @@ init flags =
       , prevTraffic = Nothing
       , speedChartHover = []
       , messages = messages
+      , groupListsVisible = False
       , hamburgerMenuVisible = False
       , resizeOp = Nothing
       , timezone = Time.utc

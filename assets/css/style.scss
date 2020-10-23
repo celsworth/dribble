@@ -1,3 +1,5 @@
+$fg-color: #000;
+
 $table-border-colour: #d5d5d5;
 $table-header-background: linear-gradient(#eee 0%, #ccc 100%);
 
@@ -25,24 +27,6 @@ $torrents-height: calc(100vh - #{$summary-height} - #{$details-height} - #{$head
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
-}
-
-.context-menu {
-  z-index: 1000;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  box-shadow: 0 0 15px 5px #aaa;
-  background: #f3f3f3;
-}
-
-.dragbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 5; // do we need this?
-  border-left: 1px solid $dragbar-color;
-  width: 1px;
-  height: 100%;
 }
 
 html {
@@ -79,6 +63,24 @@ body {
   }
 }
 
+.context-menu {
+  z-index: 1000;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 0 15px 5px #aaa;
+  background: #f3f3f3;
+}
+
+.dragbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 5; // do we need this?
+  border-left: 1px solid $dragbar-color;
+  width: 1px;
+  height: 100%;
+}
+
 .window {
   display: none;
   position: absolute;
@@ -112,14 +114,14 @@ body {
     width: 100%;
     height: 30px;
     font-size: 1.1rem;
+  }
 
-    .close-icon {
-      margin: 10px;
-      color: #a00;
+  .close-icon {
+    margin: 10px;
+    color: #a00;
 
-      &:hover {
-        color: #f00;
-      }
+    &:hover {
+      color: #f00;
     }
   }
 }
@@ -150,6 +152,18 @@ body {
     display: flex;
     position: relative;
   }
+}
+
+.group-lists {
+  z-index: 20;
+  opacity: .9;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 200px;
+  height: 200px;
+  background: white;
+  border: 1px solid black;
 }
 
 .messages {
@@ -239,7 +253,7 @@ body {
 }
 
 .fieldset-header {
-  background: white;
+  background: #fff;
   padding: 10px;
 }
 
@@ -325,7 +339,7 @@ body {
   }
 }
 
-.torrents {
+.torrent-table {
   height: $torrents-height;
   overflow: auto;
 
@@ -349,7 +363,13 @@ body {
   height: $details-height;
 }
 
+.details-table {
+}
+
 .speed-chart {
+  flex-shrink: 0;
+  z-index: 10;
+  margin-left: 5px;
   border: 1px solid #888;
   background: #fff;
   // 2.4 is ratio of chart when expanded, which is determined by coordinates
@@ -389,11 +409,11 @@ body {
   }
 
   .connected {
-    color: green;
+    color: #080;
   }
 
   .disconnected {
-    color: red;
+    color: #f00;
   }
 }
 
@@ -479,16 +499,17 @@ body {
     justify-content: center;
     width: 100%;
     height: 100%;
+    color: $fg-color; // override tr.selected
     font-size: smaller;
   }
 }
 
 table {
   position: relative;
+  background-color: #fff;
+  cursor: default;
   border-spacing: 0;
   font-size: 11px;
-
-  cursor: default;
 
   &.fixed {
     table-layout: fixed;
@@ -584,5 +605,3 @@ fieldset {
   margin: 10px;
   padding: 0;
 }
-
-

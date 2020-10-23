@@ -9,6 +9,7 @@ import Model.Attribute
 import Model.Preferences as MP
 import Model.Table
 import Model.Torrent
+import Model.TorrentTable
 import Model.Window
 import View.Window
 
@@ -65,7 +66,7 @@ sectionContents model =
 -- TORRENTS TABLE FIELDSET
 
 
-torrentsTableFieldset : DnDList.Model -> Model.Table.Config -> Html Msg
+torrentsTableFieldset : DnDList.Model -> Model.TorrentTable.Config -> Html Msg
 torrentsTableFieldset dndModel tableConfig =
     fieldset []
         [ div [ class "fieldset-header" ] [ text "Torrents Table" ]
@@ -74,14 +75,14 @@ torrentsTableFieldset dndModel tableConfig =
         ]
 
 
-torrentsTableLayout : Model.Table.Config -> List (Html Msg)
+torrentsTableLayout : Model.TorrentTable.Config -> List (Html Msg)
 torrentsTableLayout tableConfig =
     [ div [ class "preference-label" ] [ text "Layout" ]
     , torrentsTableLayoutOptions tableConfig
     ]
 
 
-torrentsTableLayoutOptions : Model.Table.Config -> Html Msg
+torrentsTableLayoutOptions : Model.TorrentTable.Config -> Html Msg
 torrentsTableLayoutOptions tableConfig =
     div []
         [ div
@@ -117,39 +118,31 @@ torrentsTableLayoutOptions tableConfig =
         ]
 
 
-torrentsTableColumns : DnDList.Model -> Model.Table.Config -> List (Html Msg)
+torrentsTableColumns : DnDList.Model -> Model.TorrentTable.Config -> List (Html Msg)
 torrentsTableColumns dnd tableConfig =
     [ div [ class "preference-label" ] [ text "Columns" ]
     , torrentsTableColumnsOptions dnd tableConfig
     ]
 
 
-torrentsTableColumnsOptions : DnDList.Model -> Model.Table.Config -> Html Msg
+torrentsTableColumnsOptions : DnDList.Model -> Model.TorrentTable.Config -> Html Msg
 torrentsTableColumnsOptions dnd tableConfig =
     ol [] <|
         List.indexedMap (torrentsTableColumnsOption dnd) tableConfig.columns
             ++ [ ghostView dnd tableConfig ]
 
 
-torrentsTableColumnsOption : DnDList.Model -> Int -> Model.Table.Column -> Html Msg
+torrentsTableColumnsOption : DnDList.Model -> Int -> Model.TorrentTable.Column -> Html Msg
 torrentsTableColumnsOption dnd index column =
     let
         attribute =
-            case column.attribute of
-                Model.Attribute.TorrentAttribute a ->
-                    a
-
-                Model.Attribute.FileAttribute _ ->
-                    Debug.todo "work out what to do here"
-
-                Model.Attribute.PeerAttribute _ ->
-                    Debug.todo "work out what to do here"
+            column.attribute
 
         itemId =
             "dndlist-torrentsTable-" ++ Model.Torrent.attributeToKey attribute
 
         tableDndSystem =
-            dndSystem Model.Table.Torrents
+            dndSystemTorrent Model.Table.Torrents
     in
     case tableDndSystem.info dnd of
         Just { dragIndex } ->
@@ -172,18 +165,11 @@ torrentsTableColumnsOption dnd index column =
                 Nothing
 
 
+torrentsTableColumnsOptionLi : Maybe String -> Model.TorrentTable.Column -> Maybe (List (Attribute Msg)) -> Maybe (List (Attribute Msg)) -> Html Msg
 torrentsTableColumnsOptionLi itemId column dndEvents dndStyles =
     let
         attribute =
-            case column.attribute of
-                Model.Attribute.TorrentAttribute a ->
-                    a
-
-                Model.Attribute.FileAttribute _ ->
-                    Debug.todo "work out what to do here"
-
-                Model.Attribute.PeerAttribute _ ->
-                    Debug.todo "work out what to do here"
+            column.attribute
 
         visibility =
             if column.visible then
@@ -204,7 +190,7 @@ torrentsTableColumnsOptionLi itemId column dndEvents dndStyles =
                 ++ Maybe.withDefault [] dndEvents
     in
     li liStyles
-        [ i [ onClick (ToggleTorrentAttributeVisibility attribute), class "fas fa-eye" ] []
+        [ i [ onClick (ToggleAttributeVisibility (Model.Attribute.TorrentAttribute attribute)), class "fas fa-eye" ] []
         , div divAttributes
             [ i [ class "fas fa-arrows-alt-v" ] []
             , text <| Model.Torrent.attributeToString attribute
@@ -212,14 +198,14 @@ torrentsTableColumnsOptionLi itemId column dndEvents dndStyles =
         ]
 
 
-ghostView : DnDList.Model -> Model.Table.Config -> Html Msg
+ghostView : DnDList.Model -> Model.TorrentTable.Config -> Html Msg
 ghostView dnd tableConfig =
     let
         items =
             tableConfig.columns
 
         tableDndSystem =
-            dndSystem Model.Table.Torrents
+            dndSystemTorrent Model.Table.Torrents
 
         maybeDragItem =
             tableDndSystem.info dnd

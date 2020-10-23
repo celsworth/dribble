@@ -56,6 +56,9 @@ comparator direction attribute a b =
         Size ->
             maybeReverse direction <| cmp a b .size
 
+        FileCount ->
+            maybeReverse direction <| cmp a b .fileCount
+
         CreationTime ->
             maybeReverse direction <| cmp a b .creationTime
 

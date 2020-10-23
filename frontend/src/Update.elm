@@ -19,7 +19,7 @@ import Update.SetSelectedTorrent
 import Update.SetSortBy
 import Update.StartResizeOp
 import Update.SubscribeToTorrent
-import Update.ToggleTorrentAttributeVisibility
+import Update.ToggleAttributeVisibility
 import Update.ToggleWindowVisible
 import Update.TorrentFilterChanged
 import Update.WindowResized
@@ -46,10 +46,10 @@ update msg model =
         MouseDown attribute pos button keys ->
             r |> andThen (handleMouseDown attribute pos button keys)
 
-        TorrentAttributeResized resizeOp pos ->
+        AttributeResized resizeOp pos ->
             r |> andThen (Update.ResizeOpMoved.update resizeOp pos)
 
-        TorrentAttributeResizeEnded resizeOp pos ->
+        AttributeResizeEnded resizeOp pos ->
             r
                 |> andThen (Update.EndResizeOp.update resizeOp pos)
                 |> andThen Update.SaveConfig.update
@@ -63,6 +63,9 @@ update msg model =
             r
                 |> andThen (Update.SetPreference.update preferenceUpdate)
                 |> andThen Update.SaveConfig.update
+
+        ShowGroupLists ->
+            r |> andThen (call setGroupListsVisible True)
 
         ResetConfigClicked ->
             r |> andThen Update.ResetConfig.update
@@ -86,9 +89,9 @@ update msg model =
         TorrentFilterChanged value ->
             r |> andThen (Update.TorrentFilterChanged.update value)
 
-        ToggleTorrentAttributeVisibility attribute ->
+        ToggleAttributeVisibility attribute ->
             r
-                |> andThen (Update.ToggleTorrentAttributeVisibility.update (Model.Attribute.TorrentAttribute attribute))
+                |> andThen (Update.ToggleAttributeVisibility.update attribute)
                 |> andThen Update.SaveConfig.update
 
         SetSortBy attribute ->

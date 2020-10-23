@@ -6,7 +6,6 @@ import Json.Encode as E
 import Model.FileTable
 import Model.PeerTable
 import Model.Sort exposing (SortDirection(..))
-import Model.Table
 import Model.Torrent
 import Model.TorrentFilter
 import Model.TorrentTable
@@ -32,10 +31,10 @@ type alias Config =
     -- this is so when the sort changes, we don't invalidate the lazy cache of all
     -- the rows, because there could be thousands of them.
     , sortBy : Model.Torrent.Sort
-    , torrentTable : Model.Table.Config
+    , torrentTable : Model.TorrentTable.Config
     , filter : Model.TorrentFilter.Config
-    , fileTable : Model.Table.Config
-    , peerTable : Model.Table.Config
+    , fileTable : Model.FileTable.Config
+    , peerTable : Model.PeerTable.Config
     , humanise : Humanise
     , preferences : Model.Window.Config
     , logs : Model.Window.Config
@@ -47,9 +46,14 @@ setSortBy new config =
     { config | sortBy = new }
 
 
-setTorrentTable : Model.Table.Config -> Config -> Config
+setTorrentTable : Model.TorrentTable.Config -> Config -> Config
 setTorrentTable new config =
-    { config | torrentTable = new }
+    -- avoid excessive setting in Update/DragAndDropReceived
+    if config.torrentTable /= new then
+        { config | torrentTable = new }
+
+    else
+        config
 
 
 setFilter : Model.TorrentFilter.Config -> Config -> Config
@@ -57,14 +61,24 @@ setFilter new config =
     { config | filter = new }
 
 
-setFileTable : Model.Table.Config -> Config -> Config
+setFileTable : Model.FileTable.Config -> Config -> Config
 setFileTable new config =
-    { config | fileTable = new }
+    -- avoid excessive setting in Update/DragAndDropReceived
+    if config.fileTable /= new then
+        { config | fileTable = new }
+
+    else
+        config
 
 
-setPeerTable : Model.Table.Config -> Config -> Config
+setPeerTable : Model.PeerTable.Config -> Config -> Config
 setPeerTable new config =
-    { config | peerTable = new }
+    -- avoid excessive setting in Update/DragAndDropReceived
+    if config.peerTable /= new then
+        { config | peerTable = new }
+
+    else
+        config
 
 
 setPreferences : Model.Window.Config -> Config -> Config
@@ -107,10 +121,10 @@ encode config =
     E.object
         [ ( "refreshDelay", E.int config.refreshDelay )
         , ( "sortBy", Model.Torrent.encodeSortBy config.sortBy )
-        , ( "torrentTable", Model.Table.encode config.torrentTable )
+        , ( "torrentTable", Model.TorrentTable.encode config.torrentTable )
         , ( "filter", Model.TorrentFilter.encode config.filter )
-        , ( "fileTable", Model.Table.encode config.fileTable )
-        , ( "peerTable", Model.Table.encode config.peerTable )
+        , ( "fileTable", Model.FileTable.encode config.fileTable )
+        , ( "peerTable", Model.PeerTable.encode config.peerTable )
         , ( "humanise", encodeHumanise config.humanise )
         , ( "preferences", Model.Window.encode config.preferences )
         , ( "logs", Model.Window.encode config.logs )
@@ -145,10 +159,10 @@ decoder =
     D.succeed Config
         |> optional "refreshDelay" D.int default.refreshDelay
         |> optional "sortBy" Model.Torrent.sortByDecoder default.sortBy
-        |> optional "torrentTable" Model.Table.decoder default.torrentTable
+        |> optional "torrentTable" Model.TorrentTable.decoder default.torrentTable
         |> optional "filter" Model.TorrentFilter.decoder default.filter
-        |> optional "fileTable" Model.Table.decoder default.fileTable
-        |> optional "peerTable" Model.Table.decoder default.peerTable
+        |> optional "fileTable" Model.FileTable.decoder default.fileTable
+        |> optional "peerTable" Model.PeerTable.decoder default.peerTable
         |> optional "humanise" humaniseDecoder default.humanise
         |> optional "preferences" Model.Window.decoder default.preferences
         |> optional "logs" Model.Window.decoder default.logs

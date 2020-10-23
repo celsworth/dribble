@@ -5,6 +5,7 @@ import Json.Decode as D
 import Json.Decode.Pipeline as Pipeline exposing (custom, required)
 import Json.Encode as E
 import Model.Sort exposing (SortDirection(..))
+import Model.Tracker
 
 
 type Status
@@ -38,6 +39,7 @@ type Attribute
     = Status
     | Name
     | Size
+    | FileCount
     | CreationTime
     | StartedTime
     | FinishedTime
@@ -63,6 +65,7 @@ type alias Torrent =
     , hash : String
     , name : String
     , size : Int
+    , fileCount : Int
     , creationTime : Int
     , startedTime : Int
     , finishedTime : Int
@@ -82,6 +85,7 @@ type alias Torrent =
     , peersConnected : Int
     , peersTotal : Int
     , label : String
+    , trackerHosts : List String
 
     -- custom local vars, not from JSON
     , donePercent : Float
@@ -93,7 +97,7 @@ type alias TorrentsByHash =
 
 
 
--- JSON ENCODER
+-- JSON ENCODING
 
 
 encodeAttribute : Attribute -> E.Value
@@ -134,47 +138,51 @@ decoder =
         |> custom (D.index 1 D.string)
         -- size
         |> custom (D.index 2 D.int)
-        -- creationTime
+        -- fileCount
         |> custom (D.index 3 D.int)
-        -- startedTime
+        -- creationTime
         |> custom (D.index 4 D.int)
-        -- finishedTime
+        -- startedTime
         |> custom (D.index 5 D.int)
-        -- downloadedBytes
+        -- finishedTime
         |> custom (D.index 6 D.int)
-        -- downloadRate
+        -- downloadedBytes
         |> custom (D.index 7 D.int)
-        -- uploadedBytes
+        -- downloadRate
         |> custom (D.index 8 D.int)
-        -- uploadRate
+        -- uploadedBytes
         |> custom (D.index 9 D.int)
-        -- skippedBytes
+        -- uploadRate
         |> custom (D.index 10 D.int)
+        -- skippedBytes
+        |> custom (D.index 11 D.int)
         -- open
-        |> custom (D.index 11 intToBoolDecoder)
-        -- active
         |> custom (D.index 12 intToBoolDecoder)
+        -- active
+        |> custom (D.index 13 intToBoolDecoder)
         -- hashing
-        |> custom (D.index 13 intToHashingStatusDecoder)
+        |> custom (D.index 14 intToHashingStatusDecoder)
         -- message
-        |> custom (D.index 14 D.string)
+        |> custom (D.index 15 D.string)
         -- priority
-        |> custom (D.index 15 intToPriorityDecoder)
+        |> custom (D.index 16 intToPriorityDecoder)
         -- seedersConnected
-        |> custom (D.index 16 D.int)
+        |> custom (D.index 17 D.int)
         -- seedersTotal
-        |> custom (D.index 17 D.string)
+        |> custom (D.index 18 intArrayListDecoder)
         -- peersConnected
-        |> custom (D.index 18 D.int)
+        |> custom (D.index 19 D.int)
         -- peersTotal
-        |> custom (D.index 19 D.string)
+        |> custom (D.index 20 intArrayListDecoder)
         -- label
-        |> custom (D.index 20 D.string)
+        |> custom (D.index 21 D.string)
+        -- tracker urls -> hosts
+        |> custom (D.index 22 trackerHostArrayListDecoder)
         |> Pipeline.resolve
 
 
-internalDecoder : String -> String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Bool -> Bool -> HashingStatus -> String -> Priority -> Int -> String -> Int -> String -> String -> D.Decoder Torrent
-internalDecoder hash name size creationTime startedTime finishedTime downloadedBytes downloadRate uploadedBytes uploadRate skippedBytes isOpen isActive hashing message priority seedersConnected seedersTotal peersConnected peersTotal label =
+internalDecoder : String -> String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Bool -> Bool -> HashingStatus -> String -> Priority -> Int -> List Int -> Int -> List Int -> String -> List String -> D.Decoder Torrent
+internalDecoder hash name size fileCount creationTime startedTime finishedTime downloadedBytes downloadRate uploadedBytes uploadRate skippedBytes isOpen isActive hashing message priority seedersConnected seedersTotal peersConnected peersTotal label trackerHosts =
     let
         -- after decoder is done, we can add further internal fields here
         donePercent =
@@ -195,6 +203,7 @@ internalDecoder hash name size creationTime startedTime finishedTime downloadedB
             hash
             name
             size
+            fileCount
             (creationTime * 1000)
             (startedTime * 1000)
             (finishedTime * 1000)
@@ -210,10 +219,11 @@ internalDecoder hash name size creationTime startedTime finishedTime downloadedB
             message
             priority
             seedersConnected
-            (Maybe.withDefault 0 <| String.toInt seedersTotal)
+            (List.sum seedersTotal)
             peersConnected
-            (Maybe.withDefault 0 <| String.toInt peersTotal)
+            (List.sum peersTotal)
             label
+            trackerHosts
             donePercent
 
 
@@ -248,12 +258,9 @@ attributeDecoder =
     D.string
         |> D.andThen
             (\input ->
-                case keyToAttribute input of
-                    Just a ->
-                        D.succeed <| a
-
-                    Nothing ->
-                        D.fail <| "unknown torrent key " ++ input
+                keyToAttribute input
+                    |> Maybe.map D.succeed
+                    |> Maybe.withDefault (D.fail <| "unknown key ")
             )
 
 
@@ -328,6 +335,26 @@ intToPriorityDecoder =
             )
 
 
+trackerHostArrayListDecoder : D.Decoder (List String)
+trackerHostArrayListDecoder =
+    D.list trackerHostArrayDecoder
+
+
+trackerHostArrayDecoder : D.Decoder String
+trackerHostArrayDecoder =
+    D.map Model.Tracker.domainFromURL <| D.index 0 D.string
+
+
+intArrayListDecoder : D.Decoder (List Int)
+intArrayListDecoder =
+    D.list intArrayDecoder
+
+
+intArrayDecoder : D.Decoder Int
+intArrayDecoder =
+    D.index 0 D.int
+
+
 
 -- MISC
 
@@ -363,6 +390,9 @@ attributeToKey attribute =
 
         Size ->
             "size"
+
+        FileCount ->
+            "fileCount"
 
         CreationTime ->
             "creationTime"
@@ -430,6 +460,9 @@ keyToAttribute str =
 
         "size" ->
             Just Size
+
+        "fileCount" ->
+            Just FileCount
 
         "creationTime" ->
             Just CreationTime
@@ -533,6 +566,9 @@ attributeToString attribute =
 
         Size ->
             "Size"
+
+        FileCount ->
+            "Files"
 
         CreationTime ->
             "Creation Time"

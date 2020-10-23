@@ -1,162 +1,17 @@
 module View.Table exposing (..)
 
-{- generic table rendering from a Model.Table.Config and list of items -}
-
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
-import Html.Events.Extra.Mouse
 import Model exposing (..)
-import Model.Attribute
-import Model.Config exposing (Config)
 import Model.Sort exposing (SortDirection(..))
-import Model.Table
-import Model.Torrent
 import Round
-import View.Attribute
 
 
-
--- HEADER
-
-
-header : Config -> Model.Table.Config -> Html Msg
-header config tableConfig =
-    let
-        visibleOrder =
-            List.filter .visible tableConfig.columns
-    in
-    thead []
-        [ tr []
-            (List.map (headerCell config tableConfig) visibleOrder)
-        ]
-
-
-headerCell : Config -> Model.Table.Config -> Model.Table.Column -> Html Msg
-headerCell config tableConfig column =
-    let
-        attrString =
-            Model.Attribute.attributeToTableHeaderString column.attribute
-
-        maybeResizeDiv =
-            case tableConfig.layout of
-                Model.Table.Fixed ->
-                    Just <| div (headerCellResizeHandleAttributes column) []
-
-                Model.Table.Fluid ->
-                    Nothing
-
-        {- torrentTable is a special case here -}
-        sortBy =
-            case tableConfig.tableType of
-                Model.Table.Torrents ->
-                    let
-                        (Model.Torrent.SortBy attr dir) =
-                            config.sortBy
-                    in
-                    Model.Attribute.SortBy (Model.Attribute.TorrentAttribute attr) dir
-
-                _ ->
-                    tableConfig.sortBy
-    in
-    th (headerCellAttributes sortBy column)
-        (List.filterMap identity
-            [ Just <|
-                div (headerCellContentDivAttributes tableConfig column)
-                    [ div [ class "content" ] [ text attrString ] ]
-            , maybeResizeDiv
-            ]
-        )
-
-
-headerCellAttributes : Model.Attribute.Sort -> Model.Table.Column -> List (Attribute Msg)
-headerCellAttributes sortBy column =
-    List.filterMap identity
-        [ headerCellIdAttribute column
-        , cellTextAlign column
-        , headerCellSortClass sortBy column
-        ]
-
-
-headerCellIdAttribute : Model.Table.Column -> Maybe (Attribute Msg)
-headerCellIdAttribute column =
-    Just <| id (Model.Attribute.attributeToTableHeaderId column.attribute)
-
-
-headerCellSortClass : Model.Attribute.Sort -> Model.Table.Column -> Maybe (Attribute Msg)
-headerCellSortClass sortBy column =
-    let
-        (Model.Attribute.SortBy currentSortAttribute currentSortDirection) =
-            sortBy
-    in
-    if currentSortAttribute == column.attribute then
-        case currentSortDirection of
-            Asc ->
-                Just <| class "sorted ascending"
-
-            Desc ->
-                Just <| class "sorted descending"
-
-    else
-        Nothing
-
-
-headerCellContentDivAttributes : Model.Table.Config -> Model.Table.Column -> List (Attribute Msg)
-headerCellContentDivAttributes tableConfig column =
-    let
-        maybeWidthAttr =
-            case tableConfig.layout of
-                Model.Table.Fixed ->
-                    thWidthAttribute tableConfig column
-
-                Model.Table.Fluid ->
-                    Nothing
-    in
-    List.filterMap identity
-        [ maybeWidthAttr
-        , Just <| onClick (SetSortBy column.attribute)
-        ]
-
-
-headerCellResizeHandleAttributes : Model.Table.Column -> List (Attribute Msg)
-headerCellResizeHandleAttributes column =
-    let
-        {- this mess converts (x, y) to { x: x, y: y } -}
-        reconstructClientPos =
-            \event ->
-                let
-                    ( x, y ) =
-                        event.clientPos
-                in
-                { x = x, y = y }
-    in
-    [ class "resize-handle"
-    , Html.Events.Extra.Mouse.onDown
-        (\e -> MouseDown column.attribute (reconstructClientPos e) e.button e.keys)
-    ]
-
-
-
--- BODY
-
-
-cellAttributes : Model.Table.Config -> Model.Table.Column -> List (Attribute Msg)
-cellAttributes tableConfig column =
-    let
-        maybeWidthAttr =
-            case tableConfig.layout of
-                Model.Table.Fixed ->
-                    tdWidthAttribute tableConfig column
-
-                Model.Table.Fluid ->
-                    Nothing
-    in
-    List.filterMap identity [ maybeWidthAttr, cellTextAlign column ]
-
-
-cellTextAlign : Model.Table.Column -> Maybe (Attribute Msg)
-cellTextAlign column =
-    Maybe.map class (View.Attribute.attributeTextAlignment column.attribute)
+type alias Column a =
+    { a
+        | auto : Bool
+        , width : Float
+    }
 
 
 
@@ -198,18 +53,18 @@ donePercentCell donePercent =
 -}
 
 
-thWidthAttribute : Model.Table.Config -> Model.Table.Column -> Maybe (Attribute Msg)
-thWidthAttribute tableConfig column =
-    widthAttribute tableConfig column 10
+thWidthAttribute : Column a -> Maybe (Attribute Msg)
+thWidthAttribute column =
+    widthAttribute column 10
 
 
-tdWidthAttribute : Model.Table.Config -> Model.Table.Column -> Maybe (Attribute Msg)
-tdWidthAttribute tableConfig column =
-    widthAttribute tableConfig column 8
+tdWidthAttribute : Column a -> Maybe (Attribute Msg)
+tdWidthAttribute column =
+    widthAttribute column 8
 
 
-widthAttribute : Model.Table.Config -> Model.Table.Column -> Float -> Maybe (Attribute Msg)
-widthAttribute tableConfig column subtract =
+widthAttribute : Column a -> Float -> Maybe (Attribute Msg)
+widthAttribute column subtract =
     if column.auto then
         Nothing
 

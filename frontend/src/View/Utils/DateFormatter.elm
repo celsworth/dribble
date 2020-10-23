@@ -5,10 +5,6 @@ import Model exposing (..)
 import Time
 
 
-
---- TODO: config..
-
-
 format : Time.Zone -> Time.Posix -> String
 format =
     DateFormat.format

@@ -2,28 +2,66 @@ module Update.DragAndDropReceived exposing (update)
 
 import DnDList
 import Model exposing (..)
+import Model.Config
 import Model.Table
-import Update.Shared.ConfigHelpers exposing (getTableConfig, tableConfigSetter)
 
 
 update : Model.Table.Type -> DnDList.Msg -> Model -> ( Model, Cmd Msg )
 update tableType dndmsg model =
+    case tableType of
+        Model.Table.Torrents ->
+            torrentTable dndmsg model
+
+        Model.Table.Files ->
+            fileTable dndmsg model
+
+        _ ->
+            Debug.todo "support peer tables"
+
+
+torrentTable : DnDList.Msg -> Model -> ( Model, Cmd Msg )
+torrentTable dndmsg model =
     let
-        tableDndSystem =
-            dndSystem tableType
+        dndSystem =
+            dndSystemTorrent Model.Table.Torrents
 
         tableConfig =
-            getTableConfig model.config tableType
+            model.config.torrentTable
 
         ( dnd, items ) =
-            tableDndSystem.update dndmsg model.dnd tableConfig.columns
+            dndSystem.update dndmsg model.dnd tableConfig.columns
 
         newTableConfig =
             tableConfig |> Model.Table.setColumns items
 
         newConfig =
-            model.config |> tableConfigSetter tableType newTableConfig
+            model.config |> Model.Config.setTorrentTable newTableConfig
+
+        newModel =
+            model |> setConfig newConfig |> setDnd dnd
     in
-    ( { model | dnd = dnd, config = newConfig }
-    , tableDndSystem.commands dnd
-    )
+    ( newModel, dndSystem.commands dnd )
+
+
+fileTable : DnDList.Msg -> Model -> ( Model, Cmd Msg )
+fileTable dndmsg model =
+    let
+        dndSystem =
+            dndSystemFile Model.Table.Files
+
+        tableConfig =
+            model.config.fileTable
+
+        ( dnd, items ) =
+            dndSystem.update dndmsg model.dnd tableConfig.columns
+
+        newTableConfig =
+            tableConfig |> Model.Table.setColumns items
+
+        newConfig =
+            model.config |> Model.Config.setFileTable newTableConfig
+
+        newModel =
+            model |> setConfig newConfig |> setDnd dnd
+    in
+    ( newModel, dndSystem.commands dnd )

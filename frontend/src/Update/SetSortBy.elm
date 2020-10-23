@@ -6,6 +6,7 @@ import Model.Attribute
 import Model.Config
 import Model.File
 import Model.Sort exposing (SortDirection(..))
+import Model.Sort.File
 import Model.Sort.Torrent
 import Model.Table
 import Model.Torrent
@@ -17,8 +18,8 @@ update attribute model =
         Model.Attribute.TorrentAttribute a ->
             model |> sortTorrents a
 
-        Model.Attribute.FileAttribute _ ->
-            Debug.todo "support file sorting"
+        Model.Attribute.FileAttribute a ->
+            model |> sortFiles a
 
         Model.Attribute.PeerAttribute _ ->
             Debug.todo "support peer sorting"
@@ -61,77 +62,39 @@ sortTorrents attribute model =
 
 
 sortFiles : Model.File.Attribute -> Model -> ( Model, Cmd Msg )
-sortFiles bute model =
+sortFiles attribute model =
     let
         config =
             model.config
+
+        (Model.File.SortBy currentAttr currentDirection) =
+            config.fileTable.sortBy
+
+        currentSortMatchesAttr =
+            currentAttr == attribute
+
+        newSort =
+            if currentSortMatchesAttr then
+                case currentDirection of
+                    Asc ->
+                        Model.File.SortBy attribute Desc
+
+                    Desc ->
+                        Model.File.SortBy attribute Asc
+
+            else
+                Model.File.SortBy attribute currentDirection
+
+        newSortedFiles =
+            Model.Sort.File.sort newSort (Dict.values model.keyedFiles)
+
+        newTableConfig =
+            config.fileTable |> Model.Table.setSortBy newSort
+
+        newConfig =
+            config |> Model.Config.setFileTable newTableConfig
     in
     model
+        |> setConfig newConfig
+        |> setSortedFiles newSortedFiles
         |> noCmd
-
-
-
-{-
-   unwrapFileTableSort : Model.Table.Config -> ( Model.File.Attribute, SortDirection )
-   unwrapFileTableSort tableConfig =
-       case tableConfig.sortBy of
-           Model.Attribute.SortBy (Model.Attribute.FileAttribute f) d ->
-               ( f, d )
--}
-{-
-
-   update : Model.Attribute.Attribute -> Model -> ( Model, Cmd Msg )
-   update attribute model =
-       let
-           newConfig =
-               model.config |> updateConfig attribute
-
-           (Model.Attribute.SortBy sortByAttribute sortByDir) =
-               newConfig.sortBy
-       in
-       model
-           |> setConfig newConfig
-           |> applyNewSort sortByAttribute sortByDir
-           |> noCmd
-
-
-   applyNewSort : Model.Attribute.Attribute -> Model.Attribute.SortDirection -> Model -> Model
-   applyNewSort sortByAttribute sortByDir model =
-       case sortByAttribute of
-           Model.Attribute.TorrentAttribute torrentAttribute ->
-               model
-                   |> setSortedTorrents
-                       (Model.Sort.Torrent.sort
-                           torrentAttribute
-                           sortByDir
-                           (Dict.values model.torrentsByHash)
-                       )
-
-           Model.Attribute.PeerAttribute peerAttribute ->
-               Debug.todo "TODO: peer sorting"
-
-
-   updateConfig : Model.Attribute.Attribute -> Config -> Config
-   updateConfig attr config =
-       let
-           (Model.Attribute.SortBy currentAttr currentDirection) =
-               config.sortBy
-
-           currentSortMatchesAttr =
-               currentAttr == attr
-
-           newSort =
-               if currentSortMatchesAttr then
-                   case currentDirection of
-                       Model.Attribute.Asc ->
-                           Model.Attribute.SortBy attr Model.Attribute.Desc
-
-                       Model.Attribute.Desc ->
-                           Model.Attribute.SortBy attr Model.Attribute.Asc
-
-               else
-                   Model.Attribute.SortBy attr currentDirection
-       in
-       config |> Model.Config.setSortBy newSort
-
--}

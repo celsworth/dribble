@@ -125,6 +125,7 @@ getTorrentFields =
         , "d.hash="
         , "d.name="
         , "d.size_bytes="
+        , "d.size_files="
         , "d.creation_date="
         , "d.timestamp.started="
         , "d.timestamp.finished="
@@ -142,17 +143,21 @@ getTorrentFields =
         -- seeders (connected)
         , "d.peers_complete="
 
-        -- seeders (not connected)
-        , "cat=\"$t.multicall=d.hash=,t.scrape_complete=,cat={}\""
+        -- seeders (total) -- array of ints
+        , "t.multicall=d.hash=,t.scrape_complete="
 
         -- peers (connected)
         , "d.peers_accounted="
 
-        -- peers (not connected)
-        , "cat=\"$t.multicall=d.hash=,t.scrape_incomplete=,cat={}\""
+        -- peers (total) -- array of ints
+        , "t.multicall=d.hash=,t.scrape_incomplete="
 
         -- label
         , "d.custom1="
+
+        -- tracker urls. this is included for the GroupLists functionality
+        -- note this is an array of arrays; [['urla.org'], ['urlb.net']]
+        , "t.multicall=d.hash=,t.url="
         ]
 
 

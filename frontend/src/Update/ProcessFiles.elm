@@ -2,7 +2,6 @@ module Update.ProcessFiles exposing (update)
 
 import Dict
 import Model exposing (..)
-import Model.Attribute
 import Model.File exposing (File)
 
 
@@ -18,7 +17,7 @@ update files model =
         |> noCmd
 
 
-sortedFiles : Model.File.FilesByKey -> Model.Attribute.Sort -> List String
+sortedFiles : Model.File.FilesByKey -> Model.File.Sort -> List String
 sortedFiles byKey sortBy =
     --Model.Sort.File.sort sortBy (Dict.values byKey)
     List.map .path (Dict.values byKey)
