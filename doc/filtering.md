@@ -49,6 +49,7 @@ Most of these are self explanatory.
 status     (status)
 name       (string)
 label      (string)
+tracker    (string)
 done       (float)  # percentage, use 0-100
 ratio      (float)
 started    (time)

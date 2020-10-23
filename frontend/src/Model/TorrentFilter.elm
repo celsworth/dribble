@@ -94,6 +94,7 @@ type Expr
     | Status StatusOp Model.Torrent.Status
     | Name StringOp
     | Label StringOp
+    | Tracker StringOp
     | Size NumberOp Int SizeSuffix
     | Downloaded NumberOp Int SizeSuffix
     | Uploaded NumberOp Int SizeSuffix
@@ -203,56 +204,59 @@ torrentMatchesComponent currentTime torrent filter =
                     torrent.status /= s
 
         Name op ->
-            stringMatcher torrent .name op
+            stringMatcher torrent.name op
 
         Label op ->
-            stringMatcher torrent .label op
+            stringMatcher torrent.label op
+
+        Tracker op ->
+            List.any (\h -> stringMatcher h op) torrent.trackerHosts
 
         Size op num suffix ->
-            sizeSuffixMatcher torrent .size op num suffix
+            sizeSuffixMatcher torrent.size op num suffix
 
         Downloaded op num suffix ->
-            sizeSuffixMatcher torrent .downloadedBytes op num suffix
+            sizeSuffixMatcher torrent.downloadedBytes op num suffix
 
         Uploaded op num suffix ->
-            sizeSuffixMatcher torrent .uploadedBytes op num suffix
+            sizeSuffixMatcher torrent.uploadedBytes op num suffix
 
         DownRate op num suffix ->
-            sizeSuffixMatcher torrent .downloadRate op num suffix
+            sizeSuffixMatcher torrent.downloadRate op num suffix
 
         UpRate op num suffix ->
-            sizeSuffixMatcher torrent .uploadRate op num suffix
+            sizeSuffixMatcher torrent.uploadRate op num suffix
 
         Created op tc ->
-            timeMatcher currentTime torrent .creationTime op tc
+            timeMatcher currentTime torrent.creationTime op tc
 
         Started op tc ->
-            timeMatcher currentTime torrent .startedTime op tc
+            timeMatcher currentTime torrent.startedTime op tc
 
         Finished op tc ->
-            timeMatcher currentTime torrent .finishedTime op tc
+            timeMatcher currentTime torrent.finishedTime op tc
 
         SeedersConnected op num ->
-            numberMatcher torrent .seedersConnected op num
+            numberMatcher torrent.seedersConnected op num
 
         SeedersTotal op num ->
-            numberMatcher torrent .seedersTotal op num
+            numberMatcher torrent.seedersTotal op num
 
         PeersConnected op num ->
-            numberMatcher torrent .peersConnected op num
+            numberMatcher torrent.peersConnected op num
 
         PeersTotal op num ->
-            numberMatcher torrent .peersTotal op num
+            numberMatcher torrent.peersTotal op num
 
         Done op num ->
-            numberMatcher torrent .donePercent op num
+            numberMatcher torrent.donePercent op num
 
         Ratio op num ->
-            numberMatcher torrent .ratio op num
+            numberMatcher torrent.ratio op num
 
 
-sizeSuffixMatcher : Torrent -> (Torrent -> Int) -> NumberOp -> Int -> SizeSuffix -> Bool
-sizeSuffixMatcher torrent meth op num suffix =
+sizeSuffixMatcher : Int -> NumberOp -> Int -> SizeSuffix -> Bool
+sizeSuffixMatcher cmpNum op num suffix =
     let
         multi =
             case suffix of
@@ -283,42 +287,42 @@ sizeSuffixMatcher torrent meth op num suffix =
                 Nothing ->
                     1
     in
-    numberMatcher torrent meth op (num * multi)
+    numberMatcher cmpNum op (num * multi)
 
 
-stringMatcher : Torrent -> (Torrent -> String) -> StringOp -> Bool
-stringMatcher torrent meth op =
+stringMatcher : String -> StringOp -> Bool
+stringMatcher str op =
     case op of
         EqStr cs ->
-            csEq cs (meth torrent)
+            csEq cs str
 
         NotEqStr cs ->
-            not (csEq cs (meth torrent))
+            not (csEq cs str)
 
         Contains cs ->
-            csContains cs (meth torrent)
+            csContains cs str
 
         NotContains cs ->
-            not (csContains cs (meth torrent))
+            not (csContains cs str)
 
         Matches re ->
-            reMatch re (meth torrent)
+            reMatch re str
 
         NotMatches re ->
-            not <| reMatch re (meth torrent)
+            not <| reMatch re str
 
 
-timeMatcher : Time.Posix -> Torrent -> (Torrent -> Int) -> NumberOp -> TimeComparison -> Bool
-timeMatcher currentTime torrent meth op tc =
+timeMatcher : Time.Posix -> Int -> NumberOp -> TimeComparison -> Bool
+timeMatcher currentTime cmpTime op tc =
     case tc of
         Absolute time ->
-            numberMatcher torrent meth op time
+            numberMatcher cmpTime op time
 
         Relative age ->
             {- note the negation here. this is because for "started<1w" we
                actually want .startedTime > now-1w
             -}
-            not <| numberMatcher torrent meth op (Time.posixToMillis currentTime - age)
+            not <| numberMatcher cmpTime op (Time.posixToMillis currentTime - age)
 
 
 csEq : CaseSensititivy -> String -> Bool
@@ -348,26 +352,26 @@ reMatch re str =
     Regex.contains re str
 
 
-numberMatcher : Torrent -> (Torrent -> number) -> NumberOp -> number -> Bool
-numberMatcher torrent meth op num =
+numberMatcher : number -> NumberOp -> number -> Bool
+numberMatcher num2 op num =
     case op of
         GT ->
-            meth torrent > num
+            num2 > num
 
         GTE ->
-            meth torrent >= num
+            num2 >= num
 
         LT ->
-            meth torrent < num
+            num2 < num
 
         LTE ->
-            meth torrent <= num
+            num2 <= num
 
         EqNum ->
-            meth torrent == num
+            num2 == num
 
         NotEqNum ->
-            meth torrent /= num
+            num2 /= num
 
 
 
@@ -492,6 +496,7 @@ parseStringField =
     oneOf
         [ P.map (\_ -> Name) (keyword "name")
         , P.map (\_ -> Label) (keyword "label")
+        , P.map (\_ -> Tracker) (keyword "tracker")
         ]
         |. P.spaces
         |= oneOf [ parseCsStringOp, parseReStringOp ]
