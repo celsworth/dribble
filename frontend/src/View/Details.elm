@@ -6,14 +6,12 @@ import Html.Attributes exposing (..)
 import Model exposing (..)
 import Model.Torrent exposing (Torrent)
 import View.FileTable
-import View.SpeedChart
 
 
 view : Model -> Html Msg
 view model =
     section [ class "details" ]
         [ maybeTorrentDetails model |> Maybe.withDefault (div [] [])
-        , View.SpeedChart.view model
         ]
 
 

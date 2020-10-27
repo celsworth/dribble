@@ -13,11 +13,7 @@ import View.Utils.TorrentStatusIcon
 
 view : Model -> Html Msg
 view model =
-    if model.groupListsVisible then
-        Html.Lazy.lazy groupListsView model.groupLists
-
-    else
-        text ""
+    Html.Lazy.lazy groupListsView model.groupLists
 
 
 groupListsView : GroupLists -> Html Msg

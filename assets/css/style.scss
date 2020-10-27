@@ -1,4 +1,9 @@
-$fg-color: #000;
+$main-fg-color: #000;
+
+$main-bg-color: #fff;
+$secondary-bg-color: #eee;
+
+$section-divider-bar-color: #d5d5d5;
 
 $table-border-colour: #d5d5d5;
 $table-header-background: linear-gradient(#eee 0%, #ccc 100%);
@@ -15,11 +20,15 @@ $progress-fill-color: #8d8;
 $selected-row-color: #fff;
 $selected-row-background-color: rgb(58, 121, 245);
 
-$white: #fff;
+$sidebar-width: 170px;
+$main-width: calc(100vw - #{$sidebar-width});
 
 $header-height: 40px;
 $details-height: 200px;
 $summary-height: 20px;
+// 2.3 is magic, determined by seeing how high speed-chart was when left to auto
+$speed-chart-height: calc(#{$sidebar-width} / 2.3);
+$group-lists-height: calc(100vh - #{$summary-height} - #{$speed-chart-height} - #{$header-height});
 $torrents-height: calc(100vh - #{$summary-height} - #{$details-height} - #{$header-height});
 
 $thead-z-index: 1;
@@ -27,11 +36,9 @@ $messages-z-index: 5;
 $resize-handle-z-index: 5;
 $speed-chart-z-index: 5;
 $dragbar-z-index: 10;
-$group-lists-z-index: 20;
 $hamburger-menu-z-index: 50;
 $context-menu-z-index: 50;
 $window-z-index: 50;
-
 
 @mixin unselectable {
   -webkit-user-select: none;
@@ -53,7 +60,7 @@ body {
   margin: 0;
   overflow: hidden;
   font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,sans-serif;
-  font-size: .85rem;
+  font-size: 14px;
 }
 
 .text-right {
@@ -139,8 +146,8 @@ body {
 .navigation {
   display: flex;
   justify-content: space-between;
-  border-bottom: 1px solid $table-border-colour;
-  background: #eee;
+  border-bottom: 1px solid $section-divider-bar-color;
+  background-color: $secondary-bg-color;
   padding: 5px;
   height: $header-height;
 
@@ -161,61 +168,6 @@ body {
   .hamburger-button {
     display: flex;
     position: relative;
-  }
-}
-
-.group-lists {
-  display: flex;
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: $group-lists-z-index;
-  border: 1px solid #000;
-  background: #fff;
-
-  box-shadow: 0 0 15px 10px #888;
-
-  .group-list {
-    border-right: 1px solid #ccc;
-
-    &:last-child {
-      border-right: 0;
-    }
-  }
-
-  .header {
-    margin: 0;
-    background: $table-header-background;
-    padding: 5px 10px;
-    font-weight: bold;
-    font-variant: small-caps;
-  }
-
-  ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  li {
-    display: flex;
-    justify-content: space-between;
-    padding: 2px 0;
-  }
-
-  .label {
-    display: flex;
-    align-items: center;
-    font-size: 12px;
-  }
-
-  i,
-  img {
-    margin-right: 5px;
-  }
-
-  span {
-    padding: 0 5px;
   }
 }
 
@@ -242,7 +194,7 @@ body {
   right: 0;
   z-index: $hamburger-menu-z-index;
   border: 1px outset #555;
-  background: #fff;
+  background-color: $main-bg-color;
   color: #555;
 
   ul {
@@ -306,7 +258,7 @@ body {
 }
 
 .fieldset-header {
-  background: #fff;
+  background-color: $main-bg-color;
   padding: 10px;
 }
 
@@ -392,52 +344,103 @@ body {
   }
 }
 
-.torrent-table {
-  height: $torrents-height;
-  overflow: auto;
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  justify-content: space-between;
+  border-right: 1px solid $section-divider-bar-color;
+  width: $sidebar-width;
+}
 
-  &.loading {
+.main {
+  flex-grow: 1;
+  background-color: $secondary-bg-color;
+  width: $main-width;
+}
+
+.group-lists {
+  display: flex;
+  flex-direction: column;
+  background-color: $main-bg-color;
+  height: $group-lists-height;
+  overflow: auto;
+  font-size: 12px;
+
+  .header {
+    margin: 0;
+    border-top: 1px solid $section-divider-bar-color;
+    background: $table-header-background;
+    padding: 5px;
+    font-size: 10px;
+    font-variant: small-caps;
+  }
+
+  .group-list:first-child .header {
+    border-top: 0;
+  }
+
+  ul {
+    margin: 0;
+    padding: 0 0 5px 0;
+    list-style: none;
+  }
+
+  li {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 10rem;
+    justify-content: space-between;
+    padding: 3px 0;
+
+    > span {
+      padding: 0 5px;
+    }
+  }
+
+  .label {
+    display: flex;
+    align-items: center;
+    overflow: hidden; // hide excess state/label/tracker strings
+  }
+
+  i,
+  img {
+    margin-right: 5px;
   }
 }
 
-.details {
+.torrent-table {
+  height: $torrents-height;
+  overflow: auto;
+}
+
+.loading {
   display: flex;
-  position: relative;
-  align-items: stretch;
-  justify-content: space-between;
-  border-top: 1px solid $table-border-colour;
-  background: #eee;
-  padding: 5px;
-  width: 100%;
+  align-items: center;
+  justify-content: center;
+  font-size: 5rem;
+}
+
+.details {
+  border-top: 1px solid $section-divider-bar-color;
+  background: $secondary-bg-color;
   height: $details-height;
 }
 
 .details-table {
+  height: $details-height;
 }
 
 .speed-chart {
-  flex-shrink: 0;
   z-index: $speed-chart-z-index;
-  margin-left: 5px;
-  border: 1px solid #888;
-  background: #fff;
-  // 2.4 is ratio of chart when expanded, which is determined by coordinates
-  // 1000x400 in SpeedChart.elm though this is plot area only. Margins and axes
-  // etc end up making it around 1132x474 = 2.388
-  //
-  // width must be set, height auto-calculated. Remove some details-height
-  // to account for padding and borders etc. It's close enough tbh. If it's too wide
-  // then content disappears off the bottom of the chart.
-  width: ($details-height - 13px) * 2.4;
+  border-top: 1px solid $section-divider-bar-color;
+  background-color: $main-bg-color;
   font-size: .8rem;
 
   &:hover {
+    border: 1px solid #888;
     position: absolute;
-    right: 5px;
+    left: 5px;
     bottom: 5px;
     width: 90%;
     height: auto;
@@ -449,8 +452,8 @@ body {
   position: relative;
   align-items: stretch;
   justify-content: space-between;
-  border-top: 1px solid $table-border-colour;
-  background: #eee;
+  border-top: 1px solid $section-divider-bar-color;
+  background: $secondary-bg-color;
   padding: 2px;
   width: 100%;
   height: $summary-height;
@@ -491,11 +494,11 @@ body {
   font-size: .5rem;
 
   &.seeding {
-    color: #181;
+    color: #292;
   }
 
   &.errored {
-    color: #911;
+    color: #a22;
   }
 
   &.downloading {
@@ -531,7 +534,7 @@ body {
     appearance: none;
 
     &::-webkit-progress-bar {
-      background-color: inherit;
+      background-color: $main-bg-color;
     }
 
     &::-moz-progress-bar {
@@ -552,24 +555,20 @@ body {
     justify-content: center;
     width: 100%;
     height: 100%;
-    color: $fg-color; // override tr.selected
+    color: $main-fg-color; // override tr.selected
     font-size: smaller;
   }
 }
 
 table {
   position: relative;
-  background-color: #fff;
+  background-color: $main-bg-color;
   cursor: default;
   border-spacing: 0;
   font-size: 11px;
 
   &.fixed {
     table-layout: fixed;
-  }
-
-  &.fluid {
-    width: 100%;
   }
 }
 

@@ -42,7 +42,7 @@ view model =
 
     else
         section [ class "torrent-table" ]
-            [ table []
+            [ table [ class <| View.Table.layoutToClass model.config.torrentTable.layout ]
                 [ Html.Lazy.lazy View.DragBar.view model.resizeOp
                 , Html.Lazy.lazy2 header model.config model.config.torrentTable
                 , Html.Lazy.lazy7 body

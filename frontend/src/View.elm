@@ -13,6 +13,7 @@ import View.GroupLists
 import View.Logs
 import View.Messages
 import View.Preferences
+import View.SpeedChart
 import View.Summary
 import View.TorrentTable
 
@@ -24,8 +25,16 @@ view model =
         , View.Logs.view model
         , View.Messages.view model
         , navigation model
-        , View.TorrentTable.view model
-        , View.Details.view model
+        , div [ class "flex" ]
+            [ aside [ class "sidebar" ]
+                [ View.GroupLists.view model
+                , View.SpeedChart.view model
+                ]
+            , div [ class "main" ]
+                [ View.TorrentTable.view model
+                , View.Details.view model
+                ]
+            ]
         , View.Summary.view model
         ]
 
@@ -64,9 +73,7 @@ navigation : Model -> Html Msg
 navigation model =
     section [ class "navigation" ]
         [ div [ class "flex-container" ]
-            [ button [ onMouseEnter <| SetGroupListsVisible True ] [ text "Groups" ]
-            , View.GroupLists.view model
-            , button [ onClick ResetConfigClicked ] [ text "Reset Config" ]
+            [ button [ onClick ResetConfigClicked ] [ text "Reset Config" ]
             , button [ onClick SaveConfigClicked ] [ text "Save Config" ]
             ]
         , div [ class "flex-container" ]

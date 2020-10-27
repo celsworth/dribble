@@ -10,9 +10,9 @@ import Html.Lazy
 import List
 import Model exposing (..)
 import Model.Attribute
-import Model.Config exposing (Config)
+import Model.Config
 import Model.File exposing (File, FilesByKey)
-import Model.FileTable
+import Model.FileTable exposing (Column, Config)
 import Model.Sort
 import Model.Table
 import View.DragBar
@@ -44,7 +44,7 @@ view model =
 -- HEADER
 
 
-header : Config -> Model.FileTable.Config -> Html Msg
+header : Model.Config.Config -> Config -> Html Msg
 header config tableConfig =
     let
         visibleOrder =
@@ -56,7 +56,7 @@ header config tableConfig =
         ]
 
 
-headerCell : Config -> Model.FileTable.Config -> Model.FileTable.Column -> Html Msg
+headerCell : Model.Config.Config -> Config -> Column -> Html Msg
 headerCell config tableConfig column =
     let
         attrString =
@@ -83,7 +83,7 @@ headerCell config tableConfig column =
         )
 
 
-headerCellAttributes : Model.File.Sort -> Model.FileTable.Column -> List (Attribute Msg)
+headerCellAttributes : Model.File.Sort -> Column -> List (Attribute Msg)
 headerCellAttributes sortBy column =
     List.filterMap identity
         [ headerCellIdAttribute column
@@ -92,7 +92,7 @@ headerCellAttributes sortBy column =
         ]
 
 
-headerCellSortClass : Model.File.Sort -> Model.FileTable.Column -> Maybe (Attribute Msg)
+headerCellSortClass : Model.File.Sort -> Column -> Maybe (Attribute Msg)
 headerCellSortClass sortBy column =
     let
         (Model.File.SortBy currentSortAttribute currentSortDirection) =
@@ -110,7 +110,7 @@ headerCellSortClass sortBy column =
         Nothing
 
 
-headerCellContentDivAttributes : Model.FileTable.Config -> Model.FileTable.Column -> List (Attribute Msg)
+headerCellContentDivAttributes : Config -> Column -> List (Attribute Msg)
 headerCellContentDivAttributes tableConfig column =
     let
         maybeWidthAttr =
@@ -127,7 +127,7 @@ headerCellContentDivAttributes tableConfig column =
         ]
 
 
-headerCellResizeHandleAttributes : Model.FileTable.Column -> List (Attribute Msg)
+headerCellResizeHandleAttributes : Column -> List (Attribute Msg)
 headerCellResizeHandleAttributes column =
     let
         {- this mess converts (x, y) to { x: x, y: y } -}
@@ -145,7 +145,7 @@ headerCellResizeHandleAttributes column =
     ]
 
 
-headerCellIdAttribute : Model.FileTable.Column -> Maybe (Attribute Msg)
+headerCellIdAttribute : Column -> Maybe (Attribute Msg)
 headerCellIdAttribute column =
     Just <| id (Model.File.attributeToTableHeaderId column.attribute)
 
@@ -154,20 +154,20 @@ headerCellIdAttribute column =
 --BODY
 
 
-body : Model.FileTable.Config -> Model.Config.Humanise -> FilesByKey -> List String -> Html Msg
+body : Config -> Model.Config.Humanise -> FilesByKey -> List String -> Html Msg
 body tableConfig humanise keyedFiles sortedFiles =
     Keyed.node "tbody" [] <|
         List.filterMap identity
             (List.map (keyedRow tableConfig humanise keyedFiles) sortedFiles)
 
 
-keyedRow : Model.FileTable.Config -> Model.Config.Humanise -> FilesByKey -> String -> Maybe ( String, Html Msg )
+keyedRow : Config -> Model.Config.Humanise -> FilesByKey -> String -> Maybe ( String, Html Msg )
 keyedRow tableConfig humanise keyedFiles key =
     Maybe.map (\file -> ( key, row tableConfig humanise file ))
         (Dict.get key keyedFiles)
 
 
-row : Model.FileTable.Config -> Model.Config.Humanise -> File -> Html Msg
+row : Config -> Model.Config.Humanise -> File -> Html Msg
 row tableConfig humanise file =
     let
         visibleColumns =
@@ -177,7 +177,7 @@ row tableConfig humanise file =
         (List.map (cell tableConfig humanise file) visibleColumns)
 
 
-cell : Model.FileTable.Config -> Model.Config.Humanise -> File -> Model.FileTable.Column -> Html Msg
+cell : Config -> Model.Config.Humanise -> File -> Model.FileTable.Column -> Html Msg
 cell tableConfig humanise file column =
     td []
         [ div (cellAttributes tableConfig column)
@@ -185,7 +185,7 @@ cell tableConfig humanise file column =
         ]
 
 
-cellContent : Model.Config.Humanise -> File -> Model.FileTable.Column -> Html Msg
+cellContent : Model.Config.Humanise -> File -> Column -> Html Msg
 cellContent humanise file column =
     case column.attribute of
         Model.File.DonePercent ->
@@ -195,7 +195,7 @@ cellContent humanise file column =
             View.File.attributeAccessor humanise file fileAttribute
 
 
-cellAttributes : Model.FileTable.Config -> Model.FileTable.Column -> List (Attribute Msg)
+cellAttributes : Config -> Column -> List (Attribute Msg)
 cellAttributes tableConfig column =
     let
         maybeWidthAttr =
@@ -209,22 +209,22 @@ cellAttributes tableConfig column =
     List.filterMap identity [ maybeWidthAttr, cellTextAlign column ]
 
 
-cellTextAlign : Model.FileTable.Column -> Maybe (Attribute Msg)
+cellTextAlign : Column -> Maybe (Attribute Msg)
 cellTextAlign column =
     Maybe.map class (View.File.attributeTextAlignment column.attribute)
 
 
-thWidthAttribute : Model.FileTable.Config -> Model.FileTable.Column -> Maybe (Attribute Msg)
+thWidthAttribute : Config -> Column -> Maybe (Attribute Msg)
 thWidthAttribute tableConfig column =
     widthAttribute tableConfig column 10
 
 
-tdWidthAttribute : Model.FileTable.Config -> Model.FileTable.Column -> Maybe (Attribute Msg)
+tdWidthAttribute : Config -> Column -> Maybe (Attribute Msg)
 tdWidthAttribute tableConfig column =
     widthAttribute tableConfig column 8
 
 
-widthAttribute : Model.FileTable.Config -> Model.FileTable.Column -> Float -> Maybe (Attribute Msg)
+widthAttribute : Config -> Column -> Float -> Maybe (Attribute Msg)
 widthAttribute tableConfig column subtract =
     if column.auto then
         Nothing

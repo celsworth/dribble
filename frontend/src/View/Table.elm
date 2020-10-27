@@ -4,6 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Model exposing (..)
 import Model.Sort exposing (SortDirection(..))
+import Model.Table
 import Round
 
 
@@ -12,6 +13,16 @@ type alias Column a =
         | auto : Bool
         , width : Float
     }
+
+
+layoutToClass : Model.Table.Layout -> String
+layoutToClass layout =
+    case layout of
+        Model.Table.Fluid ->
+            "fluid"
+
+        Model.Table.Fixed ->
+            "fixed"
 
 
 
