@@ -3,7 +3,7 @@ services:
   web:
     build:
       context: .
-    command: iodine -www public -v
+    command: iodine -workers 1 -threads 5 -www public -log 
     stdin_open: true
     tty: true
     ports:
