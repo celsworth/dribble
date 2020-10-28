@@ -2,11 +2,13 @@
 
 The UI contains a powerful search box in the top right.
 
-Here's a quick rundown of what it can do.
+Quick tip: Escape clears the input, as well as the `X` button to the immediate left.
+
+Here's a quick rundown of the filtering you can do.
 
 ## Regex Matching
 
-By default, if you just start typing, it will do a regex match on names of torrents. These terms are space separated and individually form their own regexes. You can use regex operators here:
+By default, if you just start typing, Dribble will do a regex match on names of torrents. These terms are space separated and individually form their own regexes. You can use regex operators here:
 
 ```
 boo     # find all torrents containing boo
