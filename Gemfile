@@ -3,12 +3,11 @@
 source 'https://rubygems.org'
 
 gem 'excon'
+gem 'iodine'
 gem 'rake'
 gem 'sassc'
 gem 'sinatra'
 gem 'sinatra-contrib'
-gem 'sinatra-websocket'
-gem 'thin'
 gem 'xmlrpc'
 gem 'xmlrpcs'
 

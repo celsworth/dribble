@@ -5,7 +5,7 @@ Part learning exercise, part frontend GUI for rtorrent.
 May never do anything useful.
 
 ---
-> **IMPORTANT SECURITY WARNING**: The thin server opens an endpoint (at `/ws`) that is a WebSocket proxy to your rtorrent SCGI interface. This endpoint must *never* be exposed to the Internet or you *will* get pwned via remote execution.
+> **IMPORTANT SECURITY WARNING**: The Ruby appserver opens an endpoint (at `/ws`) that is a WebSocket proxy to your rtorrent SCGI interface. This endpoint must *never* be exposed to the Internet or you *will* get pwned via remote execution.
 ---
 
 ## Running
@@ -64,7 +64,7 @@ bundle exec rake elm:build
 Start the webserver on localhost port 3000:
 
 ```
-bundle exec thin start -a 127.0.0.1 -p 3000
+bundle exec iodine -b 127.0.0.1 -p 3000 -www public -v
 ```
 
 

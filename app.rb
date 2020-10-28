@@ -29,24 +29,19 @@ require 'websocket'
 
 class Dribble < Sinatra::Application
   configure do
-    set :sockets, {}
-
-    set :subscription_runner, SubscriptionRunner.new.tap(&:start)
-
     # use the environment variable verbatim if set,
     # else assume localhost, but cope with running in Docker
     set :rtorrent_host, ENV['RTORRENT'] || (ENV['DOCKER'] ? 'docker-host' : 'localhost')
     set :rtorrent_port, ENV['RTORRENT_PORT'] || 5000
 
     set :sass, style: :compact
+    set :logging, false # done by iodine -v
 
     register Sinatra::Reloader
   end
 
   get '/' do
-    erb :index, locals: {
-      dribble_mtime: File.mtime('public/dribble.js').to_i
-    }
+    erb :index, locals: { dribble_mtime: File.mtime('public/dribble.js').to_i }
   end
 
   get '/css/style.css' do
@@ -59,22 +54,8 @@ class Dribble < Sinatra::Application
   end
 
   get '/ws' do
-    request.websocket do |ws|
-      ws.onopen do
-        t = settings.sockets[ws] = Websocket.new(ws)
-        settings.subscription_runner.add_websocket(t)
-      end
-
-      ws.onmessage do |msg|
-        t = settings.sockets[ws]
-        process_websocket(t, JSON.parse(msg))
-      end
-
-      ws.onclose do
-        t = settings.sockets[ws]
-        settings.subscription_runner.remove_websocket(t)
-      end
-    end
+    rtorrent = Rtorrent.new(settings.rtorrent_host, settings.rtorrent_port)
+    env['rack.upgrade'] = Websocket.new(rtorrent) if env['rack.upgrade?'] == :websocket
   end
 
   # GET /proxy/foo.url/favicon.ico
@@ -99,26 +80,5 @@ class Dribble < Sinatra::Application
       'If-None-Match' => env['HTTP_IF_NONE_MATCH'],
       'If-Modified-Since' => env['HTTP_IF_MODIFIED_SINCE']
     }
-  end
-
-  def process_websocket(websocket, data)
-    if (u = data['unsubscribe'])
-      websocket.remove_subscription(u)
-    elsif (s = data['subscribe'])
-      rtorrent = Rtorrent.new(settings.rtorrent_host, settings.rtorrent_port)
-      sub = Subscription.new(interval: data['interval'],
-                             rtorrent: rtorrent,
-                             diff: data['diff'],
-                             command: data['command'])
-      websocket.add_subscription(s, sub)
-      # immediately run all due subscriptions for this websocket when a new one
-      # is added. This reduces delay between selecting a torrent and seeing file
-      # list for it.
-      websocket.run_subscriptions
-    else
-      # TODO: move this into a class?
-      rtorrent = Rtorrent.new(settings.rtorrent_host, settings.rtorrent_port)
-      websocket.send(data['name'] => rtorrent.call(*data['command']))
-    end
   end
 end
