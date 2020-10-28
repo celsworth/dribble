@@ -4,6 +4,7 @@ RUN npm install -g elm --unsafe-perm=true --allow-root
 COPY frontend ./
 RUN elm make src/Main.elm --output /dribble.js --optimize || \
     elm make src/Main.elm --output /dribble.js
+RUN gzip -9k dribble.js
 
 
 FROM ruby:2.7-alpine AS ruby-builder
@@ -18,7 +19,7 @@ RUN adduser -D app
 USER app
 WORKDIR /home/app
 COPY . .
-COPY --from=elm-builder /dribble.js public/dribble.js
+COPY --from=elm-builder /dribble.js /dribble.js.gz public/
 COPY --from=ruby-builder Gemfile.lock .
 COPY --from=ruby-builder /usr/local/bundle /usr/local/bundle
 EXPOSE 3000
