@@ -11,7 +11,7 @@ import List
 import Model exposing (..)
 import Model.Attribute
 import Model.Config
-import Model.ContextMenu exposing (ContextMenu(..))
+import Model.ContextMenu exposing (ContextMenu, For(..))
 import Model.MousePosition
 import Model.Sort
 import Model.Table
@@ -45,7 +45,8 @@ view model =
                     model.sortedTorrents
                     model.selectedTorrentHash
                 ]
-            , headerContextMenu model
+            , Maybe.map headerContextMenu model.contextMenu
+                |> Maybe.withDefault (text "")
             ]
 
 
@@ -61,14 +62,18 @@ header config tableConfig =
         ]
 
 
-headerContextMenu : Model -> Html Msg
-headerContextMenu model =
-    case model.contextMenu of
-        Just (TorrentTableHeader pos contextMenu) ->
+headerContextMenu : ContextMenu -> Html Msg
+headerContextMenu contextMenu =
+    let
+        { for, position } =
+            contextMenu
+    in
+    case for of
+        TorrentsTableColumn column ->
             div
                 [ class "context-menu"
-                , style "top" <| String.fromFloat pos.y ++ "px"
-                , style "left" <| String.fromFloat pos.x ++ "px"
+                , style "top" <| String.fromFloat position.y ++ "px"
+                , style "left" <| String.fromFloat position.x ++ "px"
                 ]
                 [ ul []
                     [ li [] [ text "test" ]
@@ -116,7 +121,7 @@ headerCellAttributes sortBy column =
         , headerCellSortClass sortBy column
         , Just <|
             Html.Events.Extra.Mouse.onContextMenu
-                (\e -> DisplayContextMenu (Model.Attribute.TorrentAttribute column.attribute) (Model.MousePosition.reconstructClientPos e) e.button e.keys)
+                (\e -> DisplayContextMenu (Model.ContextMenu.TorrentsTableColumn column) (Model.MousePosition.reconstructClientPos e) e.button e.keys)
         ]
 
 

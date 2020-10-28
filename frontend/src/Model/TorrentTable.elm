@@ -9,10 +9,6 @@ import Model.Table
 import Model.Torrent exposing (Attribute(..))
 
 
-type alias HeaderContextMenu =
-    Column
-
-
 type alias Column =
     { attribute : Attribute
     , width : Float

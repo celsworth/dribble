@@ -32,7 +32,7 @@ type Msg
     | AttributeResized Model.Table.ResizeOp MousePosition
     | AttributeResizeEnded Model.Table.ResizeOp MousePosition
     | GotColumnWidth Attribute (Result Browser.Dom.Error Browser.Dom.Element)
-    | DisplayContextMenu Attribute MousePosition Mouse.Button Mouse.Keys
+    | DisplayContextMenu Model.ContextMenu.For MousePosition Mouse.Button Mouse.Keys
     | SetPreference Model.Preferences.PreferenceUpdate
     | SetGroupListsVisible Bool
     | ResetConfigClicked
@@ -126,6 +126,11 @@ setRtorrentSystemInfo new model =
 setWebsocketConnected : Bool -> Model -> Model
 setWebsocketConnected new model =
     { model | websocketConnected = new }
+
+
+setContextMenu : Maybe ContextMenu -> Model -> Model
+setContextMenu new model =
+    { model | contextMenu = new }
 
 
 setGroupLists : GroupLists -> Model -> Model

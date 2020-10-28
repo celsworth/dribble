@@ -15,6 +15,7 @@ import Update.ResetTorrentFilter
 import Update.ResizeOpMoved
 import Update.SaveConfig
 import Update.SetColumnAutoWidth
+import Update.SetContextMenu
 import Update.SetPreference
 import Update.SetSelectedTorrent
 import Update.SetSortBy
@@ -60,8 +61,8 @@ update msg model =
                 |> andThen (Update.ColumnWidthReceived.update attribute result)
                 |> andThen Update.SaveConfig.update
 
-        DisplayContextMenu attribute pos button keys ->
-            r
+        DisplayContextMenu contextMenuFor pos button keys ->
+            r |> andThen (Update.SetContextMenu.update contextMenuFor pos button keys)
 
         SetPreference preferenceUpdate ->
             r
