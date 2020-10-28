@@ -24,4 +24,4 @@ COPY --from=ruby-builder /usr/local/bundle /usr/local/bundle
 EXPOSE 3000
 
 ENTRYPOINT ["bundle", "exec"]
-CMD ["thin", "start"]
+CMD ["iodine", "-www", "public", "-log"]
