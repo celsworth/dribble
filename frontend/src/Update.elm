@@ -3,6 +3,7 @@ module Update exposing (update)
 import Html.Events.Extra.Mouse as Mouse
 import Model exposing (..)
 import Model.Attribute
+import Model.MousePosition exposing (MousePosition)
 import Model.Table
 import Model.Window
 import Update.ColumnWidthReceived
@@ -11,6 +12,7 @@ import Update.EndResizeOp
 import Update.ProcessWebsocketData
 import Update.ProcessWebsocketStatusUpdated
 import Update.ResetConfig
+import Update.ResetTorrentFilter
 import Update.ResizeOpMoved
 import Update.SaveConfig
 import Update.SetColumnAutoWidth
@@ -59,6 +61,9 @@ update msg model =
                 |> andThen (Update.ColumnWidthReceived.update attribute result)
                 |> andThen Update.SaveConfig.update
 
+        DisplayContextMenu attribute pos button keys ->
+            r
+
         SetPreference preferenceUpdate ->
             r
                 |> andThen (Update.SetPreference.update preferenceUpdate)
@@ -73,6 +78,12 @@ update msg model =
         SaveConfigClicked ->
             r |> andThen Update.SaveConfig.update
 
+        ResetFilterClicked ->
+            r |> andThen Update.ResetTorrentFilter.update
+
+        TorrentFilterChanged value ->
+            r |> andThen (Update.TorrentFilterChanged.update value)
+
         SetHamburgerMenuVisible bool ->
             r |> andThen (call setHamburgerMenuVisible bool)
 
@@ -85,9 +96,6 @@ update msg model =
             r
                 |> andThen (Update.ToggleWindowVisible.update Model.Window.Logs)
                 |> andThen Update.SaveConfig.update
-
-        TorrentFilterChanged value ->
-            r |> andThen (Update.TorrentFilterChanged.update value)
 
         ToggleAttributeVisibility attribute ->
             r
@@ -127,7 +135,7 @@ update msg model =
 -- TODO: move to Update/
 
 
-handleMouseDown : Model.Attribute.Attribute -> Model.Table.MousePosition -> Mouse.Button -> Mouse.Keys -> Model -> ( Model, Cmd Msg )
+handleMouseDown : Model.Attribute.Attribute -> MousePosition -> Mouse.Button -> Mouse.Keys -> Model -> ( Model, Cmd Msg )
 handleMouseDown attribute mousePosition mouseButton mouseKeys model =
     if mouseKeys.alt then
         -- should be in right click menu

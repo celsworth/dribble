@@ -3,6 +3,9 @@ $main-fg-color: #000;
 $main-bg-color: #fff;
 $secondary-bg-color: #eee;
 
+$window-border-color: #ddd;
+$window-background-color: #f2f2f2;
+
 $section-divider-bar-color: #d5d5d5;
 
 $table-border-colour: #d5d5d5;
@@ -63,6 +66,12 @@ body {
   font-size: 14px;
 }
 
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 .text-right {
   text-align: right;
 }
@@ -71,31 +80,40 @@ body {
   display: flex;
 }
 
-.resizing-x {
+.resizing-x * {
   cursor: col-resize;
-
-  // bodge to override cursor: default when resizing
-  th {
-    cursor: col-resize;
-  }
 }
 
 .context-menu {
+  position: absolute;
+  top: 50px;
+  left: 50px;
+
   z-index: $context-menu-z-index;
-  border: 1px solid #ddd;
+  border: 1px solid $window-border-color;
   border-radius: 5px;
-  box-shadow: 0 0 15px 5px #aaa;
-  background: #f3f3f3;
+  box-shadow: 0 0 15px 3px #ccc;
+  background: $window-background-color;
+
+  li {
+    padding: 4px 10px;
+
+    &:hover {
+      background: $selected-row-background-color;
+      color: $selected-row-color;
+    }
+  }
 }
 
 .dragbar {
   position: fixed;
   top: 0;
+  bottom: 0;
   left: 0;
   z-index: $dragbar-z-index;
-  border-left: 1px solid $dragbar-color;
+  background-color: $dragbar-color;
+  cursor: col-resize;
   width: 1px;
-  height: 100%;
 }
 
 .window {
@@ -103,10 +121,10 @@ body {
   position: absolute;
   z-index: $window-z-index;
   margin: 40px;
-  border: 1px solid #ddd;
+  border: 1px solid $window-border-color;
   border-radius: 5px;
   box-shadow: 0 0 15px 10px #888;
-  background: #f2f2f2;
+  background: $window-background-color;
   overflow-y: auto;
 
   // works great in Firefox, not so much Safari.
@@ -150,25 +168,31 @@ body {
   background-color: $secondary-bg-color;
   padding: 5px;
   height: $header-height;
+}
 
-  .flex-container {
-    // temporary home for buttons on left/right
-    display: flex;
-  }
+.filter {
+  display: flex;
+  margin-right: 10px;
+  width: 250px;
 
-  .filter {
-    margin-right: 10px;
-    width: 200px;
+  input {
+    border: 1px solid #aaa;
+    border-left: 0;
+    padding: 5px;
 
-    &.error {
-      background-color: #ecc;
+    &:focus {
+      outline: 0;
     }
   }
 
-  .hamburger-button {
-    display: flex;
-    position: relative;
+  &.error {
+    background-color: #ecc;
   }
+}
+
+.hamburger-button {
+  display: flex;
+  position: relative;
 }
 
 .messages {
@@ -182,7 +206,6 @@ body {
     margin: 10px 0;
     border-radius: 5px;
     padding: 10px;
-    list-style: none;
   }
 }
 
@@ -198,9 +221,6 @@ body {
   color: #555;
 
   ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
     white-space: nowrap;
 
     i {
@@ -308,7 +328,6 @@ body {
       margin: 10px;
       background-color: #fafaaf;
       padding: 10px;
-      list-style: none;
     }
   }
 
@@ -381,9 +400,7 @@ body {
   }
 
   ul {
-    margin: 0;
-    padding: 0 0 5px 0;
-    list-style: none;
+    padding: 0 0 5px;
   }
 
   li {
@@ -458,11 +475,7 @@ body {
   width: 100%;
   height: $summary-height;
   white-space: nowrap;
-  font-size: .7rem;
-
-  i {
-    font-size: .5rem;
-  }
+  font-size: 10px;
 
   .connected {
     color: #080;
@@ -474,18 +487,25 @@ body {
 }
 
 .system-info {
+  display: flex;
+  align-items: center;
   padding: 0 5px;
+
+  .fas {
+    padding-left: 5px;
+  }
 }
 
 .session-traffic {
   display: flex;
+  align-items: center;
 
   .fas {
     padding-right: 5px;
   }
 
   .stat {
-    border-left: 1px solid #888;
+    border-right: 1px solid #888;
     padding: 0 5px;
   }
 }
@@ -561,7 +581,6 @@ body {
 }
 
 table {
-  position: relative;
   background-color: $main-bg-color;
   cursor: default;
   border-spacing: 0;

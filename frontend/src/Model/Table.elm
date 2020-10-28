@@ -4,12 +4,7 @@ import Json.Decode as D
 import Json.Encode as E
 import List.Extra
 import Model.Attribute exposing (Attribute)
-
-
-type alias MousePosition =
-    { x : Float
-    , y : Float
-    }
+import Model.MousePosition exposing (MousePosition)
 
 
 type alias ResizeOp =

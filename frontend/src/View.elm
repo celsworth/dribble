@@ -2,10 +2,11 @@ module View exposing (view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onInput, onMouseEnter, onMouseLeave)
+import Html.Events exposing (onClick, onInput, onMouseLeave)
 import Html.Events.Extra.Mouse
 import Html.Lazy
 import Model exposing (..)
+import Model.MousePosition
 import Model.Table
 import Model.TorrentFilter
 import View.Details
@@ -16,6 +17,7 @@ import View.Preferences
 import View.SpeedChart
 import View.Summary
 import View.TorrentTable
+import View.Utils.Events exposing (onEscape)
 
 
 view : Model -> Html Msg
@@ -53,30 +55,20 @@ viewAttributesForResizeOp : Model.Table.ResizeOp -> List (Attribute Msg)
 viewAttributesForResizeOp resizeOp =
     [ class "resizing-x"
     , Html.Events.Extra.Mouse.onUp
-        (\e -> AttributeResizeEnded resizeOp (reconstructClientPos e))
+        (\e -> AttributeResizeEnded resizeOp (Model.MousePosition.reconstructClientPos e))
     , Html.Events.Extra.Mouse.onMove
-        (\e -> AttributeResized resizeOp (reconstructClientPos e))
+        (\e -> AttributeResized resizeOp (Model.MousePosition.reconstructClientPos e))
     ]
-
-
-reconstructClientPos : { e | clientPos : ( Float, Float ) } -> Model.Table.MousePosition
-reconstructClientPos event =
-    {- this mess converts (x, y) to { x: x, y: y } -}
-    let
-        ( x, y ) =
-            event.clientPos
-    in
-    { x = x, y = y }
 
 
 navigation : Model -> Html Msg
 navigation model =
     section [ class "navigation" ]
-        [ div [ class "flex-container" ]
+        [ div [ class "flex" ]
             [ button [ onClick ResetConfigClicked ] [ text "Reset Config" ]
             , button [ onClick SaveConfigClicked ] [ text "Save Config" ]
             ]
-        , div [ class "flex-container" ]
+        , div [ class "flex" ]
             [ Html.Lazy.lazy2 filterInput model.config.filter model.torrentFilter
             , Html.Lazy.lazy hamburgerButton model.hamburgerMenuVisible
             ]
@@ -94,14 +86,19 @@ filterInput filterConfig filter =
                 _ ->
                     class "filter"
     in
-    input
-        [ placeholder "Filter"
-        , kls
-        , value filterConfig.filter
-        , onInput TorrentFilterChanged
-        , type_ "text"
+    div [ class "filter" ]
+        [ button [ onClick ResetFilterClicked ]
+            [ i [ class "fas fa-times" ] [] ]
+        , input
+            [ placeholder "Filter"
+            , kls
+            , value filterConfig.filter
+            , onInput TorrentFilterChanged
+            , onEscape ResetFilterClicked
+            , type_ "text"
+            ]
+            []
         ]
-        []
 
 
 hamburgerButton : Bool -> Html Msg

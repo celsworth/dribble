@@ -32,6 +32,7 @@ init flags =
       , rtorrentSystemInfo = Nothing
       , dnd = (dndSystemTorrent Model.Table.Torrents).model
       , websocketConnected = False
+      , contextMenu = Nothing
       , selectedTorrentHash = Nothing
       , groupLists = Model.GroupLists.empty
       , sortedTorrents = []

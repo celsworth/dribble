@@ -10,16 +10,39 @@ import Utils.Filesize
 view : Model -> Html Msg
 view model =
     section [ class "summary" ]
-        [ div [ class "flex" ] (viewComponents model)
-        , traffic model
+        [ div [ class "session-traffic" ] (traffic model)
+        , div [ class "system-info" ] (status model)
         ]
 
 
-viewComponents : Model -> List (Html Msg)
-viewComponents model =
+traffic : Model -> List (Html Msg)
+traffic model =
+    case model.prevTraffic of
+        Just t ->
+            [ trafficDirection model t.downTotal t.downDiff "fa-arrow-down"
+            , trafficDirection model t.upTotal t.upDiff "fa-arrow-up"
+            ]
+
+        Nothing ->
+            []
+
+
+trafficDirection : Model -> Int -> Int -> String -> Html Msg
+trafficDirection model total diff kls =
+    div [ class "stat" ]
+        [ i [ class <| "fas " ++ kls ] []
+        , span []
+            [ text <| Utils.Filesize.formatWith model.config.humanise.size total
+            , text <| " (" ++ Utils.Filesize.formatWith model.config.humanise.speed diff ++ "/s)"
+            ]
+        ]
+
+
+status : Model -> List (Html Msg)
+status model =
     List.filterMap identity
-        [ Just <| websocketStatus model
-        , Maybe.map rtorrentSystemInfo model.rtorrentSystemInfo
+        [ Maybe.map rtorrentSystemInfo model.rtorrentSystemInfo
+        , Just <| websocketStatus model
         ]
 
 
@@ -33,44 +56,17 @@ websocketStatus model =
             else
                 "disconnected"
     in
-    div [] [ i [ class ("fas fa-circle " ++ faClass) ] [] ]
-
-
-traffic : Model -> Html Msg
-traffic model =
-    case model.prevTraffic of
-        Just t ->
-            div [ class "session-traffic" ]
-                [ div [ class "stat" ]
-                    [ i [ class "fas fa-arrow-down" ] []
-                    , span []
-                        [ text <| Utils.Filesize.formatWith model.config.humanise.size t.downTotal
-                        , text <| " (" ++ Utils.Filesize.formatWith model.config.humanise.speed t.downDiff ++ "/s)"
-                        ]
-                    ]
-                , div [ class "stat" ]
-                    [ i [ class "fas fa-arrow-up" ] []
-                    , span []
-                        [ text <| Utils.Filesize.formatWith model.config.humanise.size t.upTotal
-                        , text <| " (" ++ Utils.Filesize.formatWith model.config.humanise.speed t.upDiff ++ "/s)"
-                        ]
-                    ]
-                ]
-
-        Nothing ->
-            text ""
+    span [] [ i [ class ("fas fa-circle " ++ faClass) ] [] ]
 
 
 rtorrentSystemInfo : Model.Rtorrent.Info -> Html Msg
 rtorrentSystemInfo info =
-    div [ class "system-info" ]
-        [ text <|
-            "rtorrent "
-                ++ info.systemVersion
-                ++ "/"
-                ++ info.libraryVersion
-                ++ " on "
-                ++ info.hostname
-                ++ ":"
-                ++ String.fromInt info.listenPort
-        ]
+    text <|
+        "rtorrent "
+            ++ info.systemVersion
+            ++ "/"
+            ++ info.libraryVersion
+            ++ " on "
+            ++ info.hostname
+            ++ ":"
+            ++ String.fromInt info.listenPort

@@ -22,6 +22,8 @@ import List
 import Model exposing (..)
 import Model.Attribute
 import Model.Config
+import Model.ContextMenu exposing (ContextMenu(..))
+import Model.MousePosition
 import Model.Sort
 import Model.Table
 import Model.Torrent exposing (Torrent, TorrentsByHash)
@@ -31,6 +33,7 @@ import Time
 import View.DragBar
 import View.Table
 import View.Torrent
+import View.Utils.Events
 import View.Utils.TorrentStatusIcon
 
 
@@ -54,6 +57,7 @@ view model =
                     model.sortedTorrents
                     model.selectedTorrentHash
                 ]
+            , headerContextMenu model
             ]
 
 
@@ -67,6 +71,26 @@ header config tableConfig =
         [ tr []
             (List.map (headerCell config tableConfig) visibleOrder)
         ]
+
+
+headerContextMenu : Model -> Html Msg
+headerContextMenu model =
+    case model.contextMenu of
+        Just (TorrentTableHeader pos contextMenu) ->
+            div
+                [ class "context-menu"
+                , style "top" <| String.fromFloat pos.y ++ "px"
+                , style "left" <| String.fromFloat pos.x ++ "px"
+                ]
+                [ ul []
+                    [ li [] [ text "test" ]
+                    , li [] [ text "test" ]
+                    , li [] [ text "test" ]
+                    ]
+                ]
+
+        _ ->
+            text ""
 
 
 headerCell : Model.Config.Config -> Config -> Column -> Html Msg
@@ -102,6 +126,9 @@ headerCellAttributes sortBy column =
         [ headerCellIdAttribute column
         , cellTextAlign column
         , headerCellSortClass sortBy column
+        , Just <|
+            Html.Events.Extra.Mouse.onContextMenu
+                (\e -> DisplayContextMenu (Model.Attribute.TorrentAttribute column.attribute) (Model.MousePosition.reconstructClientPos e) e.button e.keys)
         ]
 
 
@@ -147,19 +174,9 @@ headerCellContentDivAttributes tableConfig column =
 
 headerCellResizeHandleAttributes : Column -> List (Attribute Msg)
 headerCellResizeHandleAttributes column =
-    let
-        {- this mess converts (x, y) to { x: x, y: y } -}
-        reconstructClientPos =
-            \event ->
-                let
-                    ( x, y ) =
-                        event.clientPos
-                in
-                { x = x, y = y }
-    in
     [ class "resize-handle"
     , Html.Events.Extra.Mouse.onDown
-        (\e -> MouseDown (Model.Attribute.TorrentAttribute column.attribute) (reconstructClientPos e) e.button e.keys)
+        (\e -> MouseDown (Model.Attribute.TorrentAttribute column.attribute) (Model.MousePosition.reconstructClientPos e) e.button e.keys)
     ]
 
 

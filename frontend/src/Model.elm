@@ -7,10 +7,12 @@ import Html.Events.Extra.Mouse as Mouse
 import Json.Decode as JD
 import Model.Attribute exposing (Attribute)
 import Model.Config exposing (Config)
+import Model.ContextMenu exposing (ContextMenu)
 import Model.File exposing (FilesByKey)
 import Model.FileTable
 import Model.GroupLists exposing (GroupLists)
 import Model.Message exposing (Message)
+import Model.MousePosition exposing (MousePosition)
 import Model.Preferences
 import Model.Rtorrent
 import Model.SpeedChart
@@ -26,18 +28,20 @@ import Time
 
 type Msg
     = SetTimeZone Time.Zone
-    | MouseDown Attribute Model.Table.MousePosition Mouse.Button Mouse.Keys
-    | AttributeResized Model.Table.ResizeOp Model.Table.MousePosition
-    | AttributeResizeEnded Model.Table.ResizeOp Model.Table.MousePosition
+    | MouseDown Attribute MousePosition Mouse.Button Mouse.Keys
+    | AttributeResized Model.Table.ResizeOp MousePosition
+    | AttributeResizeEnded Model.Table.ResizeOp MousePosition
     | GotColumnWidth Attribute (Result Browser.Dom.Error Browser.Dom.Element)
+    | DisplayContextMenu Attribute MousePosition Mouse.Button Mouse.Keys
     | SetPreference Model.Preferences.PreferenceUpdate
     | SetGroupListsVisible Bool
     | ResetConfigClicked
     | SaveConfigClicked
+    | ResetFilterClicked
+    | TorrentFilterChanged String
+    | SetHamburgerMenuVisible Bool
     | TogglePreferencesVisible
     | ToggleLogsVisible
-    | SetHamburgerMenuVisible Bool
-    | TorrentFilterChanged String
     | ToggleAttributeVisibility Model.Attribute.Attribute
     | SetSortBy Model.Attribute.Attribute
     | TorrentRowSelected String
@@ -79,6 +83,7 @@ type alias Model =
     , rtorrentSystemInfo : Maybe Model.Rtorrent.Info
     , dnd : DnDList.Model
     , websocketConnected : Bool
+    , contextMenu : Maybe ContextMenu
     , selectedTorrentHash : Maybe String
     , groupLists : GroupLists
     , sortedTorrents : List String

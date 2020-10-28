@@ -1,15 +1,15 @@
 module Update.ResizeOpMoved exposing (update)
 
 import Model exposing (..)
+import Model.MousePosition exposing (MousePosition)
 import Model.Table
 
 
-update : Model.Table.ResizeOp -> Model.Table.MousePosition -> Model -> ( Model, Cmd Msg )
+update : Model.Table.ResizeOp -> MousePosition -> Model -> ( Model, Cmd Msg )
 update resizeOp mousePosition model =
     let
-        {- sometimes we get another TorrentAttributeResized just after
-           TorrentAttributeResizeEnded.
-           Ignore them (model.torrentAttributeResizeOp will be Nothing)
+        {- sometimes we get another AttributeResized just after AttributeResizeEnded.
+           Ignore them (model.resizeOp will be Nothing)
         -}
         resizing =
             model.resizeOp /= Nothing

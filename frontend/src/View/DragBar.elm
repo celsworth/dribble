@@ -1,4 +1,4 @@
-module View.DragBar exposing (..)
+module View.DragBar exposing (view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -18,7 +18,6 @@ dragbar resizeOp =
 
 attributes : Model.Table.ResizeOp -> List (Attribute Msg)
 attributes resizeOp =
-    [ id "dragbar"
-    , class "dragbar"
+    [ class "dragbar"
     , style "transform" ("translate3d(" ++ String.fromFloat resizeOp.currentPosition.x ++ "px" ++ ", 0, 0)")
     ]

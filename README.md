@@ -76,9 +76,10 @@ Redrawing the main torrent table can get a bit sluggish with more than a few hun
 
 Torrents that are deleted in the client elsewhere will continue to be rendered as a row until you restart Dribble. This may be fixed in future.
 
-The speed chart in the bottom right oesn't render binary unit (KiB/s) ticks on the y-axis very well. They work but you can get some odd looking divisions at times. Fortunately I prefer network speeds measured in metric (kB/s) so this is a minor problem (for me).
+The speed chart in the bottom left doesn't render binary unit (KiB/s) ticks on the y-axis very well. They work but you can get some odd looking divisions at times. Fortunately I prefer network speeds measured in metric (kB/s) so this is a minor problem (for me).
 
 
 ### Known Bugs
 
 * Safari refuses to let you make a resizeable element smaller than its initial size, which becomes apparent when resizing Preferences/Logs. Silly Safari, other browsers get it right.
+* The column resizing orange drag bar would look better if it only used the relevant table height, not the full viewport height. This is a styling bug I haven't worked out how to fix yet.

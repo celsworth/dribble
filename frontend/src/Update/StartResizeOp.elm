@@ -4,11 +4,12 @@ import Model exposing (..)
 import Model.Attribute
 import Model.Config exposing (Config)
 import Model.FileTable
+import Model.MousePosition exposing (MousePosition)
 import Model.Table
 import Model.TorrentTable
 
 
-update : Model.Attribute.Attribute -> Model.Table.MousePosition -> Model -> ( Model, Cmd Msg )
+update : Model.Attribute.Attribute -> MousePosition -> Model -> ( Model, Cmd Msg )
 update attribute mousePos model =
     let
         width =
