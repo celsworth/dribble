@@ -44,7 +44,9 @@ class Dribble < Sinatra::Application
   end
 
   get '/' do
-    File.read('./frontend/index.html')
+    erb :index, locals: {
+      dribble_mtime: File.mtime('public/dribble.js').to_i
+    }
   end
 
   get '/css/style.css' do
