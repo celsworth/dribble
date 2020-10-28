@@ -4,7 +4,6 @@ import Html.Events.Extra.Mouse as Mouse
 import Model exposing (..)
 import Model.Attribute
 import Model.MousePosition exposing (MousePosition)
-import Model.Table
 import Model.Window
 import Update.ColumnWidthReceived
 import Update.DragAndDropReceived

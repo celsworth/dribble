@@ -1,16 +1,5 @@
 module View.TorrentTable exposing (view)
 
-{- this is for rendering Torrent Tables as they're slightly special.
-
-   it calls out to View.Table for some common functionality but Torrent Tables
-   are special enough that they need some of their own functionality
-
-   * keyed rows
-   * selecting a row
-   * filtering
-   * separate sorted list/hash to avoid invalidating lazy cache
--}
-
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -33,7 +22,6 @@ import Time
 import View.DragBar
 import View.Table
 import View.Torrent
-import View.Utils.Events
 import View.Utils.TorrentStatusIcon
 
 

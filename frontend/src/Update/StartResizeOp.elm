@@ -5,7 +5,6 @@ import Model.Attribute
 import Model.Config exposing (Config)
 import Model.FileTable
 import Model.MousePosition exposing (MousePosition)
-import Model.Table
 import Model.TorrentTable
 
 
