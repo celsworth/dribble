@@ -1,6 +1,5 @@
 module Update.ProcessWebsocketData exposing (update)
 
-import Dict
 import Json.Decode as JD
 import Model exposing (..)
 import Model.Message
