@@ -27,54 +27,27 @@ update preferenceUpdate model =
 setTableLayout : Model.Table.Type -> Model.Table.Layout -> Model -> Model
 setTableLayout tableType layout model =
     let
+        config =
+            model.config
+
         newConfig =
             case tableType of
                 Model.Table.Torrents ->
-                    torrentTableLayout model layout
+                    Model.Config.setTorrentTable
+                        (Model.Table.setLayout layout config.torrentTable)
+                        config
 
                 Model.Table.Files ->
-                    fileTableLayout model layout
+                    Model.Config.setFileTable
+                        (Model.Table.setLayout layout config.fileTable)
+                        config
 
                 Model.Table.Peers ->
-                    peerTableLayout model layout
+                    Model.Config.setPeerTable
+                        (Model.Table.setLayout layout config.peerTable)
+                        config
     in
     model |> setConfig newConfig
-
-
-torrentTableLayout : Model -> Model.Table.Layout -> Config
-torrentTableLayout model layout =
-    let
-        tableConfig =
-            model.config.torrentTable
-
-        newTableConfig =
-            tableConfig |> Model.Table.setLayout layout
-    in
-    model.config |> Model.Config.setTorrentTable newTableConfig
-
-
-fileTableLayout : Model -> Model.Table.Layout -> Config
-fileTableLayout model layout =
-    let
-        tableConfig =
-            model.config.fileTable
-
-        newTableConfig =
-            tableConfig |> Model.Table.setLayout layout
-    in
-    model.config |> Model.Config.setFileTable newTableConfig
-
-
-peerTableLayout : Model -> Model.Table.Layout -> Config
-peerTableLayout model layout =
-    let
-        tableConfig =
-            model.config.peerTable
-
-        newTableConfig =
-            tableConfig |> Model.Table.setLayout layout
-    in
-    model.config |> Model.Config.setPeerTable newTableConfig
 
 
 
