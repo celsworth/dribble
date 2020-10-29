@@ -3,7 +3,7 @@ $main-fg-color: #000;
 $main-bg-color: #fff;
 $secondary-bg-color: #eee;
 
-$window-border-color: #ddd;
+$window-border-color: #bbb;
 $window-background-color: #f2f2f2;
 
 $section-divider-bar-color: #d5d5d5;
@@ -41,8 +41,9 @@ $resize-handle-z-index: 5;
 $speed-chart-z-index: 5;
 $dragbar-z-index: 10;
 $hamburger-menu-z-index: 50;
-$context-menu-z-index: 50;
 $window-z-index: 50;
+$context-menu-closer-z-index: 79;
+$context-menu-z-index: 80;
 
 @mixin unselectable {
   -webkit-user-select: none;
@@ -85,6 +86,17 @@ ul {
 
 .resizing-x * {
   cursor: col-resize;
+}
+
+.context-menu-closer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  opacity: .1;
+  z-index: $context-menu-closer-z-index;
+  background: #000;
 }
 
 .context-menu {

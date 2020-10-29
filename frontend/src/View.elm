@@ -24,7 +24,8 @@ import View.Utils.Events exposing (onEscape)
 view : Model -> Html Msg
 view model =
     div (viewAttributes model)
-        [ View.Preferences.view model
+        [ contextMenuCloser model
+        , View.Preferences.view model
         , View.Logs.view model
         , View.Messages.view model
         , navigation model
@@ -47,22 +48,8 @@ viewAttributes model =
     let
         resizingAttributes =
             viewAttributesForResizeOp model.resizeOp
-
-        closeContextMenuAttributes =
-            viewAttributesToCloseContextMenu model.contextMenu
     in
-    resizingAttributes ++ closeContextMenuAttributes
-
-
-viewAttributesToCloseContextMenu : Maybe ContextMenu -> List (Attribute Msg)
-viewAttributesToCloseContextMenu contextMenu =
-    if contextMenu /= Nothing then
-        [ -- onDown bubbles through other elements; onClick does not!
-          Mouse.onDown (\_ -> ClearContextMenu)
-        ]
-
-    else
-        []
+    resizingAttributes
 
 
 viewAttributesForResizeOp : Maybe Model.Table.ResizeOp -> List (Attribute Msg)
@@ -76,6 +63,17 @@ viewAttributesForResizeOp resizeOp =
 
         Nothing ->
             []
+
+
+contextMenuCloser : Model -> Html Msg
+contextMenuCloser model =
+    -- when we have a context menu open, this renders a full-page div
+    -- that captures clicks to close the context menu.
+    if model.contextMenu /= Nothing then
+        div [ onClick ClearContextMenu, class "context-menu-closer" ] []
+
+    else
+        text ""
 
 
 navigation : Model -> Html Msg
