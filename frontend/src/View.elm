@@ -3,9 +3,10 @@ module View exposing (view)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onMouseLeave)
-import Html.Events.Extra.Mouse
+import Html.Events.Extra.Mouse as Mouse
 import Html.Lazy
 import Model exposing (..)
+import Model.ContextMenu exposing (ContextMenu)
 import Model.MousePosition
 import Model.Table
 import Model.TorrentFilter
@@ -45,20 +46,36 @@ viewAttributes : Model -> List (Attribute Msg)
 viewAttributes model =
     let
         resizingAttributes =
-            Maybe.map viewAttributesForResizeOp model.resizeOp
-                |> Maybe.withDefault []
+            viewAttributesForResizeOp model.resizeOp
+
+        closeContextMenuAttributes =
+            viewAttributesToCloseContextMenu model.contextMenu
     in
-    List.append [] resizingAttributes
+    resizingAttributes ++ closeContextMenuAttributes
 
 
-viewAttributesForResizeOp : Model.Table.ResizeOp -> List (Attribute Msg)
+viewAttributesToCloseContextMenu : Maybe ContextMenu -> List (Attribute Msg)
+viewAttributesToCloseContextMenu contextMenu =
+    if contextMenu /= Nothing then
+        [ -- onDown bubbles through other elements; onClick does not!
+          Mouse.onDown (\_ -> ClearContextMenu)
+        ]
+
+    else
+        []
+
+
+viewAttributesForResizeOp : Maybe Model.Table.ResizeOp -> List (Attribute Msg)
 viewAttributesForResizeOp resizeOp =
-    [ class "resizing-x"
-    , Html.Events.Extra.Mouse.onUp
-        (\e -> AttributeResizeEnded resizeOp (Model.MousePosition.reconstructClientPos e))
-    , Html.Events.Extra.Mouse.onMove
-        (\e -> AttributeResized resizeOp (Model.MousePosition.reconstructClientPos e))
-    ]
+    case resizeOp of
+        Just r ->
+            [ class "resizing-x"
+            , Mouse.onUp (\e -> AttributeResizeEnded r (Model.MousePosition.reconstructClientPos e))
+            , Mouse.onMove (\e -> AttributeResized r (Model.MousePosition.reconstructClientPos e))
+            ]
+
+        Nothing ->
+            []
 
 
 navigation : Model -> Html Msg

@@ -162,4 +162,4 @@ $stuck            #          done<100 down=0 status!=stopped status!=paused
 
 ## TODO
 
-  * precedence isn't currently supported. I tried, but reached the limits of my elm/parser knowhow. Parsing the trailing `)` got problematic :(
+  * precedence isn't currently supported. I tried, but reached the limits of my elm/parser knowhow. Parsing the trailing `)` got problematic

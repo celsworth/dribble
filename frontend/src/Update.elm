@@ -5,6 +5,7 @@ import Model exposing (..)
 import Model.Attribute
 import Model.MousePosition exposing (MousePosition)
 import Model.Window
+import Update.ClearContextMenu
 import Update.ColumnWidthReceived
 import Update.DragAndDropReceived
 import Update.EndResizeOp
@@ -64,6 +65,9 @@ update msg model =
         DisplayContextMenu contextMenuFor pos button keys ->
             r |> andThen (Update.SetContextMenu.update contextMenuFor pos button keys)
 
+        ClearContextMenu ->
+            r |> andThen Update.ClearContextMenu.update
+
         SetPreference preferenceUpdate ->
             r
                 |> andThen (Update.SetPreference.update preferenceUpdate)
@@ -96,6 +100,11 @@ update msg model =
             r
                 |> andThen (Update.ToggleWindowVisible.update Model.Window.Logs)
                 |> andThen Update.SaveConfig.update
+
+        SetColumnAutoWidth attribute ->
+            r
+                |> andThen (Update.SetColumnAutoWidth.update attribute)
+                |> andThen Update.ClearContextMenu.update
 
         ToggleAttributeVisibility attribute ->
             r

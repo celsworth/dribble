@@ -33,6 +33,7 @@ type Msg
     | AttributeResizeEnded Model.Table.ResizeOp MousePosition
     | GotColumnWidth Attribute (Result Browser.Dom.Error Browser.Dom.Element)
     | DisplayContextMenu Model.ContextMenu.For MousePosition Mouse.Button Mouse.Keys
+    | ClearContextMenu
     | SetPreference Model.Preferences.PreferenceUpdate
     | SetGroupListsVisible Bool
     | ResetConfigClicked
@@ -42,6 +43,7 @@ type Msg
     | SetHamburgerMenuVisible Bool
     | TogglePreferencesVisible
     | ToggleLogsVisible
+    | SetColumnAutoWidth Attribute
     | ToggleAttributeVisibility Model.Attribute.Attribute
     | SetSortBy Model.Attribute.Attribute
     | TorrentRowSelected String

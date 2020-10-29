@@ -4,7 +4,7 @@ import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
-import Html.Events.Extra.Mouse
+import Html.Events.Extra.Mouse as Mouse
 import Html.Keyed as Keyed
 import Html.Lazy
 import List
@@ -140,8 +140,7 @@ headerCellResizeHandleAttributes column =
                 { x = x, y = y }
     in
     [ class "resize-handle"
-    , Html.Events.Extra.Mouse.onDown
-        (\e -> MouseDown (Model.Attribute.FileAttribute column.attribute) (reconstructClientPos e) e.button e.keys)
+    , Mouse.onDown (\e -> MouseDown (Model.Attribute.FileAttribute column.attribute) (reconstructClientPos e) e.button e.keys)
     ]
 
 

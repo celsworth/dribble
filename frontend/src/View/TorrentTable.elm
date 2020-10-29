@@ -4,7 +4,7 @@ import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
-import Html.Events.Extra.Mouse
+import Html.Events.Extra.Mouse as Mouse
 import Html.Keyed as Keyed
 import Html.Lazy
 import List
@@ -45,8 +45,7 @@ view model =
                     model.sortedTorrents
                     model.selectedTorrentHash
                 ]
-            , Maybe.map headerContextMenu model.contextMenu
-                |> Maybe.withDefault (text "")
+            , maybeHeaderContextMenu model.config.torrentTable model.contextMenu
             ]
 
 
@@ -62,8 +61,14 @@ header config tableConfig =
         ]
 
 
-headerContextMenu : ContextMenu -> Html Msg
-headerContextMenu contextMenu =
+maybeHeaderContextMenu : Config -> Maybe ContextMenu -> Html Msg
+maybeHeaderContextMenu tableConfig contextMenu =
+    Maybe.withDefault (text "") <|
+        Maybe.map (headerContextMenu tableConfig) contextMenu
+
+
+headerContextMenu : Config -> ContextMenu -> Html Msg
+headerContextMenu tableConfig contextMenu =
     let
         { for, position } =
             contextMenu
@@ -75,15 +80,35 @@ headerContextMenu contextMenu =
                 , style "top" <| String.fromFloat position.y ++ "px"
                 , style "left" <| String.fromFloat position.x ++ "px"
                 ]
-                [ ul []
-                    [ li [] [ text "test" ]
-                    , li [] [ text "test" ]
-                    , li [] [ text "test" ]
+                [ ul [] <|
+                    [ li [ onClick <| SetColumnAutoWidth <| Model.Attribute.TorrentAttribute column.attribute ]
+                        [ text <| "Auto-Fit " ++ Model.Torrent.attributeToString column.attribute ]
+                    , hr [] []
                     ]
+                        ++ List.map headerContextMenuColumnRow tableConfig.columns
                 ]
 
         _ ->
             text ""
+
+
+headerContextMenuColumnRow : Column -> Html Msg
+headerContextMenuColumnRow column =
+    let
+        ( i_class, li_class ) =
+            if column.visible then
+                ( "fa-check", "" )
+
+            else
+                ( "", "disabled" )
+    in
+    li
+        [ onClick <| ToggleAttributeVisibility <| Model.Attribute.TorrentAttribute column.attribute
+        , class li_class
+        ]
+        [ i [ class <| "fa-fw fas " ++ i_class ] []
+        , text <| Model.Torrent.attributeToString column.attribute
+        ]
 
 
 headerCell : Model.Config.Config -> Config -> Column -> Html Msg
@@ -116,7 +141,7 @@ headerCellAttributes config column =
         contextMenuHandler =
             if config.enableContextMenus then
                 Just <|
-                    Html.Events.Extra.Mouse.onContextMenu
+                    Mouse.onContextMenu
                         (\e ->
                             DisplayContextMenu
                                 (Model.ContextMenu.TorrentsTableColumn column)
@@ -179,8 +204,7 @@ headerCellContentDivAttributes tableConfig column =
 headerCellResizeHandleAttributes : Column -> List (Attribute Msg)
 headerCellResizeHandleAttributes column =
     [ class "resize-handle"
-    , Html.Events.Extra.Mouse.onDown
-        (\e -> MouseDown (Model.Attribute.TorrentAttribute column.attribute) (Model.MousePosition.reconstructClientPos e) e.button e.keys)
+    , Mouse.onDown (\e -> MouseDown (Model.Attribute.TorrentAttribute column.attribute) (Model.MousePosition.reconstructClientPos e) e.button e.keys)
     ]
 
 
