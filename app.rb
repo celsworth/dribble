@@ -13,9 +13,6 @@ rescue LoadError
 end
 
 require 'rtorrent'
-
-require 'subscription'
-require 'subscription_runner'
 require 'websocket'
 
 # Connects to rtorrent at localhost:5000 by default. eg in rtorrent:
@@ -41,21 +38,23 @@ class Dribble < Sinatra::Application
   end
 
   get '/' do
-    erb :index, locals: { dribble_mtime: File.mtime('public/dribble.js').to_i }
+    erb :index, locals: asset_mtimes
   end
 
+  # only used in dev; in release/Dockerfile we create public/style.css
+  # that will be served rather than this.
   get '/css/style.css' do
-    etag File.mtime 'assets/css/style.scss'
+    etag File.mtime('assets/css/style.scss')
     content_type 'text/css'
     scss = File.read('assets/css/style.scss')
-    # TODO: save rendered css for future static return;
-    # need a filename fingerprint
     SassC::Engine.new(scss, style: :compressed).render
   end
 
   get '/ws' do
+    return unless env['rack.upgrade?'] == :websocket
+
     rtorrent = Rtorrent.new(settings.rtorrent_host, settings.rtorrent_port)
-    env['rack.upgrade'] = Websocket.new(rtorrent) if env['rack.upgrade?'] == :websocket
+    env['rack.upgrade'] = Websocket.new(rtorrent)
   end
 
   # GET /proxy/foo.url/favicon.ico
@@ -70,7 +69,7 @@ class Dribble < Sinatra::Application
     response = Excon.get("http://#{url}", headers: proxy_cache_headers(request.env))
     response.headers['Expires'] = [Time.now + 604_800]
     response.headers['Cache-Control'] = ['public']
-    [response.status, response.headers, StringIO.new(response.body)]
+    [response.status, response.headers, response.body]
   end
 
   def proxy_cache_headers(env)
@@ -80,5 +79,17 @@ class Dribble < Sinatra::Application
       'If-None-Match' => env['HTTP_IF_NONE_MATCH'],
       'If-Modified-Since' => env['HTTP_IF_MODIFIED_SINCE']
     }
+  end
+
+  def asset_mtimes
+    style = if File.exist?('public/style.css')
+              'public/style.css'
+            else
+              'assets/css/style.scss'
+            end
+    style_mtime = File.mtime(style).to_i
+
+    { style_mtime: style_mtime,
+      dribble_mtime: File.mtime('public/dribble.js').to_i }
   end
 end

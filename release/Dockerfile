@@ -21,7 +21,7 @@ RUN bundle install -j4
 
 
 FROM ruby:2.7-alpine
-RUN apk add --no-cache bash
+# RUN apk add --no-cache bash
 RUN adduser -D app
 USER app
 WORKDIR /home/app
@@ -29,10 +29,10 @@ COPY Gemfile app.rb config.ru ./
 COPY public public
 COPY lib lib
 COPY views views
-COPY --from=elm-builder /dribble.js /dribble.js.gz public/
-COPY --from=sass-builder /style.css /style.css.gz public/
 COPY --from=ruby-builder Gemfile.lock .
 COPY --from=ruby-builder /usr/local/bundle /usr/local/bundle
+COPY --from=elm-builder /dribble.js /dribble.js.gz public/
+COPY --from=sass-builder /style.css /style.css.gz public/
 EXPOSE 3000
 
 ENTRYPOINT ["bundle", "exec"]

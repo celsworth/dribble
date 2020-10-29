@@ -21,7 +21,7 @@ $progress-border-color: #bbb;
 $progress-fill-color: #8d8;
 
 $selected-row-color: #fff;
-$selected-row-background-color: rgb(58, 121, 245);
+$selected-row-background-color: rgb(60, 130, 246);
 
 $sidebar-width: 170px;
 $main-width: calc(100vw - #{$sidebar-width});
@@ -47,6 +47,8 @@ $window-z-index: 50;
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
+
+  cursor: default;
 }
 
 html {
@@ -383,6 +385,7 @@ ul {
   display: flex;
   flex-direction: column;
   background-color: $main-bg-color;
+  cursor: default;
   height: $group-lists-height;
   overflow: auto;
   font-size: 12px;
