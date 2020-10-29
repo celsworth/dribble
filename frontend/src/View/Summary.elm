@@ -2,7 +2,9 @@ module View.Summary exposing (view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onClick)
 import Model exposing (..)
+import Model.Preferences as MP
 import Model.Rtorrent
 import Utils.Filesize
 
@@ -11,6 +13,7 @@ view : Model -> Html Msg
 view model =
     section [ class "summary" ]
         [ div [ class "session-traffic" ] (traffic model)
+        , div [ class "quickpref" ] (quickPreferences model)
         , div [ class "system-info" ] (status model)
         ]
 
@@ -36,6 +39,21 @@ trafficDirection model total diff kls =
             , text <| " (" ++ Utils.Filesize.formatWith model.config.humanise.speed diff ++ "/s)"
             ]
         ]
+
+
+quickPreferences : Model -> List (Html Msg)
+quickPreferences model =
+    [ div []
+        [ input
+            [ type_ "checkbox"
+            , checked model.config.enableContextMenus
+            , onClick <|
+                SetPreference (MP.EnableContextMenus (not model.config.enableContextMenus))
+            ]
+            []
+        , span [] [ text "Custom context menus" ]
+        ]
+    ]
 
 
 status : Model -> List (Html Msg)

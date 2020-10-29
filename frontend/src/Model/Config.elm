@@ -38,6 +38,7 @@ type alias Config =
     , humanise : Humanise
     , preferences : Model.Window.Config
     , logs : Model.Window.Config
+    , enableContextMenus : Bool
     }
 
 
@@ -91,6 +92,11 @@ setLogs new config =
     { config | logs = new }
 
 
+setEnableContextMenus : Bool -> Config -> Config
+setEnableContextMenus new config =
+    { config | enableContextMenus = new }
+
+
 
 -- DEFAULT
 
@@ -109,6 +115,7 @@ default =
         }
     , preferences = { visible = False, width = 600, height = 400 }
     , logs = { visible = False, width = 800, height = 400 }
+    , enableContextMenus = True
     }
 
 
@@ -128,6 +135,7 @@ encode config =
         , ( "humanise", encodeHumanise config.humanise )
         , ( "preferences", Model.Window.encode config.preferences )
         , ( "logs", Model.Window.encode config.logs )
+        , ( "enableContextMenus", E.bool config.enableContextMenus )
         ]
 
 
@@ -166,6 +174,7 @@ decoder =
         |> optional "humanise" humaniseDecoder default.humanise
         |> optional "preferences" Model.Window.decoder default.preferences
         |> optional "logs" Model.Window.decoder default.logs
+        |> optional "enableContextMenus" D.bool default.enableContextMenus
 
 
 humaniseDecoder : D.Decoder Humanise

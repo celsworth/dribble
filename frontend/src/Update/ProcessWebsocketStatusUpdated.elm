@@ -17,9 +17,9 @@ update result model =
                 cmd =
                     if connected then
                         Cmd.batch
-                            [ Ports.getRtorrentSystemInfo
-                            , Ports.getTorrents model
+                            [ Ports.getTorrents model
                             , Ports.getFiles model
+                            , Ports.getRtorrentSystemInfo
                             , Ports.getTraffic
                             ]
 
@@ -49,7 +49,7 @@ update result model =
 maybeAddMessage : Bool -> Bool -> Model -> Model
 maybeAddMessage changed connected model =
     if changed then
-        model |> Model.addMessage (message connected model)
+        model |> addMessage (message connected model)
 
     else
         model

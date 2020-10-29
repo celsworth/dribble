@@ -86,7 +86,7 @@ torrentsTableLayoutOptions : Model.TorrentTable.Config -> Html Msg
 torrentsTableLayoutOptions tableConfig =
     div []
         [ div
-            [ onClick <| SetPreference <| MP.Table Model.Table.Torrents MP.Layout Model.Table.Fixed
+            [ onClick <| SetPreference <| MP.Table Model.Table.Torrents (MP.Layout Model.Table.Fixed)
             , class "preference-option"
             ]
             [ input
@@ -101,7 +101,7 @@ torrentsTableLayoutOptions tableConfig =
                 ]
             ]
         , div
-            [ onClick <| SetPreference <| MP.Table Model.Table.Torrents MP.Layout Model.Table.Fluid
+            [ onClick <| SetPreference <| MP.Table Model.Table.Torrents (MP.Layout Model.Table.Fluid)
             , class "preference-option"
             ]
             [ input

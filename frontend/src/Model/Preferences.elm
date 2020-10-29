@@ -9,8 +9,9 @@ import Model.Table
 
 
 type TablePreference
-    = Layout
+    = Layout Model.Table.Layout
 
 
 type PreferenceUpdate
-    = Table Model.Table.Type TablePreference Model.Table.Layout
+    = Table Model.Table.Type TablePreference
+    | EnableContextMenus Bool

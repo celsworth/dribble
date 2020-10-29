@@ -99,11 +99,8 @@ headerCell config tableConfig column =
 
                 Model.Table.Fluid ->
                     Nothing
-
-        sortBy =
-            config.sortBy
     in
-    th (headerCellAttributes sortBy column)
+    th (headerCellAttributes config column)
         (List.filterMap identity
             [ Just <|
                 div (headerCellContentDivAttributes tableConfig column)
@@ -113,15 +110,29 @@ headerCell config tableConfig column =
         )
 
 
-headerCellAttributes : Model.Torrent.Sort -> Column -> List (Attribute Msg)
-headerCellAttributes sortBy column =
+headerCellAttributes : Model.Config.Config -> Column -> List (Attribute Msg)
+headerCellAttributes config column =
+    let
+        contextMenuHandler =
+            if config.enableContextMenus then
+                Just <|
+                    Html.Events.Extra.Mouse.onContextMenu
+                        (\e ->
+                            DisplayContextMenu
+                                (Model.ContextMenu.TorrentsTableColumn column)
+                                (Model.MousePosition.reconstructClientPos e)
+                                e.button
+                                e.keys
+                        )
+
+            else
+                Nothing
+    in
     List.filterMap identity
         [ headerCellIdAttribute column
         , cellTextAlign column
-        , headerCellSortClass sortBy column
-        , Just <|
-            Html.Events.Extra.Mouse.onContextMenu
-                (\e -> DisplayContextMenu (Model.ContextMenu.TorrentsTableColumn column) (Model.MousePosition.reconstructClientPos e) e.button e.keys)
+        , headerCellSortClass config.sortBy column
+        , contextMenuHandler
         ]
 
 
