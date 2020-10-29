@@ -94,9 +94,10 @@ ul {
   border-radius: 5px;
   box-shadow: 0 0 15px 3px #ccc;
   background: $window-background-color;
+  padding: 5px 0;
 
   li {
-    padding: 4px 10px;
+    padding: 2px 10px;
 
     &:hover {
       background: $selected-row-background-color;
@@ -148,7 +149,7 @@ ul {
     background: $table-header-background;
     width: 100%;
     height: 30px;
-    font-size: 1.1rem;
+    font-size: 16px;
   }
 
   .close-icon {
@@ -340,7 +341,7 @@ ul {
 .logs {
   .time {
     display: block;
-    font-size: .6rem;
+    font-size: 12px;
     font-weight: bold;
   }
 
@@ -452,13 +453,12 @@ ul {
   z-index: $speed-chart-z-index;
   border-top: 1px solid $section-divider-bar-color;
   background-color: $main-bg-color;
-  font-size: .8rem;
 
   &:hover {
-    border: 1px solid #888;
     position: absolute;
+    bottom: $summary-height;
     left: 5px;
-    bottom: 5px;
+    border: 1px solid #888;
     width: 90%;
     height: auto;
   }
@@ -511,7 +511,7 @@ ul {
 }
 
 .torrent-status {
-  font-size: .5rem;
+  font-size: 8px;
 
   &.seeding {
     color: #292;
@@ -576,7 +576,7 @@ ul {
     width: 100%;
     height: 100%;
     color: $main-fg-color; // override tr.selected
-    font-size: smaller;
+    font-size: 9px;
   }
 }
 
