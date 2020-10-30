@@ -46,7 +46,7 @@ view model =
                     model.sortedTorrents
                     model.selectedTorrentHash
                 ]
-            , maybeHeaderContextMenu model.config.torrentTable model.viewport model.contextMenu
+            , maybeHeaderContextMenu model.config.torrentTable model.contextMenu
             ]
 
 
@@ -62,17 +62,17 @@ header config tableConfig =
         ]
 
 
-maybeHeaderContextMenu : Config -> Viewport -> Maybe ContextMenu -> Html Msg
-maybeHeaderContextMenu tableConfig viewport contextMenu =
+maybeHeaderContextMenu : Config -> Maybe ContextMenu -> Html Msg
+maybeHeaderContextMenu tableConfig contextMenu =
     Maybe.withDefault (text "") <|
-        Maybe.map (headerContextMenu tableConfig viewport) contextMenu
+        Maybe.map (headerContextMenu tableConfig) contextMenu
 
 
-headerContextMenu : Config -> Viewport -> ContextMenu -> Html Msg
-headerContextMenu tableConfig viewport contextMenu =
+headerContextMenu : Config -> ContextMenu -> Html Msg
+headerContextMenu tableConfig contextMenu =
     case contextMenu.for of
         TorrentTableColumn column ->
-            div (View.Utils.ContextMenu.attributes viewport contextMenu)
+            View.Utils.ContextMenu.view contextMenu
                 [ ul [] <|
                     [ headerContextMenuAutoWidth column, hr [] [] ]
                         ++ List.map headerContextMenuColumnRow tableConfig.columns

@@ -109,8 +109,6 @@ ul {
   @include translucent-popup;
 
   position: absolute;
-  top: 50px;
-  left: 50px;
 
   z-index: $context-menu-z-index;
 }

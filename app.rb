@@ -89,7 +89,8 @@ class Dribble < Sinatra::Application
             end
     style_mtime = File.mtime(style).to_i
 
-    { style_mtime: style_mtime,
+    { app_mtime: File.mtime('public/js/app.js').to_i,
+      style_mtime: style_mtime,
       dribble_mtime: File.mtime('public/dribble.js').to_i }
   end
 end

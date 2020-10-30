@@ -42,6 +42,34 @@ customElements.define('local-time',
 	}
 );
 
+customElements.define('context-menu',
+	class extends HTMLElement {
+		constructor() { super(); }
+
+		// attempt to keep context menu visible on screen by showing it
+		// to left/top of cursor if necessary
+		connectedCallback() {
+			let iWidth = window.innerWidth;
+			let oLeft = this.offsetLeft;
+
+			let iHeight = window.innerHeight;
+			let oTop = this.offsetTop;
+
+			if (oLeft + this.offsetWidth > iWidth)
+			{
+				this.style.right = (iWidth - oLeft) + "px";
+				this.style.left = "";
+			}
+
+			if (oTop + this.offsetHeight > iHeight)
+			{
+				this.style.bottom = (iHeight - oTop) + "px";
+				this.style.top = "";
+			}
+		}
+	}
+);
+
 /* unused
 function humanFileSize(bytes, units, dp) {
 	let suffixes, thresh;
