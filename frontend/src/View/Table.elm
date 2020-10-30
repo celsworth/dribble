@@ -41,11 +41,12 @@ donePercentCell donePercent =
     in
     div [ class "progress-container" ]
         [ progress
-            [ Html.Attributes.max "100"
+            [ class "progress"
+            , Html.Attributes.max "100"
             , Html.Attributes.value <| Round.round 0 donePercent
             ]
             []
-        , span []
+        , span [ class "progress-text" ]
             [ text (Round.round dp donePercent ++ "%") ]
         ]
 
@@ -58,7 +59,10 @@ donePercentCell donePercent =
    includes padding and borders. To set the proper size for the
    internal div, we need to subtract some:
 
-   For th columns, that amounts to 10px (2*4px padding, 2*1px border)
+   For th columns, that amounts to 16px:
+     1 + 1px borders
+     4px left padding
+     10px right padding
 
    For td, there are no borders, so its just 2*4px padding to remove
 -}
@@ -66,7 +70,7 @@ donePercentCell donePercent =
 
 thWidthAttribute : Column a -> Maybe (Attribute Msg)
 thWidthAttribute column =
-    widthAttribute column 10
+    widthAttribute column 16
 
 
 tdWidthAttribute : Column a -> Maybe (Attribute Msg)
@@ -80,4 +84,4 @@ widthAttribute column subtract =
         Nothing
 
     else
-        Just <| style "width" (String.fromFloat (column.width - subtract) ++ "px")
+        Just <| style "width" (Round.round 0 (column.width - subtract) ++ "px")

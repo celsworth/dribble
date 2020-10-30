@@ -570,7 +570,7 @@ ul {
 .progress-container {
   position: relative;
 
-  progress {
+  .progress {
     border: 1px solid $progress-border-color;
     background: inherit;
     width: 100%;
@@ -594,7 +594,7 @@ ul {
     }
   }
 
-  span {
+  .progress-text {
     display: flex;
     position: absolute;
     top: 0;
@@ -644,12 +644,11 @@ th {
   border-right: 1px solid $th-border-right;
   border-bottom: 1px solid $table-border-colour;
   border-left: 1px solid $th-border-left;
-
   background: $table-header-background;
 
   // changing this 4px l/r padding requires a change in elm.
   // see TorrentTable widthAttribute methods
-  padding: 0 4px;
+  padding: 4px 10px 4px 4px;
 
   text-align: left;
 
@@ -671,10 +670,6 @@ th {
     }
   }
 
-  .content {
-    padding: 4px 10px 4px 0;
-  }
-
   .resize-handle {
     position: absolute;
     top: 0;
@@ -694,10 +689,8 @@ td {
   // see TorrentTable widthAttribute methods
   padding: 2px 4px;
 
-  div { // cell content to apply width style to
-    overflow: hidden;
-    white-space: nowrap;
-  }
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 fieldset {

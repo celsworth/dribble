@@ -18,7 +18,7 @@ subscriptions model =
     Sub.batch <|
         List.filterMap identity <|
             [ Just <| Time.every 1000 Tick
-            , Just <| Ports.messageReceiver (WebsocketData << decodeString)
+            , Just <| Ports.messageReceiver (WebsocketData << decodeMessage)
             , Just <| Ports.windowResizeObserved (WindowResized << decodeWindowResizeDetails)
             , Just <| Ports.websocketStatusUpdated (WebsocketStatusUpdated << decodeStatus)
             , Just <| (dndSystemTorrent Model.Table.Torrents).subscriptions model.dnd
@@ -34,8 +34,8 @@ decodeWindowResizeDetails =
     D.decodeValue <| Model.Window.windowResizeDetailsDecoder
 
 
-decodeString : String -> Result D.Error Model.WebsocketData.Data
-decodeString =
+decodeMessage : String -> Result D.Error Model.WebsocketData.Data
+decodeMessage =
     D.decodeString websocketMessageDecoder
 
 

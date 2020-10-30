@@ -5,8 +5,8 @@ import Model.TorrentTable
 
 
 type For
-    = TorrentsTableColumn Model.TorrentTable.Column
-    | FilesTableColumn Model.FileTable.Column
+    = TorrentTableColumn Model.TorrentTable.Column
+    | FileTableColumn Model.FileTable.Column
 
 
 type alias Position =

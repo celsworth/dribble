@@ -22,6 +22,7 @@ import Time
 import View.DragBar
 import View.Table
 import View.Torrent
+import View.Utils.ContextMenu
 import View.Utils.TorrentStatusIcon
 
 
@@ -45,7 +46,7 @@ view model =
                     model.sortedTorrents
                     model.selectedTorrentHash
                 ]
-            , maybeHeaderContextMenu model.config.torrentTable model.contextMenu
+            , maybeHeaderContextMenu model.config.torrentTable model.viewport model.contextMenu
             ]
 
 
@@ -61,35 +62,31 @@ header config tableConfig =
         ]
 
 
-maybeHeaderContextMenu : Config -> Maybe ContextMenu -> Html Msg
-maybeHeaderContextMenu tableConfig contextMenu =
+maybeHeaderContextMenu : Config -> Viewport -> Maybe ContextMenu -> Html Msg
+maybeHeaderContextMenu tableConfig viewport contextMenu =
     Maybe.withDefault (text "") <|
-        Maybe.map (headerContextMenu tableConfig) contextMenu
+        Maybe.map (headerContextMenu tableConfig viewport) contextMenu
 
 
-headerContextMenu : Config -> ContextMenu -> Html Msg
-headerContextMenu tableConfig contextMenu =
-    let
-        { for, position } =
-            contextMenu
-    in
-    case for of
-        TorrentsTableColumn column ->
-            div
-                [ class "context-menu"
-                , style "top" <| String.fromFloat position.y ++ "px"
-                , style "left" <| String.fromFloat position.x ++ "px"
-                ]
+headerContextMenu : Config -> Viewport -> ContextMenu -> Html Msg
+headerContextMenu tableConfig viewport contextMenu =
+    case contextMenu.for of
+        TorrentTableColumn column ->
+            div (View.Utils.ContextMenu.attributes viewport contextMenu)
                 [ ul [] <|
-                    [ li [ onClick <| SetColumnAutoWidth <| Model.Attribute.TorrentAttribute column.attribute ]
-                        [ text <| "Auto-Fit " ++ Model.Torrent.attributeToString column.attribute ]
-                    , hr [] []
-                    ]
+                    [ headerContextMenuAutoWidth column, hr [] [] ]
                         ++ List.map headerContextMenuColumnRow tableConfig.columns
                 ]
 
         _ ->
             text ""
+
+
+headerContextMenuAutoWidth : Column -> Html Msg
+headerContextMenuAutoWidth column =
+    li
+        [ onClick <| SetColumnAutoWidth <| Model.Attribute.TorrentAttribute column.attribute ]
+        [ text <| "Auto-Fit " ++ Model.Torrent.attributeToString column.attribute ]
 
 
 headerContextMenuColumnRow : Column -> Html Msg
@@ -129,7 +126,7 @@ headerCell config tableConfig column =
         (List.filterMap identity
             [ Just <|
                 div (headerCellContentDivAttributes tableConfig column)
-                    [ div [ class "content" ] [ text attrString ] ]
+                    [ text attrString ]
             , maybeResizeDiv
             ]
         )
@@ -144,7 +141,7 @@ headerCellAttributes config column =
                     Mouse.onContextMenu
                         (\e ->
                             DisplayContextMenu
-                                (Model.ContextMenu.TorrentsTableColumn column)
+                                (Model.ContextMenu.TorrentTableColumn column)
                                 (Model.MousePosition.reconstructClientPos e)
                                 e.button
                                 e.keys
