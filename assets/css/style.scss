@@ -35,20 +35,15 @@ $speed-chart-height: calc(#{$sidebar-width} / 2.3);
 $group-lists-height: calc(100vh - #{$summary-height} - #{$speed-chart-height} - #{$header-height});
 $torrents-height: calc(100vh - #{$summary-height} - #{$details-height} - #{$header-height});
 
-// context-menu-closer should be >0 but < anything else that triggers
-// a context menu. this enables right-clicking on other context triggers
-// work while a context menu is already open, but left clicking elsewhere
-// will close the currently open menu.
-$context-menu-closer-z-index: 1;
-$thead-z-index: 9; // stop progress-bars overlaying headers
-
+$thead-z-index: 1; // stop progress-bars overlaying headers
 $dragbar-z-index: 10;
 $resize-handle-z-index: 11;
 $speed-chart-z-index: 15;
 $window-z-index: 20;
 $messages-z-index: 30;
 $hamburger-menu-z-index: 40;
-$context-menu-z-index: 50;
+$context-menu-closer-z-index: 50;
+$context-menu-z-index: 51;
 
 @mixin unselectable {
   -webkit-user-select: none;

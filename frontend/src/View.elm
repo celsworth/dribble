@@ -6,7 +6,6 @@ import Html.Events exposing (onClick, onInput, onMouseLeave)
 import Html.Events.Extra.Mouse as Mouse
 import Html.Lazy
 import Model exposing (..)
-import Model.ContextMenu exposing (ContextMenu)
 import Model.MousePosition
 import Model.Table
 import Model.TorrentFilter
@@ -70,7 +69,12 @@ contextMenuCloser model =
     -- when we have a context menu open, this renders a full-page div
     -- that captures clicks to close the context menu.
     if model.contextMenu /= Nothing then
-        div [ onClick ClearContextMenu, class "context-menu-closer" ] []
+        div
+            [ Mouse.onContextMenu (\_ -> ClearContextMenu)
+            , onClick ClearContextMenu
+            , class "context-menu-closer"
+            ]
+            []
 
     else
         text ""
