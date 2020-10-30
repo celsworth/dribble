@@ -53,6 +53,12 @@ $context-menu-z-index: 80;
   cursor: default;
 }
 
+@mixin translucent-popup {
+  -webkit-backdrop-filter: blur(30px);
+  backdrop-filter: blur(30px);
+  background: rgba(255, 255, 255, .5);
+}
+
 html {
   box-sizing: border-box;
 }
@@ -96,20 +102,29 @@ ul {
   left: 0;
   opacity: .1;
   z-index: $context-menu-closer-z-index;
-  background: #000;
+  //background: #000;
 }
 
 .context-menu {
+  @include translucent-popup;
+
   position: absolute;
   top: 50px;
   left: 50px;
 
   z-index: $context-menu-z-index;
+}
+
+.context-menu,
+.hamburger-menu {
   border: 1px solid $window-border-color;
   border-radius: 5px;
   box-shadow: 0 0 15px 3px #ccc;
-  background: $window-background-color;
   padding: 5px 0;
+
+  ul {
+    white-space: nowrap;
+  }
 
   li {
     @include unselectable;
@@ -238,31 +253,15 @@ ul {
 
 .hamburger-menu {
   @include unselectable;
+  @include translucent-popup;
 
   position: absolute;
   top: 0;
   right: 0;
   z-index: $hamburger-menu-z-index;
-  border: 1px outset #555;
-  background-color: $main-bg-color;
-  color: #555;
-
-  ul {
-    white-space: nowrap;
-
-    i {
-      width: 30px;
-    }
-  }
 
   li {
-    cursor: default;
-    padding: 10px 20px;
-
-    &:hover {
-      background: $selected-row-background-color;
-      color: $selected-row-color;
-    }
+    padding: 6px 10px;
   }
 }
 
