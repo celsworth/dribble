@@ -13,12 +13,8 @@ view contextMenu content =
 
 attributes : ContextMenu -> List (Attribute Msg)
 attributes contextMenu =
-    let
-        { position } =
-            contextMenu
-    in
     class "context-menu"
-        :: positionAttributes position
+        :: positionAttributes contextMenu.position
 
 
 positionAttributes : Position -> List (Attribute Msg)
