@@ -10,6 +10,7 @@ import Model.MousePosition
 import Model.Table
 import Model.TorrentFilter
 import View.Details
+import View.DragBar
 import View.GroupLists
 import View.Logs
 import View.Messages
@@ -23,7 +24,8 @@ import View.Utils.Events exposing (onEscape)
 view : Model -> Html Msg
 view model =
     div (viewAttributes model)
-        [ contextMenuCloser model
+        [ Html.Lazy.lazy View.DragBar.view model.resizeOp
+        , contextMenuCloser model
         , View.Preferences.view model
         , View.Logs.view model
         , View.Messages.view model

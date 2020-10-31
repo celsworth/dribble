@@ -19,7 +19,6 @@ import Model.Torrent exposing (Torrent, TorrentsByHash)
 import Model.TorrentFilter exposing (TorrentFilter)
 import Model.TorrentTable exposing (Column, Config)
 import Time
-import View.DragBar
 import View.Table
 import View.Torrent
 import View.Utils.ContextMenu
@@ -35,8 +34,7 @@ view model =
     else
         section [ class "torrent-table" ]
             [ table [ class <| View.Table.layoutToClass model.config.torrentTable.layout ]
-                [ Html.Lazy.lazy View.DragBar.view model.resizeOp
-                , Html.Lazy.lazy2 header model.config model.config.torrentTable
+                [ Html.Lazy.lazy2 header model.config model.config.torrentTable
                 , Html.Lazy.lazy7 body
                     model.currentTime
                     model.config.humanise

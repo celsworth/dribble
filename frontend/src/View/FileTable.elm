@@ -17,7 +17,6 @@ import Model.FileTable exposing (Column, Config)
 import Model.MousePosition
 import Model.Sort
 import Model.Table
-import View.DragBar
 import View.File
 import View.Table
 import View.Utils.ContextMenu
@@ -32,8 +31,7 @@ view model =
     else
         section [ class "details-table" ]
             [ table []
-                [ Html.Lazy.lazy View.DragBar.view model.resizeOp
-                , Html.Lazy.lazy2 header model.config model.config.fileTable
+                [ Html.Lazy.lazy2 header model.config model.config.fileTable
                 , Html.Lazy.lazy4 body
                     model.config.fileTable
                     model.config.humanise
