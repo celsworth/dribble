@@ -46,7 +46,9 @@ view model =
                     model.sortedTorrents
                     model.selectedTorrentHash
                 ]
-            , maybeHeaderContextMenu model.config.torrentTable model.contextMenu
+            , Html.Lazy.lazy2 maybeHeaderContextMenu
+                model.config.torrentTable
+                model.contextMenu
             ]
 
 
@@ -75,7 +77,7 @@ headerContextMenu tableConfig contextMenu =
             View.Utils.ContextMenu.view contextMenu
                 [ ul [] <|
                     [ headerContextMenuAutoWidth column, hr [] [] ]
-                        ++ List.map headerContextMenuColumnRow tableConfig.columns
+                        ++ List.map headerContextMenuToggleVisibility tableConfig.columns
                 ]
 
         _ ->
@@ -89,8 +91,8 @@ headerContextMenuAutoWidth column =
         ("Auto-Fit " ++ Model.Torrent.attributeToString column.attribute)
 
 
-headerContextMenuColumnRow : Column -> Html Msg
-headerContextMenuColumnRow column =
+headerContextMenuToggleVisibility : Column -> Html Msg
+headerContextMenuToggleVisibility column =
     View.Table.headerContextMenuToggleVisibility
         column
         (Model.Attribute.TorrentAttribute column.attribute)

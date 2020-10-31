@@ -40,7 +40,9 @@ view model =
                     model.keyedFiles
                     model.sortedFiles
                 ]
-            , maybeHeaderContextMenu model.config.fileTable model.contextMenu
+            , Html.Lazy.lazy2 maybeHeaderContextMenu
+                model.config.fileTable
+                model.contextMenu
             ]
 
 
@@ -145,6 +147,11 @@ headerCellAttributes config tableConfig column =
         ]
 
 
+headerCellIdAttribute : Column -> Maybe (Attribute Msg)
+headerCellIdAttribute column =
+    Just <| id (Model.File.attributeToTableHeaderId column.attribute)
+
+
 headerCellSortClass : Model.File.Sort -> Column -> Maybe (Attribute Msg)
 headerCellSortClass sortBy column =
     let
@@ -182,24 +189,9 @@ headerCellContentDivAttributes tableConfig column =
 
 headerCellResizeHandleAttributes : Column -> List (Attribute Msg)
 headerCellResizeHandleAttributes column =
-    let
-        {- this mess converts (x, y) to { x: x, y: y } -}
-        reconstructClientPos =
-            \event ->
-                let
-                    ( x, y ) =
-                        event.clientPos
-                in
-                { x = x, y = y }
-    in
     [ class "resize-handle"
-    , Mouse.onDown (\e -> MouseDown (Model.Attribute.FileAttribute column.attribute) (reconstructClientPos e) e.button e.keys)
+    , Mouse.onDown (\e -> MouseDown (Model.Attribute.FileAttribute column.attribute) (Model.MousePosition.reconstructClientPos e) e.button e.keys)
     ]
-
-
-headerCellIdAttribute : Column -> Maybe (Attribute Msg)
-headerCellIdAttribute column =
-    Just <| id (Model.File.attributeToTableHeaderId column.attribute)
 
 
 
