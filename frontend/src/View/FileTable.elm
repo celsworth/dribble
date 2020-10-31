@@ -11,13 +11,16 @@ import List
 import Model exposing (..)
 import Model.Attribute
 import Model.Config
+import Model.ContextMenu exposing (ContextMenu, For(..))
 import Model.File exposing (File, FilesByKey)
 import Model.FileTable exposing (Column, Config)
+import Model.MousePosition
 import Model.Sort
 import Model.Table
 import View.DragBar
 import View.File
 import View.Table
+import View.Utils.ContextMenu
 
 
 view : Model -> Html Msg
@@ -37,6 +40,7 @@ view model =
                     model.keyedFiles
                     model.sortedFiles
                 ]
+            , maybeHeaderContextMenu model.config.fileTable model.contextMenu
             ]
 
 
@@ -56,6 +60,52 @@ header config tableConfig =
         ]
 
 
+maybeHeaderContextMenu : Config -> Maybe ContextMenu -> Html Msg
+maybeHeaderContextMenu tableConfig contextMenu =
+    Maybe.withDefault (text "") <|
+        Maybe.map (headerContextMenu tableConfig) contextMenu
+
+
+headerContextMenu : Config -> ContextMenu -> Html Msg
+headerContextMenu tableConfig contextMenu =
+    case contextMenu.for of
+        FileTableColumn column ->
+            View.Utils.ContextMenu.view contextMenu
+                [ ul [] <|
+                    [ headerContextMenuAutoWidth column, hr [] [] ]
+                        ++ List.map headerContextMenuColumnRow tableConfig.columns
+                ]
+
+        _ ->
+            text ""
+
+
+headerContextMenuAutoWidth : Column -> Html Msg
+headerContextMenuAutoWidth column =
+    li
+        [ onClick <| SetColumnAutoWidth <| Model.Attribute.FileAttribute column.attribute ]
+        [ text <| "Auto-Fit " ++ Model.File.attributeToString column.attribute ]
+
+
+headerContextMenuColumnRow : Column -> Html Msg
+headerContextMenuColumnRow column =
+    let
+        ( i_class, li_class ) =
+            if column.visible then
+                ( "fa-check", "" )
+
+            else
+                ( "", "disabled" )
+    in
+    li
+        [ onClick <| ToggleAttributeVisibility <| Model.Attribute.FileAttribute column.attribute
+        , class li_class
+        ]
+        [ i [ class <| "fa-fw fas " ++ i_class ] []
+        , text <| Model.File.attributeToString column.attribute
+        ]
+
+
 headerCell : Model.Config.Config -> Config -> Column -> Html Msg
 headerCell config tableConfig column =
     let
@@ -69,26 +119,40 @@ headerCell config tableConfig column =
 
                 Model.Table.Fluid ->
                     Nothing
-
-        sortBy =
-            tableConfig.sortBy
     in
-    th (headerCellAttributes sortBy column)
+    th (headerCellAttributes config tableConfig column)
         (List.filterMap identity
             [ Just <|
                 div (headerCellContentDivAttributes tableConfig column)
-                    [ div [ class "content" ] [ text attrString ] ]
+                    [ text attrString ]
             , maybeResizeDiv
             ]
         )
 
 
-headerCellAttributes : Model.File.Sort -> Column -> List (Attribute Msg)
-headerCellAttributes sortBy column =
+headerCellAttributes : Model.Config.Config -> Config -> Column -> List (Attribute Msg)
+headerCellAttributes config tableConfig column =
+    let
+        contextMenuHandler =
+            if config.enableContextMenus then
+                Just <|
+                    Mouse.onContextMenu
+                        (\e ->
+                            DisplayContextMenu
+                                (Model.ContextMenu.FileTableColumn column)
+                                (Model.MousePosition.reconstructClientPos e)
+                                e.button
+                                e.keys
+                        )
+
+            else
+                Nothing
+    in
     List.filterMap identity
         [ headerCellIdAttribute column
         , cellTextAlign column
-        , headerCellSortClass sortBy column
+        , headerCellSortClass tableConfig.sortBy column
+        , contextMenuHandler
         ]
 
 
