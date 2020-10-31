@@ -3,9 +3,12 @@ module View.Table exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import Html.Events.Extra.Mouse as Mouse
 import Model exposing (..)
 import Model.Attribute
-import Model.Sort exposing (SortDirection(..))
+import Model.Config
+import Model.ContextMenu
+import Model.MousePosition
 import Model.Table exposing (Column)
 import Round
 
@@ -22,6 +25,23 @@ layoutToClass layout =
 
 
 -- HEADER CELL HELPERS
+
+
+maybeHeaderContextMenuHandler : Model.Config.Config -> Model.ContextMenu.For -> Maybe (Attribute Msg)
+maybeHeaderContextMenuHandler config for =
+    if config.enableContextMenus then
+        Just <|
+            Mouse.onContextMenu
+                (\e ->
+                    DisplayContextMenu
+                        for
+                        (Model.MousePosition.reconstructClientPos e)
+                        e.button
+                        e.keys
+                )
+
+    else
+        Nothing
 
 
 headerContextMenuAutoWidth : Model.Attribute.Attribute -> String -> Html Msg

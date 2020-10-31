@@ -123,27 +123,11 @@ headerCell config tableConfig column =
 
 headerCellAttributes : Model.Config.Config -> Column -> List (Attribute Msg)
 headerCellAttributes config column =
-    let
-        contextMenuHandler =
-            if config.enableContextMenus then
-                Just <|
-                    Mouse.onContextMenu
-                        (\e ->
-                            DisplayContextMenu
-                                (Model.ContextMenu.TorrentTableColumn column)
-                                (Model.MousePosition.reconstructClientPos e)
-                                e.button
-                                e.keys
-                        )
-
-            else
-                Nothing
-    in
     List.filterMap identity
         [ headerCellIdAttribute column
         , cellTextAlign column
         , headerCellSortClass config.sortBy column
-        , contextMenuHandler
+        , View.Table.maybeHeaderContextMenuHandler config (Model.ContextMenu.TorrentTableColumn column)
         ]
 
 

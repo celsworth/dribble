@@ -121,27 +121,11 @@ headerCell config tableConfig column =
 
 headerCellAttributes : Model.Config.Config -> Config -> Column -> List (Attribute Msg)
 headerCellAttributes config tableConfig column =
-    let
-        contextMenuHandler =
-            if config.enableContextMenus then
-                Just <|
-                    Mouse.onContextMenu
-                        (\e ->
-                            DisplayContextMenu
-                                (Model.ContextMenu.FileTableColumn column)
-                                (Model.MousePosition.reconstructClientPos e)
-                                e.button
-                                e.keys
-                        )
-
-            else
-                Nothing
-    in
     List.filterMap identity
         [ headerCellIdAttribute column
         , cellTextAlign column
         , headerCellSortClass tableConfig.sortBy column
-        , contextMenuHandler
+        , View.Table.maybeHeaderContextMenuHandler config (Model.ContextMenu.FileTableColumn column)
         ]
 
 
