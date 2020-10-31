@@ -15,11 +15,11 @@ import Model.Torrent
 sort : Model.Torrent.Sort -> List Torrent -> List String
 sort sortBy torrents =
     let
-        comparators =
-            List.map (comparator direction) (resolveSort attribute)
-
         (SortBy attribute direction) =
             sortBy
+
+        comparators =
+            List.map (comparator direction) (resolveSort attribute)
     in
     List.map .hash <|
         List.foldl List.Extra.stableSortWith torrents comparators
@@ -43,77 +43,77 @@ resolveSort attribute =
             [ attribute ]
 
 
-comparator : SortDirection -> Model.Torrent.Attribute -> Torrent -> Torrent -> Order
-comparator direction attribute a b =
+comparator : SortDirection -> Model.Torrent.Attribute -> (Torrent -> Torrent -> Order)
+comparator direction attribute =
     case attribute of
         Status ->
             -- ends up doing a1 = statusToInt .status a
-            maybeReverse direction <| cmp a b (.status >> statusToInt)
+            \a b -> maybeReverse direction <| cmp a b (.status >> statusToInt)
 
         Name ->
-            maybeReverse direction <| cmp a b .name
+            \a b -> maybeReverse direction <| cmp a b .name
 
         Size ->
-            maybeReverse direction <| cmp a b .size
+            \a b -> maybeReverse direction <| cmp a b .size
 
         FileCount ->
-            maybeReverse direction <| cmp a b .fileCount
+            \a b -> maybeReverse direction <| cmp a b .fileCount
 
         CreationTime ->
-            maybeReverse direction <| cmp a b .creationTime
+            \a b -> maybeReverse direction <| cmp a b .creationTime
 
         StartedTime ->
-            maybeReverse direction <| cmp a b .startedTime
+            \a b -> maybeReverse direction <| cmp a b .startedTime
 
         FinishedTime ->
-            maybeReverse direction <| cmp a b .finishedTime
+            \a b -> maybeReverse direction <| cmp a b .finishedTime
 
         DownloadedBytes ->
-            maybeReverse direction <| cmp a b .downloadedBytes
+            \a b -> maybeReverse direction <| cmp a b .downloadedBytes
 
         DownloadRate ->
-            maybeReverse direction <| cmp a b .downloadRate
+            \a b -> maybeReverse direction <| cmp a b .downloadRate
 
         UploadedBytes ->
-            maybeReverse direction <| cmp a b .uploadedBytes
+            \a b -> maybeReverse direction <| cmp a b .uploadedBytes
 
         UploadRate ->
-            maybeReverse direction <| cmp a b .uploadRate
+            \a b -> maybeReverse direction <| cmp a b .uploadRate
 
         SkippedBytes ->
-            maybeReverse direction <| cmp a b .skippedBytes
+            \a b -> maybeReverse direction <| cmp a b .skippedBytes
 
         Ratio ->
-            maybeReverse direction <| cmp a b (.ratio >> infiniteToFloat)
+            \a b -> maybeReverse direction <| cmp a b (.ratio >> infiniteToFloat)
 
         Priority ->
-            maybeReverse direction <| cmp a b (.priority >> priorityToInt)
+            \a b -> maybeReverse direction <| cmp a b (.priority >> priorityToInt)
 
         Seeders ->
             -- NOTREACHED
-            maybeReverse direction <| cmp a b .seedersConnected
+            \a b -> maybeReverse direction <| cmp a b .seedersConnected
 
         SeedersConnected ->
-            maybeReverse direction <| cmp a b .seedersConnected
+            \a b -> maybeReverse direction <| cmp a b .seedersConnected
 
         SeedersTotal ->
-            maybeReverse direction <| cmp a b .seedersTotal
+            \a b -> maybeReverse direction <| cmp a b .seedersTotal
 
         Peers ->
             -- NOTREACHED
-            maybeReverse direction <| cmp a b .peersConnected
+            \a b -> maybeReverse direction <| cmp a b .peersConnected
 
         PeersConnected ->
-            maybeReverse direction <| cmp a b .peersConnected
+            \a b -> maybeReverse direction <| cmp a b .peersConnected
 
         PeersTotal ->
-            maybeReverse direction <| cmp a b .peersTotal
+            \a b -> maybeReverse direction <| cmp a b .peersTotal
 
         Label ->
-            maybeReverse direction <| cmp a b .label
+            \a b -> maybeReverse direction <| cmp a b .label
 
         DonePercent ->
-            maybeReverse direction <| cmp a b .donePercent
+            \a b -> maybeReverse direction <| cmp a b .donePercent
 
 
 cmp : Torrent -> Torrent -> (Torrent -> comparable) -> Order

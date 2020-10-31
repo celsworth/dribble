@@ -14,26 +14,27 @@ sort : Model.File.Sort -> List File -> List String
 sort sortBy files =
     let
         comparators =
-            List.map (comparator direction) [ attribute ]
-
-        (SortBy attribute direction) =
-            sortBy
+            [ comparator sortBy ]
     in
     List.map .path <|
         List.foldl List.Extra.stableSortWith files comparators
 
 
-comparator : SortDirection -> Model.File.Attribute -> File -> File -> Order
-comparator direction attribute a b =
+comparator : Model.File.Sort -> (File -> File -> Order)
+comparator sortBy =
+    let
+        (SortBy attribute direction) =
+            sortBy
+    in
     case attribute of
         Path ->
-            maybeReverse direction <| cmp a b .path
+            \a b -> maybeReverse direction <| cmp a b .path
 
         Size ->
-            maybeReverse direction <| cmp a b .size
+            \a b -> maybeReverse direction <| cmp a b .size
 
         DonePercent ->
-            maybeReverse direction <| cmp a b .donePercent
+            \a b -> maybeReverse direction <| cmp a b .donePercent
 
 
 cmp : File -> File -> (File -> comparable) -> Order
