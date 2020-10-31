@@ -82,28 +82,17 @@ headerContextMenu tableConfig contextMenu =
 
 headerContextMenuAutoWidth : Column -> Html Msg
 headerContextMenuAutoWidth column =
-    li
-        [ onClick <| SetColumnAutoWidth <| Model.Attribute.FileAttribute column.attribute ]
-        [ text <| "Auto-Fit " ++ Model.File.attributeToString column.attribute ]
+    View.Table.headerContextMenuAutoWidth
+        (Model.Attribute.FileAttribute column.attribute)
+        ("Auto-Fit " ++ Model.File.attributeToString column.attribute)
 
 
 headerContextMenuColumnRow : Column -> Html Msg
 headerContextMenuColumnRow column =
-    let
-        ( i_class, li_class ) =
-            if column.visible then
-                ( "fa-check", "" )
-
-            else
-                ( "", "disabled" )
-    in
-    li
-        [ onClick <| ToggleAttributeVisibility <| Model.Attribute.FileAttribute column.attribute
-        , class li_class
-        ]
-        [ i [ class <| "fa-fw fas " ++ i_class ] []
-        , text <| Model.File.attributeToString column.attribute
-        ]
+    View.Table.headerContextMenuToggleVisibility
+        column
+        (Model.Attribute.FileAttribute column.attribute)
+        (Model.File.attributeToString column.attribute)
 
 
 headerCell : Model.Config.Config -> Config -> Column -> Html Msg
@@ -180,7 +169,7 @@ headerCellContentDivAttributes tableConfig column =
         maybeWidthAttr =
             case tableConfig.layout of
                 Model.Table.Fixed ->
-                    thWidthAttribute tableConfig column
+                    View.Table.thWidthAttribute column
 
                 Model.Table.Fluid ->
                     Nothing
@@ -264,7 +253,7 @@ cellAttributes tableConfig column =
         maybeWidthAttr =
             case tableConfig.layout of
                 Model.Table.Fixed ->
-                    tdWidthAttribute tableConfig column
+                    View.Table.tdWidthAttribute column
 
                 Model.Table.Fluid ->
                     Nothing
@@ -275,22 +264,3 @@ cellAttributes tableConfig column =
 cellTextAlign : Column -> Maybe (Attribute Msg)
 cellTextAlign column =
     Maybe.map class (View.File.attributeTextAlignment column.attribute)
-
-
-thWidthAttribute : Config -> Column -> Maybe (Attribute Msg)
-thWidthAttribute tableConfig column =
-    widthAttribute tableConfig column 10
-
-
-tdWidthAttribute : Config -> Column -> Maybe (Attribute Msg)
-tdWidthAttribute tableConfig column =
-    widthAttribute tableConfig column 8
-
-
-widthAttribute : Config -> Column -> Float -> Maybe (Attribute Msg)
-widthAttribute tableConfig column subtract =
-    if column.auto then
-        Nothing
-
-    else
-        Just <| style "width" (String.fromFloat (column.width - subtract) ++ "px")

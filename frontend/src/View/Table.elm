@@ -2,17 +2,12 @@ module View.Table exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onClick)
 import Model exposing (..)
+import Model.Attribute
 import Model.Sort exposing (SortDirection(..))
-import Model.Table
+import Model.Table exposing (Column)
 import Round
-
-
-type alias Column a =
-    { a
-        | auto : Bool
-        , width : Float
-    }
 
 
 layoutToClass : Model.Table.Layout -> String
@@ -23,6 +18,32 @@ layoutToClass layout =
 
         Model.Table.Fixed ->
             "fixed"
+
+
+
+-- HEADER CELL HELPERS
+
+
+headerContextMenuAutoWidth : Model.Attribute.Attribute -> String -> Html Msg
+headerContextMenuAutoWidth attribute content =
+    li [ onClick <| SetColumnAutoWidth attribute ] [ text content ]
+
+
+headerContextMenuToggleVisibility : Column c -> Model.Attribute.Attribute -> String -> Html Msg
+headerContextMenuToggleVisibility column attribute content =
+    let
+        ( i_class, li_class ) =
+            if column.visible then
+                ( "fa-check", "" )
+
+            else
+                ( "", "disabled" )
+    in
+    li
+        [ onClick <| ToggleAttributeVisibility attribute, class li_class ]
+        [ i [ class <| "fa-fw fas " ++ i_class ] []
+        , text content
+        ]
 
 
 
@@ -68,20 +89,20 @@ donePercentCell donePercent =
 -}
 
 
-thWidthAttribute : Column a -> Maybe (Attribute Msg)
+thWidthAttribute : Column c -> Maybe (Attribute Msg)
 thWidthAttribute column =
     widthAttribute column 16
 
 
-tdWidthAttribute : Column a -> Maybe (Attribute Msg)
+tdWidthAttribute : Column c -> Maybe (Attribute Msg)
 tdWidthAttribute column =
     widthAttribute column 8
 
 
-widthAttribute : Column a -> Float -> Maybe (Attribute Msg)
+widthAttribute : Column c -> Float -> Maybe (Attribute Msg)
 widthAttribute column subtract =
     if column.auto then
         Nothing
 
     else
-        Just <| style "width" (Round.round 0 (column.width - subtract) ++ "px")
+        Just <| style "width" (Round.round 1 (column.width - subtract) ++ "px")

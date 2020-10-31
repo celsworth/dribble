@@ -27,6 +27,14 @@ type Layout
     | Fluid
 
 
+type alias Column c =
+    { c
+        | width : Float
+        , auto : Bool
+        , visible : Bool
+    }
+
+
 
 -- SETTERS
 

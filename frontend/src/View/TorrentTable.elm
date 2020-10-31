@@ -84,28 +84,17 @@ headerContextMenu tableConfig contextMenu =
 
 headerContextMenuAutoWidth : Column -> Html Msg
 headerContextMenuAutoWidth column =
-    li
-        [ onClick <| SetColumnAutoWidth <| Model.Attribute.TorrentAttribute column.attribute ]
-        [ text <| "Auto-Fit " ++ Model.Torrent.attributeToString column.attribute ]
+    View.Table.headerContextMenuAutoWidth
+        (Model.Attribute.TorrentAttribute column.attribute)
+        ("Auto-Fit " ++ Model.Torrent.attributeToString column.attribute)
 
 
 headerContextMenuColumnRow : Column -> Html Msg
 headerContextMenuColumnRow column =
-    let
-        ( i_class, li_class ) =
-            if column.visible then
-                ( "fa-check", "" )
-
-            else
-                ( "", "disabled" )
-    in
-    li
-        [ onClick <| ToggleAttributeVisibility <| Model.Attribute.TorrentAttribute column.attribute
-        , class li_class
-        ]
-        [ i [ class <| "fa-fw fas " ++ i_class ] []
-        , text <| Model.Torrent.attributeToString column.attribute
-        ]
+    View.Table.headerContextMenuToggleVisibility
+        column
+        (Model.Attribute.TorrentAttribute column.attribute)
+        (Model.Torrent.attributeToString column.attribute)
 
 
 headerCell : Model.Config.Config -> Config -> Column -> Html Msg
