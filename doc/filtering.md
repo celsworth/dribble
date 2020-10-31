@@ -122,7 +122,7 @@ started>2020-01-01 # started after January 1st, 2020
 started>2020/01/01 # started after January 1st, 2020
 ```
 
-Valid suffixes here are `s` (second), `m` (minute), `h` (hour), `d` (day), `w` (week), and `y` (year). Note that "years" are 31,536,000 seconds, not calendar years.
+Valid suffixes here are `s` (second), `m` (minute), `h` (hour), `d` (day), `w` (week), and `y` (year). Note that "years" are 31,536,000 seconds, not calendar years. Also, for performance reasons, the internal time is only updated once per minute, so very short relative time periods (ie seconds) may not always be very accurate.
 
 The absolute date syntax implicitly nails the time to midnight. So you can't currently do `started=2020-01-01` and expect useful results I'm afraid (but `started>=2020-01-01 started<2020-01-02` would work). Maybe in future. Maybe also support times in future.
 
