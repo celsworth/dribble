@@ -43,6 +43,9 @@ update msg model =
             \meth args _ -> model |> meth args |> noCmd
     in
     case msg of
+        NoOp ->
+            r
+
         SetTimeZone zone ->
             r |> andThen (call setTimeZone zone)
 

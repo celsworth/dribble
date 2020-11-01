@@ -4,6 +4,7 @@ import DnDList
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Json.Decode as D
 import Model exposing (..)
 import Model.Attribute
 import Model.Preferences as MP
@@ -184,13 +185,18 @@ torrentsTableColumnsOptionLi itemId column dndEvents dndStyles =
         liStyles =
             List.filterMap identity [ Just (class "column"), Just (class visibility) ]
                 ++ Maybe.withDefault [] dndStyles
+                ++ Maybe.withDefault [] dndEvents
 
         divAttributes =
             List.filterMap identity [ Just (class "draggable"), idAttribute ]
-                ++ Maybe.withDefault [] dndEvents
     in
     li liStyles
-        [ i [ onClick (ToggleAttributeVisibility (Model.Attribute.TorrentAttribute attribute)), class "fas fa-eye" ] []
+        [ i
+            [ Html.Events.stopPropagationOn "mousedown" <| D.succeed ( NoOp, True )
+            , onClick (ToggleAttributeVisibility (Model.Attribute.TorrentAttribute attribute))
+            , class "fas fa-eye"
+            ]
+            []
         , div divAttributes
             [ i [ class "fas fa-arrows-alt-v" ] []
             , text <| Model.Torrent.attributeToString attribute

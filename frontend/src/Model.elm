@@ -27,7 +27,8 @@ import Time
 
 
 type Msg
-    = SetTimeZone Time.Zone
+    = NoOp
+    | SetTimeZone Time.Zone
     | MouseDown Attribute MousePosition Mouse.Button Mouse.Keys
     | AttributeResized Model.Table.ResizeOp MousePosition
     | AttributeResizeEnded Model.Table.ResizeOp MousePosition
