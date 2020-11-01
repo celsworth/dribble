@@ -179,28 +179,26 @@ torrentsTableColumnsOptionLi itemId column dndEvents dndStyles =
             else
                 "column-hidden"
 
-        idAttribute =
-            Maybe.map id itemId
-
-        liStyles =
-            List.filterMap identity [ Just (class "column"), Just (class visibility) ]
+        liAttributes =
+            List.filterMap identity
+                [ Just (class "column")
+                , Just (class visibility)
+                , Just <| onClick (ToggleAttributeVisibility (Model.Attribute.TorrentAttribute attribute))
+                , Maybe.map id itemId
+                ]
                 ++ Maybe.withDefault [] dndStyles
                 ++ Maybe.withDefault [] dndEvents
 
         divAttributes =
-            List.filterMap identity [ Just (class "draggable"), idAttribute ]
+            List.filterMap identity
+                [ Just <| Html.Events.stopPropagationOn "mousedown" <| D.succeed ( NoOp, True )
+                , Just <| style "flex-grow" "1"
+                ]
     in
-    li liStyles
-        [ i
-            [ Html.Events.stopPropagationOn "mousedown" <| D.succeed ( NoOp, True )
-            , onClick (ToggleAttributeVisibility (Model.Attribute.TorrentAttribute attribute))
-            , class "fas fa-eye"
-            ]
-            []
-        , div divAttributes
-            [ i [ class "fas fa-arrows-alt-v" ] []
-            , text <| Model.Torrent.attributeToString attribute
-            ]
+    li liAttributes
+        [ div divAttributes
+            [ text <| Model.Torrent.attributeToString attribute ]
+        , i [ class "draggable fas fa-grip-lines" ] []
         ]
 
 
