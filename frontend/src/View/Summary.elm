@@ -3,72 +3,76 @@ module View.Summary exposing (view)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import Html.Lazy
 import Model exposing (..)
+import Model.Config exposing (Config)
 import Model.Preferences as MP
 import Model.Rtorrent
+import Model.Traffic exposing (Traffic)
 import Utils.Filesize
 
 
 view : Model -> Html Msg
 view model =
     section [ class "summary" ]
-        [ div [ class "session-traffic" ] (traffic model)
-        , div [ class "quickpref" ] (quickPreferences model)
-        , div [ class "system-info" ] (status model)
+        [ Html.Lazy.lazy2 traffic model.config model.prevTraffic
+        , Html.Lazy.lazy quickPreferences model.config
+        , Html.Lazy.lazy2 status model.rtorrentSystemInfo model.websocketConnected
         ]
 
 
-traffic : Model -> List (Html Msg)
-traffic model =
-    case model.prevTraffic of
+traffic : Config -> Maybe Traffic -> Html Msg
+traffic config maybeTraffic =
+    case maybeTraffic of
         Just t ->
-            [ trafficDirection model t.downTotal t.downDiff "fa-arrow-down"
-            , trafficDirection model t.upTotal t.upDiff "fa-arrow-up"
-            ]
+            div [ class "session-traffic" ]
+                [ trafficDirection config t.downTotal t.downDiff "fa-arrow-down"
+                , trafficDirection config t.upTotal t.upDiff "fa-arrow-up"
+                ]
 
         Nothing ->
-            []
+            text ""
 
 
-trafficDirection : Model -> Int -> Int -> String -> Html Msg
-trafficDirection model total diff kls =
+trafficDirection : Config -> Int -> Int -> String -> Html Msg
+trafficDirection config total diff kls =
     div [ class "stat" ]
         [ i [ class <| "fas " ++ kls ] []
         , span []
-            [ text <| Utils.Filesize.formatWith model.config.humanise.size total
-            , text <| " (" ++ Utils.Filesize.formatWith model.config.humanise.speed diff ++ "/s)"
+            [ text <| Utils.Filesize.formatWith config.humanise.size total
+            , text <| " (" ++ Utils.Filesize.formatWith config.humanise.speed diff ++ "/s)"
             ]
         ]
 
 
-quickPreferences : Model -> List (Html Msg)
-quickPreferences model =
-    [ div []
+quickPreferences : Config -> Html Msg
+quickPreferences config =
+    div [ class "quickpref" ]
         [ input
             [ type_ "checkbox"
-            , checked model.config.enableContextMenus
+            , checked config.enableContextMenus
             , onClick <|
-                SetPreference (MP.EnableContextMenus (not model.config.enableContextMenus))
+                SetPreference (MP.EnableContextMenus (not config.enableContextMenus))
             ]
             []
         , span [] [ text "Custom context menus" ]
         ]
-    ]
 
 
-status : Model -> List (Html Msg)
-status model =
-    List.filterMap identity
-        [ Maybe.map rtorrentSystemInfo model.rtorrentSystemInfo
-        , Just <| websocketStatus model
-        ]
+status : Maybe Model.Rtorrent.Info -> Bool -> Html Msg
+status rtorrentSystemInfo websocketConnected =
+    div [ class "system-info" ] <|
+        List.filterMap identity
+            [ Maybe.map rtorrentSystemInfoText rtorrentSystemInfo
+            , Just <| websocketStatus websocketConnected
+            ]
 
 
-websocketStatus : Model -> Html Msg
-websocketStatus model =
+websocketStatus : Bool -> Html Msg
+websocketStatus websocketConnected =
     let
         faClass =
-            if model.websocketConnected then
+            if websocketConnected then
                 "connected"
 
             else
@@ -77,8 +81,8 @@ websocketStatus model =
     span [] [ i [ class ("fas fa-circle " ++ faClass) ] [] ]
 
 
-rtorrentSystemInfo : Model.Rtorrent.Info -> Html Msg
-rtorrentSystemInfo info =
+rtorrentSystemInfoText : Model.Rtorrent.Info -> Html Msg
+rtorrentSystemInfoText info =
     text <|
         "rtorrent "
             ++ info.systemVersion
