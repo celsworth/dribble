@@ -1,11 +1,12 @@
-module View.Utils.Events exposing (onEscape)
+module View.Utils.Events exposing (onEscape, stopPropagation)
 
 import Html
 import Html.Events
 import Json.Decode as JD
+import Model exposing (Msg(..))
 
 
-onEscape : msg -> Html.Attribute msg
+onEscape : Msg -> Html.Attribute Msg
 onEscape message =
     Html.Events.on "keyup" <|
         JD.andThen
@@ -17,3 +18,8 @@ onEscape message =
                     JD.fail (String.fromInt keyCode)
             )
             Html.Events.keyCode
+
+
+stopPropagation : Html.Attribute Msg
+stopPropagation =
+    Html.Events.stopPropagationOn "mousedown" <| JD.succeed ( NoOp, True )

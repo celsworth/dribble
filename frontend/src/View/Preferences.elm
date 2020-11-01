@@ -12,6 +12,7 @@ import Model.Table
 import Model.Torrent
 import Model.TorrentTable
 import Model.Window
+import View.Utils.Events
 import View.Window
 
 
@@ -191,7 +192,7 @@ torrentsTableColumnsOptionLi itemId column dndEvents dndStyles =
 
         divAttributes =
             List.filterMap identity
-                [ Just <| Html.Events.stopPropagationOn "mousedown" <| D.succeed ( NoOp, True )
+                [ Just <| View.Utils.Events.stopPropagation
                 , Just <| style "flex-grow" "1"
                 ]
     in
