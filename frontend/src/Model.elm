@@ -55,20 +55,6 @@ type Msg
     | DnDMsg Model.Table.Type DnDList.Msg
 
 
-dndConfigFile : DnDList.Config Model.FileTable.Column
-dndConfigFile =
-    { beforeUpdate = \_ _ list -> list
-    , movement = DnDList.Vertical
-    , listen = DnDList.OnDrag
-    , operation = DnDList.Rotate
-    }
-
-
-dndSystemFile : Model.Table.Type -> DnDList.System Model.FileTable.Column Msg
-dndSystemFile tableType =
-    DnDList.create dndConfigFile (DnDMsg tableType)
-
-
 type alias Model =
     { config : Config
     , rtorrentSystemInfo : Maybe Model.Rtorrent.Info
