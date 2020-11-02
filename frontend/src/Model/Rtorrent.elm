@@ -10,7 +10,6 @@ module Model.Rtorrent exposing
 import Json.Decode as D
 import Json.Decode.Pipeline exposing (custom)
 import Json.Encode as E
-import Model.Config exposing (Config)
 
 
 type alias Info =
@@ -101,13 +100,13 @@ getTrafficFields =
 -- WEBSOCKET; TORRENTS
 
 
-getTorrents : Config -> String
-getTorrents config =
+getTorrents : Int -> String
+getTorrents refreshDelay =
     E.encode 0 <|
         E.object
             [ ( "subscribe", E.string "torrentList" )
             , ( "diff", E.bool True )
-            , ( "interval", E.int config.refreshDelay )
+            , ( "interval", E.int refreshDelay )
             , ( "command", getTorrentFields )
             ]
 
@@ -165,13 +164,13 @@ getTorrentFields =
 -- WEBSOCKET; FILES
 
 
-getFiles : String -> Config -> String
-getFiles selectedTorrentHash config =
+getFiles : String -> Int -> String
+getFiles selectedTorrentHash refreshDelay =
     E.encode 0 <|
         E.object
             [ ( "subscribe", E.string "fileList" )
             , ( "diff", E.bool True )
-            , ( "interval", E.int config.refreshDelay )
+            , ( "interval", E.int refreshDelay )
             , ( "command", getFileFields selectedTorrentHash )
             ]
 
