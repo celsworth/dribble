@@ -49,6 +49,9 @@ update msg model =
         SetTimeZone zone ->
             r |> andThen (call setTimeZone zone)
 
+        Scroll scrollEvent ->
+            r |> andThen (call setTop scrollEvent.scrollTop)
+
         MouseDown attribute pos button keys ->
             r |> andThen (handleMouseDown attribute pos button keys)
 

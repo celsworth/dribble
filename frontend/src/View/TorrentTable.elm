@@ -7,6 +7,7 @@ import Html.Events exposing (onClick)
 import Html.Events.Extra.Mouse as Mouse
 import Html.Keyed as Keyed
 import Html.Lazy
+import Json.Decode as JD
 import List
 import Model exposing (..)
 import Model.Attribute
@@ -18,6 +19,7 @@ import Model.Table
 import Model.Torrent exposing (Torrent, TorrentsByHash)
 import Model.TorrentFilter exposing (TorrentFilter)
 import Model.TorrentTable exposing (Column, Config)
+import Round
 import Time
 import View.Table
 import View.Torrent
@@ -32,10 +34,14 @@ view model =
             [ i [ class "fas fa-spinner fa-pulse" ] [] ]
 
     else
-        section [ class "torrent-table" ]
+        section
+            [ Html.Events.on "scroll" scrollDecoder
+            , class "torrent-table"
+            ]
             [ table [ class <| View.Table.layoutToClass model.config.torrentTable.layout ]
                 [ Html.Lazy.lazy2 header model.config model.config.torrentTable
-                , Html.Lazy.lazy7 body
+                , Html.Lazy.lazy8 body
+                    model.top
                     model.currentTime
                     model.config.humanise
                     model.config.torrentTable
@@ -48,6 +54,16 @@ view model =
                 model.config.torrentTable
                 model.contextMenu
             ]
+
+
+scrollDecoder : JD.Decoder Msg
+scrollDecoder =
+    JD.succeed ScrollEvent
+        |> JD.map2 (|>) (JD.at [ "target", "scrollTop" ] JD.float)
+        |> JD.map2 (|>) (JD.at [ "target", "scrollHeight" ] JD.float)
+        |> JD.map2 (|>) (JD.at [ "target", "scrollLeft" ] JD.float)
+        |> JD.map2 (|>) (JD.at [ "target", "scrollWidth" ] JD.float)
+        |> JD.map Scroll
 
 
 header : Model.Config.Config -> Config -> Html Msg
@@ -182,20 +198,57 @@ headerCellResizeHandleAttributes column =
 -- BODY
 
 
-body : Time.Posix -> Model.Config.Humanise -> Config -> TorrentFilter -> TorrentsByHash -> List String -> Maybe String -> Html Msg
-body currentTime humanise tableConfig torrentFilter torrentsByHash sortedTorrents selectedTorrentHash =
+body : Float -> Time.Posix -> Model.Config.Humanise -> Config -> TorrentFilter -> TorrentsByHash -> List String -> Maybe String -> Html Msg
+body top currentTime humanise tableConfig torrentFilter torrentsByHash sortedTorrents selectedTorrentHash =
+    let
+        rowHeight =
+            -- FIXME assumption
+            21
+
+        dropTop =
+            Round.truncate (top / rowHeight) - 30
+
+        dropTop2 =
+            if dropTop < 0 then
+                0
+
+            else
+                dropTop
+
+        take =
+            -- FIXME should be tied to window heihgt
+            100
+
+        st =
+            sortedTorrents
+                |> List.drop dropTop2
+                |> List.take take
+
+        bottomSpace =
+            rowHeight * (List.length sortedTorrents - List.length st - dropTop2)
+    in
     Keyed.node "tbody" [] <|
-        List.filterMap identity
-            (List.map
-                (keyedRow currentTime
-                    humanise
-                    tableConfig
-                    torrentFilter
-                    torrentsByHash
-                    selectedTorrentHash
+        [ ( "topSpace"
+          , tr [ style "height" (String.fromInt (dropTop2 * rowHeight) ++ "px") ] []
+          )
+        ]
+            ++ List.filterMap identity
+                (List.map
+                    (keyedRow currentTime
+                        humanise
+                        tableConfig
+                        torrentFilter
+                        torrentsByHash
+                        selectedTorrentHash
+                    )
+                    sortedTorrents
+                    |> List.drop dropTop2
+                    |> List.take take
                 )
-                sortedTorrents
-            )
+            ++ [ ( "bottomSpace"
+                 , tr [ style "height" (String.fromInt bottomSpace ++ "px") ] []
+                 )
+               ]
 
 
 keyedRow : Time.Posix -> Model.Config.Humanise -> Config -> TorrentFilter -> TorrentsByHash -> Maybe String -> String -> Maybe ( String, Html Msg )

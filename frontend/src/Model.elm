@@ -26,9 +26,18 @@ import Model.Window
 import Time
 
 
+type alias ScrollEvent =
+    { scrollTop : Float
+    , scrollHeight : Float
+    , scrollLeft : Float
+    , scrollWidth : Float
+    }
+
+
 type Msg
     = NoOp
     | SetTimeZone Time.Zone
+    | Scroll ScrollEvent
     | MouseDown Attribute MousePosition Mouse.Button Mouse.Keys
     | AttributeResized Model.Table.ResizeOp MousePosition
     | AttributeResizeEnded Model.Table.ResizeOp MousePosition
@@ -84,6 +93,7 @@ dndSystemFile tableType =
 type alias Model =
     { config : Config
     , rtorrentSystemInfo : Maybe Model.Rtorrent.Info
+    , top : Float
     , dnd : DnDList.Model
     , websocketConnected : Bool
     , contextMenu : Maybe ContextMenu
@@ -114,6 +124,11 @@ setConfig new model =
 
     else
         model
+
+
+setTop : Float -> Model -> Model
+setTop new model =
+    { model | top = new }
 
 
 setDnd : DnDList.Model -> Model -> Model
