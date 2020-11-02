@@ -90,6 +90,10 @@ ul {
   display: flex;
 }
 
+.flex-grow {
+  flex-grow: 1
+}
+
 .resizing-x * {
   cursor: col-resize;
 }
@@ -108,8 +112,16 @@ ul {
   z-index: $context-menu-z-index;
 
   li {
+    display: flex;
+    align-items: center;
     padding: 2px 10px;
   }
+}
+
+.ns-draggable {
+  cursor: ns-resize;
+  color: #999;
+  font-size: 8px;
 }
 
 .hamburger-menu {
@@ -143,8 +155,15 @@ ul {
   }
 
   i {
+    font-size: 8px;
+  }
+
+  .check {
     margin-right: 5px;
-    font-size: 10px;
+  }
+
+  .fa-grip-lines {
+    margin-left: 5px;
   }
 
   .disabled {
@@ -271,10 +290,6 @@ ul {
     padding: 5px;
 
     i { margin-right: 10px; }
-  }
-
-  .draggable {
-    cursor: ns-resize;
   }
 
   .column-moving {

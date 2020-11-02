@@ -1,9 +1,11 @@
 module View.Table exposing (..)
 
+import DnDList
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Html.Events.Extra.Mouse as Mouse
+import Json.Decode as D
 import Model exposing (..)
 import Model.Attribute
 import Model.Config
@@ -11,6 +13,7 @@ import Model.ContextMenu
 import Model.MousePosition
 import Model.Table exposing (Column)
 import Round
+import View.Utils.Events
 
 
 layoutToClass : Model.Table.Layout -> String
@@ -49,20 +52,73 @@ headerContextMenuAutoWidth attribute content =
     li [ onClick <| SetColumnAutoWidth attribute ] [ text content ]
 
 
-headerContextMenuToggleVisibility : Column c -> Model.Attribute.Attribute -> String -> Html Msg
-headerContextMenuToggleVisibility column attribute content =
+headerContextMenuAttributeRow :
+    DnDList.System c Msg
+    -> DnDList.Model
+    -> Int
+    -> String
+    -> Column c
+    -> Model.Attribute.Attribute
+    -> String
+    -> Html Msg
+headerContextMenuAttributeRow dndSystem dnd index itemId column attribute content =
+    case dndSystem.info dnd of
+        Just { dragIndex } ->
+            if dragIndex /= index then
+                headerContextMenuAttributeRowLi
+                    (Just itemId)
+                    column
+                    attribute
+                    content
+                    (Just <| dndSystem.dropEvents index itemId)
+                    Nothing
+
+            else
+                -- basically empty space to occupy the previous slot
+                li [ id itemId ] [ text "\u{00A0}" ]
+
+        Nothing ->
+            headerContextMenuAttributeRowLi
+                (Just itemId)
+                column
+                attribute
+                content
+                (Just <| dndSystem.dragEvents index itemId)
+                Nothing
+
+
+headerContextMenuAttributeRowLi :
+    Maybe String
+    -> Column c
+    -> Model.Attribute.Attribute
+    -> String
+    -> Maybe (List (Attribute Msg))
+    -> Maybe (List (Attribute Msg))
+    -> Html Msg
+headerContextMenuAttributeRowLi itemId column attribute content dndEvents dndStyles =
     let
-        ( i_class, li_class ) =
+        ( iClass, liClass ) =
             if column.visible then
                 ( "fa-check", "" )
 
             else
                 ( "", "disabled" )
+
+        liAttributes =
+            List.filterMap identity
+                [ Just <| onClick <| ToggleAttributeVisibility attribute
+                , Just <| class liClass
+                , Maybe.map id itemId
+                ]
+                ++ Maybe.withDefault [] dndStyles
+                ++ Maybe.withDefault [] dndEvents
     in
-    li
-        [ onClick <| ToggleAttributeVisibility attribute, class li_class ]
-        [ i [ class <| "fa-fw fas " ++ i_class ] []
-        , text content
+    li liAttributes
+        [ div [ class "flex-grow", View.Utils.Events.stopPropagation ]
+            [ i [ class <| "check fa-fw fas " ++ iClass ] []
+            , text content
+            ]
+        , i [ class "ns-draggable fa-fw fas fa-grip-lines" ] []
         ]
 
 

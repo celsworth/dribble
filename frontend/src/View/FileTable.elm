@@ -38,9 +38,11 @@ view model =
                     model.keyedFiles
                     model.sortedFiles
                 ]
-            , Html.Lazy.lazy2 maybeHeaderContextMenu
-                model.config.fileTable
-                model.contextMenu
+
+            {- , Html.Lazy.lazy2 maybeHeaderContextMenu
+               model.config.fileTable
+               model.contextMenu
+            -}
             ]
 
 
@@ -60,39 +62,42 @@ header config tableConfig =
         ]
 
 
-maybeHeaderContextMenu : Config -> Maybe ContextMenu -> Html Msg
-maybeHeaderContextMenu tableConfig contextMenu =
-    Maybe.withDefault (text "") <|
-        Maybe.map (headerContextMenu tableConfig) contextMenu
+
+{-
+   maybeHeaderContextMenu : Config -> Maybe ContextMenu -> Html Msg
+   maybeHeaderContextMenu tableConfig contextMenu =
+       Maybe.withDefault (text "") <|
+           Maybe.map (headerContextMenu tableConfig) contextMenu
 
 
-headerContextMenu : Config -> ContextMenu -> Html Msg
-headerContextMenu tableConfig contextMenu =
-    case contextMenu.for of
-        FileTableColumn column ->
-            View.Utils.ContextMenu.view contextMenu
-                [ ul [] <|
-                    [ headerContextMenuAutoWidth column, hr [] [] ]
-                        ++ List.map headerContextMenuColumnRow tableConfig.columns
-                ]
+   headerContextMenu : Config -> ContextMenu -> Html Msg
+   headerContextMenu tableConfig contextMenu =
+       case contextMenu.for of
+           FileTableColumn column ->
+               View.Utils.ContextMenu.view contextMenu
+                   [ ul [] <|
+                       [ headerContextMenuAutoWidth column, hr [] [] ]
+                           ++ List.map headerContextMenuAttributeRow tableConfig.columns
+                   ]
 
-        _ ->
-            text ""
-
-
-headerContextMenuAutoWidth : Column -> Html Msg
-headerContextMenuAutoWidth column =
-    View.Table.headerContextMenuAutoWidth
-        (Model.Attribute.FileAttribute column.attribute)
-        ("Auto-Fit " ++ Model.File.attributeToString column.attribute)
+           _ ->
+               text ""
 
 
-headerContextMenuColumnRow : Column -> Html Msg
-headerContextMenuColumnRow column =
-    View.Table.headerContextMenuToggleVisibility
-        column
-        (Model.Attribute.FileAttribute column.attribute)
-        (Model.File.attributeToString column.attribute)
+   headerContextMenuAutoWidth : Column -> Html Msg
+   headerContextMenuAutoWidth column =
+       View.Table.headerContextMenuAutoWidth
+           (Model.Attribute.FileAttribute column.attribute)
+           ("Auto-Fit " ++ Model.File.attributeToString column.attribute)
+
+
+   headerContextMenuAttributeRow : Column -> Html Msg
+   headerContextMenuAttributeRow column =
+       View.Table.headerContextMenuAttributeRow
+           column
+           (Model.Attribute.FileAttribute column.attribute)
+           (Model.File.attributeToString column.attribute)
+-}
 
 
 headerCell : Model.Config.Config -> Config -> Column -> Html Msg

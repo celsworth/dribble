@@ -1,6 +1,7 @@
 module View.TorrentTable exposing (view)
 
 import Dict
+import DnDList
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
@@ -44,7 +45,8 @@ view model =
                     model.sortedTorrents
                     model.selectedTorrentHash
                 ]
-            , Html.Lazy.lazy2 maybeHeaderContextMenu
+            , Html.Lazy.lazy3 maybeHeaderContextMenu
+                model.dnd
                 model.config.torrentTable
                 model.contextMenu
             ]
@@ -62,20 +64,21 @@ header config tableConfig =
         ]
 
 
-maybeHeaderContextMenu : Config -> Maybe ContextMenu -> Html Msg
-maybeHeaderContextMenu tableConfig contextMenu =
+maybeHeaderContextMenu : DnDList.Model -> Config -> Maybe ContextMenu -> Html Msg
+maybeHeaderContextMenu dnd tableConfig contextMenu =
     Maybe.withDefault (text "") <|
-        Maybe.map (headerContextMenu tableConfig) contextMenu
+        Maybe.map (headerContextMenu dnd tableConfig) contextMenu
 
 
-headerContextMenu : Config -> ContextMenu -> Html Msg
-headerContextMenu tableConfig contextMenu =
+headerContextMenu : DnDList.Model -> Config -> ContextMenu -> Html Msg
+headerContextMenu dnd tableConfig contextMenu =
     case contextMenu.for of
         TorrentTableColumn column ->
             View.Utils.ContextMenu.view contextMenu
                 [ ul [] <|
                     [ headerContextMenuAutoWidth column, hr [] [] ]
-                        ++ List.map headerContextMenuToggleVisibility tableConfig.columns
+                        ++ List.indexedMap (headerContextMenuAttributeRow dnd) tableConfig.columns
+                        ++ [ headerContextMenuAttributeRowGhostLi dnd tableConfig.columns ]
                 ]
 
         _ ->
@@ -89,12 +92,43 @@ headerContextMenuAutoWidth column =
         ("Auto-Fit " ++ Model.Torrent.attributeToString column.attribute)
 
 
-headerContextMenuToggleVisibility : Column -> Html Msg
-headerContextMenuToggleVisibility column =
-    View.Table.headerContextMenuToggleVisibility
+headerContextMenuAttributeRow : DnDList.Model -> Int -> Column -> Html Msg
+headerContextMenuAttributeRow dnd index column =
+    View.Table.headerContextMenuAttributeRow
+        (dndSystemTorrent Model.Table.Torrents)
+        dnd
+        index
+        ("dndlist-torrentsTable-" ++ Model.Torrent.attributeToKey column.attribute)
         column
         (Model.Attribute.TorrentAttribute column.attribute)
         (Model.Torrent.attributeToString column.attribute)
+
+
+headerContextMenuAttributeRowGhostLi : DnDList.Model -> List Column -> Html Msg
+headerContextMenuAttributeRowGhostLi dnd columns =
+    let
+        dndSystem =
+            dndSystemTorrent Model.Table.Torrents
+
+        maybeDragItem =
+            dndSystem.info dnd
+                |> Maybe.andThen
+                    (\{ dragIndex } ->
+                        columns |> List.drop dragIndex |> List.head
+                    )
+    in
+    case maybeDragItem of
+        Just column ->
+            View.Table.headerContextMenuAttributeRowLi
+                Nothing
+                column
+                (Model.Attribute.TorrentAttribute column.attribute)
+                (Model.Torrent.attributeToString column.attribute)
+                Nothing
+                (Just <| dndSystem.ghostStyles dnd)
+
+        Nothing ->
+            text ""
 
 
 headerCell : Model.Config.Config -> Config -> Column -> Html Msg
