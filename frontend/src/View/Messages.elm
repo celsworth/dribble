@@ -2,6 +2,7 @@ module View.Messages exposing (view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Lazy
 import Model exposing (..)
 import Model.Message exposing (Message)
 import Time
@@ -10,35 +11,28 @@ import View.Utils.DateFormatter
 
 view : Model -> Html Msg
 view model =
-    section (sectionAttributes model) [ sectionContents model ]
-
-
-sectionAttributes : Model -> List (Attribute Msg)
-sectionAttributes _ =
-    List.filterMap identity
-        [ Just <| class "messages"
+    section [ class "messages" ]
+        [ Html.Lazy.lazy3 messageList
+            model.messages
+            model.timezone
+            model.currentTime
         ]
 
 
-sectionContents : Model -> Html Msg
-sectionContents model =
-    messageList model
-
-
-messageList : Model -> Html Msg
-messageList model =
+messageList : List Message -> Time.Zone -> Time.Posix -> Html Msg
+messageList messages timezone currentTime =
     let
         recentMessages =
-            List.filter (isRecent model) model.messages
+            List.filter (isRecent currentTime) messages
     in
-    ul [] (List.map (message model.timezone) recentMessages)
+    ul [] (List.map (message timezone) recentMessages)
 
 
-isRecent : Model -> Message -> Bool
-isRecent model msg =
+isRecent : Time.Posix -> Message -> Bool
+isRecent currentTime msg =
     let
         timeDiff =
-            Time.posixToMillis model.currentTime - Time.posixToMillis msg.time
+            Time.posixToMillis currentTime - Time.posixToMillis msg.time
     in
     timeDiff < 10 * 1000
 
