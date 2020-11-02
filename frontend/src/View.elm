@@ -146,11 +146,11 @@ hamburgerMenu =
         ]
         [ ul []
             [ li [ onClick TogglePreferencesVisible ]
-                [ i [ class "fa-fw fas fa-cogs" ] []
+                [ i [ class "icon-left fa-fw fas fa-cogs" ] []
                 , text "Preferences"
                 ]
             , li [ onClick ToggleLogsVisible ]
-                [ i [ class "fa-fw fas fa-bars" ] []
+                [ i [ class "icon-left fa-fw fas fa-bars" ] []
                 , text "Logs"
                 ]
             ]

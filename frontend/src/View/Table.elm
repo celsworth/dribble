@@ -113,11 +113,11 @@ headerContextMenuAttributeRowLi itemId column attribute content dndEvents dndSty
                 ++ Maybe.withDefault [] dndEvents
     in
     li liAttributes
-        [ div [ class "flex-grow", View.Utils.Events.stopPropagation ]
-            [ i [ class <| "check fa-fw fas " ++ iClass ] []
+        [ div [ class "wide", View.Utils.Events.stopPropagation ]
+            [ i [ class <| "icon-left fa-fw fas " ++ iClass ] []
             , text content
             ]
-        , i [ class "ns-draggable fa-fw fas fa-grip-lines" ] []
+        , i [ class "ns-draggable icon-right fa-fw fas fa-grip-lines" ] []
         ]
 
 

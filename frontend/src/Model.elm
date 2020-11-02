@@ -9,7 +9,6 @@ import Model.Attribute exposing (Attribute)
 import Model.Config exposing (Config)
 import Model.ContextMenu exposing (ContextMenu)
 import Model.File exposing (FilesByKey)
-import Model.FileTable
 import Model.GroupLists exposing (GroupLists)
 import Model.Message exposing (Message)
 import Model.MousePosition exposing (MousePosition)

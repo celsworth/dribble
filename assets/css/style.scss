@@ -90,12 +90,14 @@ ul {
   display: flex;
 }
 
-.flex-grow {
-  flex-grow: 1
-}
-
 .resizing-x * {
   cursor: col-resize;
+}
+
+.ns-draggable {
+  cursor: ns-resize;
+  color: #999;
+  font-size: 8px;
 }
 
 .context-menu-closer {
@@ -112,16 +114,8 @@ ul {
   z-index: $context-menu-z-index;
 
   li {
-    display: flex;
-    align-items: center;
     padding: 2px 10px;
   }
-}
-
-.ns-draggable {
-  cursor: ns-resize;
-  color: #999;
-  font-size: 8px;
 }
 
 .hamburger-menu {
@@ -148,21 +142,28 @@ ul {
   white-space: nowrap;
 
   li {
+    display: flex;
+    align-items: center;
     &:hover {
       background: $selected-row-background-color;
       color: $selected-row-color;
     }
   }
 
+  .wide {
+    flex-grow: 1;
+  }
+
   i {
+
     font-size: 8px;
   }
 
-  .check {
+  .icon-left {
     margin-right: 5px;
   }
 
-  .fa-grip-lines {
+  .icon-right {
     margin-left: 5px;
   }
 
