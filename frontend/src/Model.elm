@@ -19,7 +19,6 @@ import Model.SpeedChart
 import Model.Table
 import Model.Torrent exposing (Torrent, TorrentsByHash)
 import Model.TorrentFilter exposing (TorrentFilter)
-import Model.TorrentTable
 import Model.Traffic exposing (Traffic)
 import Model.WebsocketData
 import Model.Window

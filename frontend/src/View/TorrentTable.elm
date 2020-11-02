@@ -98,7 +98,7 @@ headerContextMenuAttributeRow dnd index column =
         (Model.TorrentTable.dndSystem DnDMsg)
         dnd
         index
-        ("dndlist-torrentsTable-" ++ Model.Torrent.attributeToKey column.attribute)
+        ("dndlist-torrentTable-" ++ Model.Torrent.attributeToKey column.attribute)
         column
         (Model.Attribute.TorrentAttribute column.attribute)
         (Model.Torrent.attributeToString column.attribute)

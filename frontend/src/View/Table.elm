@@ -5,7 +5,6 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Html.Events.Extra.Mouse as Mouse
-import Json.Decode as D
 import Model exposing (..)
 import Model.Attribute
 import Model.Config
