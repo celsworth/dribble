@@ -94,6 +94,12 @@ ul {
   cursor: col-resize;
 }
 
+.ns-draggable {
+  cursor: ns-resize;
+  color: #999;
+  font-size: 8px;
+}
+
 .context-menu-closer {
   position: absolute;
   top: 0;
@@ -136,15 +142,29 @@ ul {
   white-space: nowrap;
 
   li {
+    display: flex;
+    align-items: center;
     &:hover {
       background: $selected-row-background-color;
       color: $selected-row-color;
     }
   }
 
+  .wide {
+    flex-grow: 1;
+  }
+
   i {
+
+    font-size: 8px;
+  }
+
+  .icon-left {
     margin-right: 5px;
-    font-size: 10px;
+  }
+
+  .icon-right {
+    margin-left: 5px;
   }
 
   .disabled {
@@ -271,10 +291,6 @@ ul {
     padding: 5px;
 
     i { margin-right: 10px; }
-  }
-
-  .draggable {
-    cursor: ns-resize;
   }
 
   .column-moving {

@@ -9,7 +9,6 @@ import Model.Attribute exposing (Attribute)
 import Model.Config exposing (Config)
 import Model.ContextMenu exposing (ContextMenu)
 import Model.File exposing (FilesByKey)
-import Model.FileTable
 import Model.GroupLists exposing (GroupLists)
 import Model.Message exposing (Message)
 import Model.MousePosition exposing (MousePosition)
@@ -19,7 +18,6 @@ import Model.SpeedChart
 import Model.Table
 import Model.Torrent exposing (Torrent, TorrentsByHash)
 import Model.TorrentFilter exposing (TorrentFilter)
-import Model.TorrentTable
 import Model.Traffic exposing (Traffic)
 import Model.WebsocketData
 import Model.Window
@@ -54,31 +52,6 @@ type Msg
     | WebsocketStatusUpdated (Result JD.Error Bool)
     | WindowResized (Result JD.Error Model.Window.ResizeDetails)
     | DnDMsg Model.Table.Type DnDList.Msg
-
-
-dndSystemTorrent : Model.Table.Type -> DnDList.System Model.TorrentTable.Column Msg
-dndSystemTorrent tableType =
-    DnDList.create
-        { beforeUpdate = \_ _ list -> list
-        , movement = DnDList.Vertical
-        , listen = DnDList.OnDrag
-        , operation = DnDList.Rotate
-        }
-        (DnDMsg tableType)
-
-
-dndConfigFile : DnDList.Config Model.FileTable.Column
-dndConfigFile =
-    { beforeUpdate = \_ _ list -> list
-    , movement = DnDList.Vertical
-    , listen = DnDList.OnDrag
-    , operation = DnDList.Rotate
-    }
-
-
-dndSystemFile : Model.Table.Type -> DnDList.System Model.FileTable.Column Msg
-dndSystemFile tableType =
-    DnDList.create dndConfigFile (DnDMsg tableType)
 
 
 type alias Model =

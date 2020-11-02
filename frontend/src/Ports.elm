@@ -34,14 +34,14 @@ getRtorrentSystemInfo =
 
 getTorrents : Model -> Cmd Msg
 getTorrents model =
-    sendMessage (Model.Rtorrent.getTorrents model.config)
+    sendMessage (Model.Rtorrent.getTorrents model.config.refreshDelay)
 
 
 getFiles : Model -> Cmd Msg
 getFiles model =
     Maybe.withDefault Cmd.none <|
         Maybe.map
-            (\hash -> sendMessage (Model.Rtorrent.getFiles hash model.config))
+            (\hash -> sendMessage (Model.Rtorrent.getFiles hash model.config.refreshDelay))
             model.selectedTorrentHash
 
 

@@ -4,8 +4,8 @@ import Json.Decode as D
 import Model exposing (..)
 import Model.File
 import Model.Rtorrent
-import Model.Table
 import Model.Torrent
+import Model.TorrentTable
 import Model.Traffic
 import Model.WebsocketData
 import Model.Window
@@ -22,7 +22,7 @@ subscriptions model =
             , Just <| Ports.messageReceiver (WebsocketData << decodeMessage)
             , Just <| Ports.windowResizeObserved (WindowResized << decodeWindowResizeDetails)
             , Just <| Ports.websocketStatusUpdated (WebsocketStatusUpdated << decodeStatus)
-            , Just <| (dndSystemTorrent Model.Table.Torrents).subscriptions model.dnd
+            , Just <| (Model.TorrentTable.dndSystem DnDMsg).subscriptions model.dnd
             ]
 
 

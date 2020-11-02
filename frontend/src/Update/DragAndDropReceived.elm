@@ -3,7 +3,9 @@ module Update.DragAndDropReceived exposing (update)
 import DnDList
 import Model exposing (..)
 import Model.Config
+import Model.FileTable
 import Model.Table
+import Model.TorrentTable
 
 
 update : Model.Table.Type -> DnDList.Msg -> Model -> ( Model, Cmd Msg )
@@ -23,7 +25,7 @@ torrentTable : DnDList.Msg -> Model -> ( Model, Cmd Msg )
 torrentTable dndmsg model =
     let
         dndSystem =
-            dndSystemTorrent Model.Table.Torrents
+            Model.TorrentTable.dndSystem DnDMsg
 
         tableConfig =
             model.config.torrentTable
@@ -47,7 +49,7 @@ fileTable : DnDList.Msg -> Model -> ( Model, Cmd Msg )
 fileTable dndmsg model =
     let
         dndSystem =
-            dndSystemFile Model.Table.Files
+            Model.FileTable.dndSystem DnDMsg
 
         tableConfig =
             model.config.fileTable
