@@ -1,5 +1,6 @@
 module Model.FileTable exposing (..)
 
+import DnDList
 import Json.Decode as D
 import Json.Decode.Pipeline exposing (required)
 import Json.Encode as E
@@ -125,3 +126,18 @@ columnDecoder =
         |> required "width" D.float
         |> required "auto" D.bool
         |> required "visible" D.bool
+
+
+
+-- DND
+
+
+dndSystem : (Model.Table.Type -> DnDList.Msg -> msg) -> DnDList.System Column msg
+dndSystem msg =
+    DnDList.create
+        { beforeUpdate = \_ _ list -> list
+        , movement = DnDList.Vertical
+        , listen = DnDList.OnDrag
+        , operation = DnDList.Rotate
+        }
+        (msg Model.Table.Files)

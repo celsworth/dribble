@@ -1,6 +1,7 @@
 module View.FileTable exposing (view)
 
 import Dict
+import DnDList
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
@@ -38,11 +39,10 @@ view model =
                     model.keyedFiles
                     model.sortedFiles
                 ]
-
-            {- , Html.Lazy.lazy2 maybeHeaderContextMenu
-               model.config.fileTable
-               model.contextMenu
-            -}
+            , Html.Lazy.lazy3 maybeHeaderContextMenu
+                model.dnd
+                model.config.fileTable
+                model.contextMenu
             ]
 
 
@@ -62,42 +62,71 @@ header config tableConfig =
         ]
 
 
-
-{-
-   maybeHeaderContextMenu : Config -> Maybe ContextMenu -> Html Msg
-   maybeHeaderContextMenu tableConfig contextMenu =
-       Maybe.withDefault (text "") <|
-           Maybe.map (headerContextMenu tableConfig) contextMenu
+maybeHeaderContextMenu : DnDList.Model -> Config -> Maybe ContextMenu -> Html Msg
+maybeHeaderContextMenu dnd tableConfig contextMenu =
+    Maybe.withDefault (text "") <|
+        Maybe.map (headerContextMenu dnd tableConfig) contextMenu
 
 
-   headerContextMenu : Config -> ContextMenu -> Html Msg
-   headerContextMenu tableConfig contextMenu =
-       case contextMenu.for of
-           FileTableColumn column ->
-               View.Utils.ContextMenu.view contextMenu
-                   [ ul [] <|
-                       [ headerContextMenuAutoWidth column, hr [] [] ]
-                           ++ List.map headerContextMenuAttributeRow tableConfig.columns
-                   ]
+headerContextMenu : DnDList.Model -> Config -> ContextMenu -> Html Msg
+headerContextMenu dnd tableConfig contextMenu =
+    case contextMenu.for of
+        FileTableColumn column ->
+            View.Utils.ContextMenu.view contextMenu
+                [ ul [] <|
+                    [ headerContextMenuAutoWidth column, hr [] [] ]
+                        ++ List.indexedMap (headerContextMenuAttributeRow dnd) tableConfig.columns
+                        ++ [ headerContextMenuAttributeRowGhostLi dnd tableConfig.columns ]
+                ]
 
-           _ ->
-               text ""
-
-
-   headerContextMenuAutoWidth : Column -> Html Msg
-   headerContextMenuAutoWidth column =
-       View.Table.headerContextMenuAutoWidth
-           (Model.Attribute.FileAttribute column.attribute)
-           ("Auto-Fit " ++ Model.File.attributeToString column.attribute)
+        _ ->
+            text ""
 
 
-   headerContextMenuAttributeRow : Column -> Html Msg
-   headerContextMenuAttributeRow column =
-       View.Table.headerContextMenuAttributeRow
-           column
-           (Model.Attribute.FileAttribute column.attribute)
-           (Model.File.attributeToString column.attribute)
--}
+headerContextMenuAutoWidth : Column -> Html Msg
+headerContextMenuAutoWidth column =
+    View.Table.headerContextMenuAutoWidth
+        (Model.Attribute.FileAttribute column.attribute)
+        ("Auto-Fit " ++ Model.File.attributeToString column.attribute)
+
+
+headerContextMenuAttributeRow : DnDList.Model -> Int -> Column -> Html Msg
+headerContextMenuAttributeRow dnd index column =
+    View.Table.headerContextMenuAttributeRow
+        (Model.FileTable.dndSystem DnDMsg)
+        dnd
+        index
+        ("dndlist-fileTable-" ++ Model.File.attributeToKey column.attribute)
+        column
+        (Model.Attribute.FileAttribute column.attribute)
+        (Model.File.attributeToString column.attribute)
+
+
+headerContextMenuAttributeRowGhostLi : DnDList.Model -> List Column -> Html Msg
+headerContextMenuAttributeRowGhostLi dnd columns =
+    let
+        dndSystem =
+            Model.FileTable.dndSystem DnDMsg
+
+        maybeDragItem =
+            dndSystem.info dnd
+                |> Maybe.andThen
+                    (\{ dragIndex } ->
+                        columns |> List.drop dragIndex |> List.head
+                    )
+    in
+    case maybeDragItem of
+        Just column ->
+            View.Table.headerContextMenuAttributeRowLi
+                Nothing
+                column
+                (Model.Attribute.FileAttribute column.attribute)
+                (Model.File.attributeToString column.attribute)
+                Nothing
+                (Just <| dndSystem.ghostStyles dnd)
+
+        Nothing ->
+            text ""
 
 
 headerCell : Model.Config.Config -> Config -> Column -> Html Msg
