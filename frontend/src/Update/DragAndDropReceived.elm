@@ -4,6 +4,7 @@ import DnDList
 import Model exposing (..)
 import Model.Config
 import Model.Table
+import Model.TorrentTable
 
 
 update : Model.Table.Type -> DnDList.Msg -> Model -> ( Model, Cmd Msg )
@@ -23,7 +24,7 @@ torrentTable : DnDList.Msg -> Model -> ( Model, Cmd Msg )
 torrentTable dndmsg model =
     let
         dndSystem =
-            dndSystemTorrent Model.Table.Torrents
+            Model.TorrentTable.dndSystem DnDMsg
 
         tableConfig =
             model.config.torrentTable

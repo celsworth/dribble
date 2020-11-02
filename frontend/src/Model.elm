@@ -56,17 +56,6 @@ type Msg
     | DnDMsg Model.Table.Type DnDList.Msg
 
 
-dndSystemTorrent : Model.Table.Type -> DnDList.System Model.TorrentTable.Column Msg
-dndSystemTorrent tableType =
-    DnDList.create
-        { beforeUpdate = \_ _ list -> list
-        , movement = DnDList.Vertical
-        , listen = DnDList.OnDrag
-        , operation = DnDList.Rotate
-        }
-        (DnDMsg tableType)
-
-
 dndConfigFile : DnDList.Config Model.FileTable.Column
 dndConfigFile =
     { beforeUpdate = \_ _ list -> list

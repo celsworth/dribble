@@ -2,12 +2,12 @@ module Init exposing (Flags, init)
 
 import Dict
 import Json.Decode as JD
-import Model exposing (Model, Msg(..), dndSystemTorrent)
+import Model exposing (Model, Msg(..))
 import Model.Config exposing (Config)
 import Model.GroupLists
 import Model.Message exposing (Message)
-import Model.Table
 import Model.TorrentFilter
+import Model.TorrentTable
 import Ports
 import Task
 import Time
@@ -30,7 +30,7 @@ init flags =
     in
     ( { config = config
       , rtorrentSystemInfo = Nothing
-      , dnd = (dndSystemTorrent Model.Table.Torrents).model
+      , dnd = (Model.TorrentTable.dndSystem <| DnDMsg).model
       , websocketConnected = False
       , contextMenu = Nothing
       , selectedTorrentHash = Nothing
