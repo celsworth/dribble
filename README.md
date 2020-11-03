@@ -4,7 +4,9 @@ Part learning exercise, part frontend GUI for rtorrent.
 
 ---
 > **IMPORTANT SECURITY WARNING**
+>
 > The Ruby appserver opens an endpoint (at `/ws`) that is a WebSocket proxy to your rtorrent SCGI interface. This endpoint must *never* be exposed to the Internet or you *will* get pwned via remote execution.
+>
 > There is also a proxy endpoint (`/proxy`) that Elm uses to fetch favicons of trackers. This is an open proxy and will be abused if you expose it to the Internet.
 ---
 
