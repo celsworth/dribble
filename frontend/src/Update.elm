@@ -76,9 +76,6 @@ update msg model =
                 |> andThen (Update.SetPreference.update preferenceUpdate)
                 |> andThen Update.SaveConfig.update
 
-        SetGroupListsVisible visible ->
-            r |> andThen (call setGroupListsVisible visible)
-
         ResetConfigClicked ->
             r |> andThen Update.ResetConfig.update
 

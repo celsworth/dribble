@@ -18,7 +18,7 @@ view model =
 
 groupListsView : GroupLists -> Html Msg
 groupListsView groupLists =
-    div [ onMouseLeave <| SetGroupListsVisible False, class "group-lists" ]
+    div []
         [ groupListWithIcon "Status" groupLists.byStatus
         , groupList "Labels" groupLists.byLabel
         , groupListWithFavicon "Trackers" groupLists.byTracker
