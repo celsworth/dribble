@@ -43,7 +43,6 @@ type Msg
     | DisplayContextMenu Model.ContextMenu.For MousePosition Mouse.Button Mouse.Keys
     | ClearContextMenu
     | SetPreference Model.Preferences.PreferenceUpdate
-    | SetGroupListsVisible Bool
     | ResetConfigClicked
     | SaveConfigClicked
     | ResetFilterClicked
@@ -81,7 +80,6 @@ type alias Model =
     , prevTraffic : Maybe Traffic
     , speedChartHover : List Model.SpeedChart.DataSeries
     , messages : List Message
-    , groupListsVisible : Bool
     , hamburgerMenuVisible : Bool
     , resizeOp : Maybe Model.Table.ResizeOp
     , currentTime : Time.Posix
@@ -188,11 +186,6 @@ addMessages new model =
 setSpeedChartHover : List Model.SpeedChart.DataSeries -> Model -> Model
 setSpeedChartHover new model =
     { model | speedChartHover = new }
-
-
-setGroupListsVisible : Bool -> Model -> Model
-setGroupListsVisible new model =
-    { model | groupListsVisible = new }
 
 
 setHamburgerMenuVisible : Bool -> Model -> Model

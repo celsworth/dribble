@@ -3,7 +3,6 @@ module View.GroupLists exposing (view)
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onMouseLeave)
 import Html.Lazy
 import Model exposing (..)
 import Model.GroupLists exposing (Group, GroupLists)
@@ -18,7 +17,7 @@ view model =
 
 groupListsView : GroupLists -> Html Msg
 groupListsView groupLists =
-    div [ onMouseLeave <| SetGroupListsVisible False, class "group-lists" ]
+    div [ class "group-lists" ]
         [ groupListWithIcon "Status" groupLists.byStatus
         , groupList "Labels" groupLists.byLabel
         , groupListWithFavicon "Trackers" groupLists.byTracker

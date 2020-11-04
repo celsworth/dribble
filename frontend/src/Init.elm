@@ -45,7 +45,6 @@ init flags =
       , prevTraffic = Nothing
       , speedChartHover = []
       , messages = messages
-      , groupListsVisible = False
       , hamburgerMenuVisible = False
       , resizeOp = Nothing
       , timezone = Time.utc
