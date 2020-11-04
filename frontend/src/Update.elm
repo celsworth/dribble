@@ -146,14 +146,14 @@ update msg model =
 
 handleMouseDown : Model.Attribute.Attribute -> MousePosition -> Mouse.Button -> Mouse.Keys -> Model -> ( Model, Cmd Msg )
 handleMouseDown attribute mousePosition mouseButton mouseKeys model =
-    if mouseKeys.alt then
-        -- should be in right click menu
-        Update.SetColumnAutoWidth.update attribute model
+    case mouseButton of
+        Mouse.MainButton ->
+            if mouseKeys.alt then
+                -- also in right click menu
+                Update.SetColumnAutoWidth.update attribute model
 
-    else
-        case mouseButton of
-            Mouse.MainButton ->
+            else
                 Update.StartResizeOp.update attribute mousePosition model
 
-            _ ->
-                ( model, Cmd.none )
+        _ ->
+            ( model, Cmd.none )
