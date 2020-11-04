@@ -59,6 +59,10 @@ $context-menu-z-index: 51;
   background: rgba(255, 255, 255, .6);
 }
 
+:focus {
+  outline: 0;
+}
+
 html {
   box-sizing: border-box;
 }
@@ -192,14 +196,11 @@ ul {
   border-radius: 5px;
   box-shadow: 0 0 15px 10px #888;
   background: $window-background-color;
-  overflow-y: auto;
-
   // works great in Firefox, not so much Safari.
-  // TODO: get updated coords to elm..
-  // https://stackoverflow.com/questions/6492683/how-to-detect-divs-dimension-changed
-  resize: both;
   min-width: 200px;
   min-height: 200px;
+  overflow-y: auto;
+  resize: both;
 
   &.visible {
     display: block;
@@ -247,9 +248,6 @@ ul {
     border-left: 0;
     padding: 5px;
 
-    &:focus {
-      outline: 0;
-    }
   }
 
   &.error {
