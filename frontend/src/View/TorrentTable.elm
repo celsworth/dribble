@@ -237,11 +237,11 @@ body top humanise tableConfig torrentsByHash filteredTorrents selectedTorrentHas
             21
 
         dropTop =
-            Basics.max (Round.truncate (top / rowHeight) - 20) 0
+            Basics.max (Round.truncate (top / rowHeight) - 30) 0
 
         take =
             -- FIXME should be tied to window heihgt
-            50
+            80
 
         visibleTorrents =
             filteredTorrents
