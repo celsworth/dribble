@@ -16,6 +16,10 @@ namespace :elm do
 
     Filewatcher.new('frontend/**/*.elm').watch do |_filename|
       Rake::Task['elm:build'].execute
+      unless $?.exitstatus.zero?
+        FileUtils.rm_rf 'frontend/elm-stuff'
+        Rake::Task['elm:build'].execute
+      end
     end
   end
 end

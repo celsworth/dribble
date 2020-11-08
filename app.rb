@@ -47,7 +47,12 @@ class Dribble < Sinatra::Application
     etag File.mtime('assets/css/style.scss')
     content_type 'text/css'
     scss = File.read('assets/css/style.scss')
-    SassC::Engine.new(scss, style: :compressed).render
+    SassC::Engine.new(scss,
+                      filename: 'style.scss',
+                      style: :compressed,
+                      source_map_file: '.',
+                      source_map_embed: true,
+                      source_map_contents: true).render
   end
 
   get '/ws' do
