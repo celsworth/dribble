@@ -248,19 +248,16 @@ body top humanise tableConfig torrentsByHash filteredTorrents selectedTorrentHas
                 |> List.drop dropTop
                 |> List.take take
 
-        topSpace =
+        topSpacePx =
             dropTop * rowHeight
 
-        bottomSpace =
+        bottomSpacePx =
             rowHeight * (List.length filteredTorrents - List.length visibleTorrents - dropTop)
     in
     Keyed.node "tbody" [] <|
-        [ ( "topSpace"
-          , tr [ style "height" (String.fromInt topSpace ++ "px") ] []
-          )
-        ]
-            ++ List.filterMap identity
-                (List.map
+        List.filterMap identity <|
+            [ View.Table.heightRow "topSpace" topSpacePx ]
+                ++ List.map
                     (keyedRow
                         humanise
                         tableConfig
@@ -268,11 +265,7 @@ body top humanise tableConfig torrentsByHash filteredTorrents selectedTorrentHas
                         selectedTorrentHash
                     )
                     visibleTorrents
-                )
-            ++ [ ( "bottomSpace"
-                 , tr [ style "height" (String.fromInt bottomSpace ++ "px") ] []
-                 )
-               ]
+                ++ [ View.Table.heightRow "bottomSpace" bottomSpacePx ]
 
 
 keyedRow : Model.Config.Humanise -> Config -> TorrentsByHash -> Maybe String -> String -> Maybe ( String, Html Msg )
