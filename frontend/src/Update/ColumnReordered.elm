@@ -1,4 +1,4 @@
-module Update.DragAndDropReceived exposing (update)
+module Update.ColumnReordered exposing (update)
 
 import DnDList
 import Model exposing (..)
@@ -25,7 +25,7 @@ torrentTable : DnDList.Msg -> Model -> ( Model, Cmd Msg )
 torrentTable dndmsg model =
     let
         dndSystem =
-            Model.TorrentTable.dndSystem DnDMsg
+            Model.TorrentTable.dndSystem ColumnReordered
 
         tableConfig =
             model.config.torrentTable
@@ -49,7 +49,7 @@ fileTable : DnDList.Msg -> Model -> ( Model, Cmd Msg )
 fileTable dndmsg model =
     let
         dndSystem =
-            Model.FileTable.dndSystem DnDMsg
+            Model.FileTable.dndSystem ColumnReordered
 
         tableConfig =
             model.config.fileTable

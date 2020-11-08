@@ -6,8 +6,8 @@ import Model.Attribute
 import Model.MousePosition exposing (MousePosition)
 import Model.Window
 import Update.ClearContextMenu
+import Update.ColumnReordered
 import Update.ColumnWidthReceived
-import Update.DragAndDropReceived
 import Update.EndResizeOp
 import Update.FilterTorrents
 import Update.ProcessWebsocketData
@@ -70,6 +70,9 @@ update msg model =
                 |> andThen (Update.ColumnWidthReceived.update attribute result)
                 |> andThen Update.SaveConfig.update
 
+        ColumnReordered tableType dndmsg ->
+            r |> andThen (Update.ColumnReordered.update tableType dndmsg)
+
         DisplayContextMenu contextMenuFor pos button keys ->
             r |> andThen (Update.SetContextMenu.update contextMenuFor pos button keys)
 
@@ -129,7 +132,6 @@ update msg model =
             r
                 |> andThen (Update.SetSortBy.update attribute)
                 |> andThen Update.SaveConfig.update
-                |> andThen Update.FilterTorrents.update
 
         TorrentRowSelected hash ->
             r
@@ -140,7 +142,7 @@ update msg model =
             r |> andThen (call setSpeedChartHover data)
 
         Tick time ->
-            -- this only needs FilterTorrents because of relative time filtering
+            -- this needs FilterTorrents because of relative time filtering
             r
                 |> andThen (call setCurrentTime time)
                 |> andThen Update.FilterTorrents.update
@@ -153,9 +155,6 @@ update msg model =
 
         WindowResized result ->
             r |> andThen (Update.WindowResized.update result)
-
-        DnDMsg tableType dndmsg ->
-            r |> andThen (Update.DragAndDropReceived.update tableType dndmsg)
 
 
 

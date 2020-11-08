@@ -107,7 +107,7 @@ headerContextMenuAutoWidth column =
 headerContextMenuAttributeRow : DnDList.Model -> Int -> Column -> Html Msg
 headerContextMenuAttributeRow dnd index column =
     View.Table.headerContextMenuAttributeRow
-        (Model.TorrentTable.dndSystem DnDMsg)
+        (Model.TorrentTable.dndSystem ColumnReordered)
         dnd
         index
         ("dndlist-torrentTable-" ++ Model.Torrent.attributeToKey column.attribute)
@@ -120,7 +120,7 @@ headerContextMenuAttributeRowGhostLi : DnDList.Model -> List Column -> Html Msg
 headerContextMenuAttributeRowGhostLi dnd columns =
     let
         dndSystem =
-            Model.TorrentTable.dndSystem DnDMsg
+            Model.TorrentTable.dndSystem ColumnReordered
 
         maybeDragItem =
             dndSystem.info dnd

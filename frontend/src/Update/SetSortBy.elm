@@ -10,13 +10,16 @@ import Model.Sort.File
 import Model.Sort.Torrent
 import Model.Table
 import Model.Torrent
+import Update.FilterTorrents
 
 
 update : Model.Attribute.Attribute -> Model -> ( Model, Cmd Msg )
 update attribute model =
     case attribute of
         Model.Attribute.TorrentAttribute a ->
-            model |> sortTorrents a
+            model
+                |> sortTorrents a
+                |> andThen Update.FilterTorrents.update
 
         Model.Attribute.FileAttribute a ->
             model |> sortFiles a

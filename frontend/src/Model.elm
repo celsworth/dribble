@@ -40,6 +40,7 @@ type Msg
     | AttributeResized Model.Table.ResizeOp MousePosition
     | AttributeResizeEnded Model.Table.ResizeOp MousePosition
     | GotColumnWidth Attribute (Result Browser.Dom.Error Browser.Dom.Element)
+    | ColumnReordered Model.Table.Type DnDList.Msg
     | DisplayContextMenu Model.ContextMenu.For MousePosition Mouse.Button Mouse.Keys
     | ClearContextMenu
     | SetPreference Model.Preferences.PreferenceUpdate
@@ -60,7 +61,6 @@ type Msg
     | WebsocketData (Result JD.Error Model.WebsocketData.Data)
     | WebsocketStatusUpdated (Result JD.Error Bool)
     | WindowResized (Result JD.Error Model.Window.ResizeDetails)
-    | DnDMsg Model.Table.Type DnDList.Msg
 
 
 type alias Model =
