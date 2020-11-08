@@ -237,30 +237,26 @@ body top humanise tableConfig torrentsByHash filteredTorrents selectedTorrentHas
             21
 
         dropTop =
-            Round.truncate (top / rowHeight) - 30
-
-        dropTop2 =
-            if dropTop < 0 then
-                0
-
-            else
-                dropTop
+            Basics.max (Round.truncate (top / rowHeight) - 20) 0
 
         take =
             -- FIXME should be tied to window heihgt
-            100
+            50
 
-        st =
+        visibleTorrents =
             filteredTorrents
-                |> List.drop dropTop2
+                |> List.drop dropTop
                 |> List.take take
 
+        topSpace =
+            dropTop * rowHeight
+
         bottomSpace =
-            rowHeight * (List.length filteredTorrents - List.length st - dropTop2)
+            rowHeight * (List.length filteredTorrents - List.length visibleTorrents - dropTop)
     in
     Keyed.node "tbody" [] <|
         [ ( "topSpace"
-          , tr [ style "height" (String.fromInt (dropTop2 * rowHeight) ++ "px") ] []
+          , tr [ style "height" (String.fromInt topSpace ++ "px") ] []
           )
         ]
             ++ List.filterMap identity
@@ -271,9 +267,7 @@ body top humanise tableConfig torrentsByHash filteredTorrents selectedTorrentHas
                         torrentsByHash
                         selectedTorrentHash
                     )
-                    filteredTorrents
-                    |> List.drop dropTop2
-                    |> List.take take
+                    visibleTorrents
                 )
             ++ [ ( "bottomSpace"
                  , tr [ style "height" (String.fromInt bottomSpace ++ "px") ] []
