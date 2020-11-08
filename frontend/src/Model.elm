@@ -41,6 +41,7 @@ type Msg
     | SetHamburgerMenuVisible Bool
     | TogglePreferencesVisible
     | ToggleLogsVisible
+    | TorrentGroupSelected Model.TorrentGroups.GroupType
     | SetColumnAutoWidth Attribute
     | ToggleAttributeVisibility Model.Attribute.Attribute
     | SetSortBy Model.Attribute.Attribute

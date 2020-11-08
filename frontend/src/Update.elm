@@ -25,6 +25,7 @@ import Update.SubscribeToTorrent
 import Update.ToggleAttributeVisibility
 import Update.ToggleWindowVisible
 import Update.TorrentFilterChanged
+import Update.TorrentGroupSelected
 import Update.WindowResized
 
 
@@ -100,6 +101,9 @@ update msg model =
             r
                 |> andThen (Update.ToggleWindowVisible.update Model.Window.Logs)
                 |> andThen Update.SaveConfig.update
+
+        TorrentGroupSelected groupType ->
+            r |> andThen (Update.TorrentGroupSelected.update groupType)
 
         SetColumnAutoWidth attribute ->
             r

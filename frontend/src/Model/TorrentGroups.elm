@@ -12,6 +12,24 @@ type alias Details =
     }
 
 
+type GroupType
+    = ByStatus StatusGroupType
+    | ByLabel String
+    | ByTracker String
+
+
+type StatusGroupType
+    = All
+    | Seeding
+    | Downloading
+    | Hashing
+    | Paused
+    | Stopped
+    | Errored
+    | Active
+    | Inactive
+
+
 type alias StatusGroup =
     { all : Details
     , seeding : Details
@@ -266,6 +284,10 @@ updateStatusErrored torrent statusGroup =
         statusGroup
 
 
+
+-- MISC UPDATERS
+
+
 incrementKey : (String -> TF.Expr) -> String -> GenericGroup -> GenericGroup
 incrementKey expr key carry =
     Dict.update
@@ -280,6 +302,29 @@ incrementKey expr key carry =
                 |> Just
         )
         carry
+
+
+deselectAllExcept : String -> GenericGroup -> GenericGroup
+deselectAllExcept key group =
+    let
+        fn =
+            \k v ->
+                if k /= key then
+                    { v | selected = False }
+
+                else
+                    v
+    in
+    Dict.map fn group
+
+
+toggleSelected : String -> GenericGroup -> GenericGroup
+toggleSelected key group =
+    let
+        fn =
+            \d -> { d | selected = not d.selected }
+    in
+    Dict.update key (Maybe.map fn) group
 
 
 increment : Details -> Details

@@ -7,7 +7,7 @@ import Html.Events exposing (onClick)
 import Html.Lazy
 import Model exposing (..)
 import Model.Torrent
-import Model.TorrentGroups exposing (Details, GenericGroup, StatusGroup, TorrentGroups)
+import Model.TorrentGroups exposing (..)
 import View.Utils.TorrentStatusIcon
 
 
@@ -19,35 +19,35 @@ view model =
 torrentGroupsView : TorrentGroups -> Html Msg
 torrentGroupsView torrentGroups =
     div [ class "torrent-groups" ]
-        [ torrentGroupForStatuses "Status" torrentGroups.byStatus
-        , torrentGroupForLabels "Labels" torrentGroups.byLabel
-        , torrentGroupForTrackers "Trackers" torrentGroups.byTracker
+        [ torrentGroupForStatuses torrentGroups.byStatus
+        , torrentGroupForLabels torrentGroups.byLabel
+        , torrentGroupForTrackers torrentGroups.byTracker
         ]
 
 
-torrentGroupForStatuses : String -> StatusGroup -> Html Msg
-torrentGroupForStatuses header group =
+torrentGroupForStatuses : StatusGroup -> Html Msg
+torrentGroupForStatuses group =
     div [ class "torrent-group" ]
-        [ p [ class "header" ] [ text header ]
+        [ p [ class "header" ] [ text "Status" ]
         , ul []
-            [ listItem [ text "All Torrents" ] group.all
+            [ listItem (ByStatus All) [ text "All Torrents" ] group.all
             , hr [] []
-            , listItemForStatus "Active" group.active
-            , listItemForStatus "Inactive" group.inactive
+            , listItemForStatus "Active" Active group.active
+            , listItemForStatus "Inactive" Inactive group.inactive
             , hr [] []
-            , listItemForStatus "Seeding" group.seeding
-            , listItemForStatus "Downloading" group.downloading
-            , listItemForStatus "Hashing" group.hashing
-            , listItemForStatus "Paused" group.paused
-            , listItemForStatus "Stopped" group.stopped
-            , listItemForStatus "Errored" group.errored
+            , listItemForStatus "Seeding" Seeding group.seeding
+            , listItemForStatus "Downloading" Downloading group.downloading
+            , listItemForStatus "Hashing" Hashing group.hashing
+            , listItemForStatus "Paused" Paused group.paused
+            , listItemForStatus "Stopped" Stopped group.stopped
+            , listItemForStatus "Errored" Errored group.errored
             ]
         ]
 
 
-listItemForStatus : String -> Details -> Html Msg
-listItemForStatus label details =
-    listItem [ statusIcon label, text label ] details
+listItemForStatus : String -> StatusGroupType -> Details -> Html Msg
+listItemForStatus label groupType details =
+    listItem (ByStatus groupType) [ statusIcon label, text label ] details
 
 
 statusIcon : String -> Html Msg
@@ -58,10 +58,10 @@ statusIcon status =
             (Model.Torrent.stringToStatus status)
 
 
-torrentGroupForLabels : String -> GenericGroup -> Html Msg
-torrentGroupForLabels header group =
+torrentGroupForLabels : GenericGroup -> Html Msg
+torrentGroupForLabels group =
     div [ class "torrent-group" ]
-        [ p [ class "header" ] [ text header ]
+        [ p [ class "header" ] [ text "Labels" ]
         , ul [] <| List.map listItemForLabel (Dict.toList group)
         ]
 
@@ -76,20 +76,26 @@ listItemForLabel ( label, details ) =
             else
                 text label
     in
-    listItem [ nonEmptyLabel ] details
+    listItem
+        (ByLabel label)
+        [ nonEmptyLabel ]
+        details
 
 
-torrentGroupForTrackers : String -> GenericGroup -> Html Msg
-torrentGroupForTrackers header group =
+torrentGroupForTrackers : GenericGroup -> Html Msg
+torrentGroupForTrackers group =
     div [ class "torrent-group" ]
-        [ p [ class "header" ] [ text header ]
+        [ p [ class "header" ] [ text "Trackers" ]
         , ul [] <| List.map listItemForTracker (Dict.toList group)
         ]
 
 
 listItemForTracker : ( String, Details ) -> Html Msg
 listItemForTracker ( label, details ) =
-    listItem [ trackerFavicon label, text label ] details
+    listItem
+        (ByTracker label)
+        [ trackerFavicon label, text label ]
+        details
 
 
 trackerFavicon : String -> Html Msg
@@ -97,8 +103,8 @@ trackerFavicon domain =
     img [ class "favicon", src <| "/proxy/" ++ domain ++ "/favicon.ico" ] []
 
 
-listItem : List (Html Msg) -> Details -> Html Msg
-listItem labelContent details =
+listItem : GroupType -> List (Html Msg) -> Details -> Html Msg
+listItem groupType labelContent details =
     let
         kls =
             if details.selected then
@@ -108,8 +114,7 @@ listItem labelContent details =
                 ""
     in
     li
-        [ class kls
-        ]
+        [ onClick <| TorrentGroupSelected <| groupType, class kls ]
         [ span [ class "label" ] labelContent
         , span [ class "value" ] [ text <| String.fromInt details.count ]
         ]
