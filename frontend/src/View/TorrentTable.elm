@@ -20,7 +20,6 @@ import Model.Table
 import Model.Torrent exposing (Torrent, TorrentsByHash)
 import Model.TorrentTable exposing (Column, Config)
 import Round
-import Time
 import View.Table
 import View.Torrent
 import View.Utils.ContextMenu
