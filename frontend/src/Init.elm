@@ -36,6 +36,7 @@ init flags =
       , selectedTorrentHash = Nothing
       , torrentGroups = Model.TorrentGroups.empty
       , sortedTorrents = []
+      , filteredTorrents = []
       , torrentsByHash = Dict.empty
       , torrentFilter = torrentFilter
       , sortedFiles = []

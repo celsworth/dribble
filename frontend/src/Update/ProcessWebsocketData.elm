@@ -4,6 +4,7 @@ import Json.Decode as JD
 import Model exposing (..)
 import Model.Message
 import Model.WebsocketData
+import Update.FilterTorrents
 import Update.ProcessFiles
 import Update.ProcessSystemInfo
 import Update.ProcessTorrents
@@ -41,7 +42,9 @@ processWebsocketData data model =
             model |> Update.ProcessSystemInfo.update systemInfo
 
         Model.WebsocketData.TorrentsReceived torrents ->
-            model |> Update.ProcessTorrents.update torrents
+            model
+                |> Update.ProcessTorrents.update torrents
+                |> andThen Update.FilterTorrents.update
 
         Model.WebsocketData.FilesReceived torrents ->
             model |> Update.ProcessFiles.update torrents

@@ -63,6 +63,7 @@ type alias Model =
     , selectedTorrentHash : Maybe String
     , torrentGroups : TorrentGroups
     , sortedTorrents : List String
+    , filteredTorrents : List String
     , torrentsByHash : TorrentsByHash
     , torrentFilter : TorrentFilter
     , sortedFiles : List String
@@ -116,6 +117,11 @@ setTorrentGroups new model =
 setSortedTorrents : List String -> Model -> Model
 setSortedTorrents new model =
     { model | sortedTorrents = new }
+
+
+setFilteredTorrents : List String -> Model -> Model
+setFilteredTorrents new model =
+    { model | filteredTorrents = new }
 
 
 setSelectedTorrentHash : String -> Model -> Model
