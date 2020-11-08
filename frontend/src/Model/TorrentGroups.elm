@@ -89,16 +89,18 @@ initialStatus =
         , selected = False
         , expr =
             TF.OrExpr
-                (TF.DownRate TF.GT 0 TF.Nothing)
-                (TF.UpRate TF.GT 0 TF.Nothing)
+                [ TF.DownRate TF.GT 0 TF.Nothing
+                , TF.UpRate TF.GT 0 TF.Nothing
+                ]
         }
     , inactive =
         { count = 0
         , selected = False
         , expr =
             TF.AndExpr
-                (TF.DownRate TF.EqNum 0 TF.Nothing)
-                (TF.UpRate TF.EqNum 0 TF.Nothing)
+                [ TF.DownRate TF.EqNum 0 TF.Nothing
+                , TF.UpRate TF.EqNum 0 TF.Nothing
+                ]
         }
     , paused =
         { count = 0
@@ -178,7 +180,7 @@ updateByLabel : GenericGroup -> List Torrent -> GenericGroup
 updateByLabel group torrents =
     let
         expr =
-            TF.Label << TF.Contains << TF.CaseSensitive
+            TF.Label << TF.EqStr << TF.CaseSensitive
     in
     List.foldr
         (\torrent carry -> incrementKey expr torrent.label carry)
@@ -190,7 +192,7 @@ updateByTracker : GenericGroup -> List Torrent -> GenericGroup
 updateByTracker group torrents =
     let
         expr =
-            TF.Tracker << TF.Contains << TF.CaseSensitive
+            TF.Tracker << TF.EqStr << TF.CaseSensitive
     in
     List.foldr
         (\torrent carry ->
@@ -330,3 +332,24 @@ toggleSelected key group =
 increment : Details -> Details
 increment details =
     { details | count = details.count + 1 }
+
+
+
+-- SELECTORS
+
+
+selectedExprs : GenericGroup -> List TF.Expr
+selectedExprs group =
+    let
+        fn =
+            \_ v ->
+                if v.selected then
+                    Just v.expr
+
+                else
+                    Nothing
+    in
+    group
+        |> Dict.map fn
+        |> Dict.values
+        |> List.filterMap identity

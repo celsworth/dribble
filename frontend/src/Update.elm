@@ -67,6 +67,9 @@ update msg model =
                 |> andThen (Update.ColumnWidthReceived.update attribute result)
                 |> andThen Update.SaveConfig.update
 
+        ColumnReordered tableType dndmsg ->
+            r |> andThen (Update.ColumnReordered.update tableType dndmsg)
+
         DisplayContextMenu contextMenuFor pos button keys ->
             r |> andThen (Update.SetContextMenu.update contextMenuFor pos button keys)
 
@@ -147,9 +150,6 @@ update msg model =
 
         WindowResized result ->
             r |> andThen (Update.WindowResized.update result)
-
-        ColumnReordered tableType dndmsg ->
-            r |> andThen (Update.ColumnReordered.update tableType dndmsg)
 
 
 

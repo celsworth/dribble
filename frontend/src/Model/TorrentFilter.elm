@@ -79,8 +79,8 @@ type Operator
 
 
 type Expr
-    = AndExpr Expr Expr
-    | OrExpr Expr Expr
+    = AndExpr (List Expr)
+    | OrExpr (List Expr)
     | Unset
     | Status StatusOp Model.Torrent.Status
     | Name StringOp
@@ -166,25 +166,27 @@ torrentMatches : Time.Posix -> Torrent -> TorrentFilter -> Bool
 torrentMatches currentTime torrent filter =
     case filter.filter of
         Ok e ->
-            torrentMatchesComponent currentTime torrent e
+            torrentMatchesExpr currentTime torrent e
 
         Err _ ->
             False
 
 
-torrentMatchesComponent : Time.Posix -> Torrent -> Expr -> Bool
-torrentMatchesComponent currentTime torrent filter =
-    case filter of
+torrentMatchesExpr : Time.Posix -> Torrent -> Expr -> Bool
+torrentMatchesExpr currentTime torrent expr =
+    case expr of
         Unset ->
             True
 
-        AndExpr e1 e2 ->
-            torrentMatchesComponent currentTime torrent e1
-                && torrentMatchesComponent currentTime torrent e2
+        AndExpr exprs ->
+            List.all (torrentMatchesExpr currentTime torrent) exprs
 
-        OrExpr e1 e2 ->
-            torrentMatchesComponent currentTime torrent e1
-                || torrentMatchesComponent currentTime torrent e2
+        OrExpr exprs ->
+            if List.isEmpty exprs then
+                True
+
+            else
+                List.any (torrentMatchesExpr currentTime torrent) exprs
 
         Status op s ->
             case op of
@@ -440,10 +442,10 @@ finalize revOps finalExpr =
             finalExpr
 
         ( expr, And ) :: otherRevOps ->
-            finalize otherRevOps (AndExpr expr finalExpr)
+            finalize otherRevOps (AndExpr [ expr, finalExpr ])
 
         ( expr, Or ) :: otherRevOps ->
-            OrExpr (finalize otherRevOps expr) finalExpr
+            OrExpr [ finalize otherRevOps expr, finalExpr ]
 
 
 parseExpr : Parser Expr
@@ -461,10 +463,10 @@ parseFieldAlias : Parser Expr
 parseFieldAlias =
     oneOf
         [ P.map
-            (\_ -> OrExpr (UpRate GT 0 Nothing) (DownRate GT 0 Nothing))
+            (\_ -> OrExpr [ UpRate GT 0 Nothing, DownRate GT 0 Nothing ])
             (keyword "$active")
         , P.map
-            (\_ -> AndExpr (UpRate EqNum 0 Nothing) (DownRate EqNum 0 Nothing))
+            (\_ -> AndExpr [ UpRate EqNum 0 Nothing, DownRate EqNum 0 Nothing ])
             (keyword "$idle")
         , P.map (\_ -> stuck) (keyword "$stuck")
         ]
@@ -698,11 +700,8 @@ stuck =
 
         not_paused =
             Status NotEqStatus Model.Torrent.Paused
-
-        not_stopped_or_paused =
-            AndExpr not_stopped not_paused
     in
-    AndExpr (AndExpr not_done down0) not_stopped_or_paused
+    AndExpr [ not_done, down0, not_stopped, not_paused ]
 
 
 

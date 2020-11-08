@@ -2,9 +2,9 @@ module Update.FilterTorrents exposing (update)
 
 import Dict
 import Model exposing (..)
-import Model.Torrent exposing (Torrent, TorrentsByHash)
-import Model.TorrentFilter exposing (TorrentFilter)
-import Time exposing (Posix)
+import Model.Torrent exposing (Torrent)
+import Model.TorrentFilter as TF
+import Model.TorrentGroups
 
 
 update : Model -> ( Model, Cmd Msg )
@@ -23,16 +23,39 @@ filteredTorrents model =
     let
         fn =
             \hash ->
-                torrentMatches model (Dict.get hash model.torrentsByHash)
+                Dict.get hash model.torrentsByHash
+                    |> torrentMatches model
     in
     List.filter fn model.sortedTorrents
 
 
 torrentMatches : Model -> Maybe Torrent -> Bool
-torrentMatches { currentTime, torrentFilter } maybeTorrent =
+torrentMatches model maybeTorrent =
     case maybeTorrent of
         Just torrent ->
-            Model.TorrentFilter.torrentMatches currentTime torrent torrentFilter
+            torrentMatchesFilter model torrent
+                && torrentMatchesSelectedGroups model torrent
 
         Nothing ->
             False
+
+
+torrentMatchesSelectedGroups : Model -> Torrent -> Bool
+torrentMatchesSelectedGroups { currentTime, torrentGroups } torrent =
+    let
+        -- TODO: statusExpr!
+        labelExpr =
+            TF.OrExpr <| Model.TorrentGroups.selectedExprs torrentGroups.byLabel
+
+        trackerExpr =
+            TF.OrExpr <| Model.TorrentGroups.selectedExprs torrentGroups.byTracker
+
+        expr =
+            TF.AndExpr [ labelExpr, trackerExpr ]
+    in
+    TF.torrentMatchesExpr currentTime torrent expr
+
+
+torrentMatchesFilter : Model -> Torrent -> Bool
+torrentMatchesFilter { currentTime, torrentFilter } torrent =
+    TF.torrentMatches currentTime torrent torrentFilter
