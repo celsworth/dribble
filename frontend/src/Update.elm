@@ -129,6 +129,7 @@ update msg model =
             r
                 |> andThen (Update.SetSortBy.update attribute)
                 |> andThen Update.SaveConfig.update
+                |> andThen Update.FilterTorrents.update
 
         TorrentRowSelected hash ->
             r
