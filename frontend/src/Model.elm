@@ -9,7 +9,6 @@ import Model.Attribute exposing (Attribute)
 import Model.Config exposing (Config)
 import Model.ContextMenu exposing (ContextMenu)
 import Model.File exposing (FilesByKey)
-import Model.GroupLists exposing (GroupLists)
 import Model.Message exposing (Message)
 import Model.MousePosition exposing (MousePosition)
 import Model.Preferences
@@ -18,6 +17,7 @@ import Model.SpeedChart
 import Model.Table
 import Model.Torrent exposing (Torrent, TorrentsByHash)
 import Model.TorrentFilter exposing (TorrentFilter)
+import Model.TorrentGroups exposing (TorrentGroups)
 import Model.Traffic exposing (Traffic)
 import Model.WebsocketData
 import Model.Window
@@ -60,7 +60,7 @@ type alias Model =
     , websocketConnected : Bool
     , contextMenu : Maybe ContextMenu
     , selectedTorrentHash : Maybe String
-    , groupLists : GroupLists
+    , torrentGroups : TorrentGroups
     , sortedTorrents : List String
     , torrentsByHash : TorrentsByHash
     , torrentFilter : TorrentFilter
@@ -107,9 +107,9 @@ setContextMenu new model =
     { model | contextMenu = new }
 
 
-setGroupLists : GroupLists -> Model -> Model
-setGroupLists new model =
-    { model | groupLists = new }
+setTorrentGroups : TorrentGroups -> Model -> Model
+setTorrentGroups new model =
+    { model | torrentGroups = new }
 
 
 setSortedTorrents : List String -> Model -> Model

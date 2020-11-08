@@ -179,20 +179,26 @@ statusToInt status =
         Seeding ->
             0
 
-        Errored ->
+        Active ->
             1
 
-        Downloading ->
+        Inactive ->
             2
 
-        Paused ->
+        Errored ->
             3
 
-        Stopped ->
+        Downloading ->
             4
 
-        Hashing ->
+        Paused ->
             5
+
+        Stopped ->
+            6
+
+        Hashing ->
+            7
 
 
 priorityToInt : Priority -> Int

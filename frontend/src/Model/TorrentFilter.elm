@@ -1,13 +1,4 @@
-module Model.TorrentFilter exposing
-    ( Config
-    , TorrentFilter
-    , decoder
-    , default
-    , encode
-    , filterFromConfig
-    , setFilter
-    , torrentMatches
-    )
+module Model.TorrentFilter exposing (..)
 
 import Json.Decode as D
 import Json.Decode.Pipeline exposing (optional)

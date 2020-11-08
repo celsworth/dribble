@@ -11,12 +11,12 @@ import Model.Table
 import Model.TorrentFilter
 import View.Details
 import View.DragBar
-import View.GroupLists
 import View.Logs
 import View.Messages
 import View.Preferences
 import View.SpeedChart
 import View.Summary
+import View.TorrentGroups
 import View.TorrentTable
 import View.Utils.Events exposing (onEscape)
 
@@ -32,7 +32,7 @@ view model =
         , navigation model
         , div [ class "flex" ]
             [ aside [ class "sidebar" ]
-                [ View.GroupLists.view model
+                [ View.TorrentGroups.view model
                 , View.SpeedChart.view model
                 ]
             , div [ class "main" ]

@@ -11,6 +11,8 @@ import Url
 
 type Status
     = Seeding
+    | Active
+    | Inactive
     | Errored
     | Downloading
     | Paused
@@ -366,6 +368,12 @@ statusToString status =
         Seeding ->
             "Seeding"
 
+        Active ->
+            "Active"
+
+        Inactive ->
+            "Inactive"
+
         Errored ->
             "Errored"
 
@@ -387,6 +395,12 @@ stringToStatus string =
     case string of
         "Seeding" ->
             Just Seeding
+
+        "Active" ->
+            Just Active
+
+        "Inactive" ->
+            Just Inactive
 
         "Errored" ->
             Just Errored
