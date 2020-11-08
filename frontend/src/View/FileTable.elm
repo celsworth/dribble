@@ -93,7 +93,7 @@ headerContextMenuAutoWidth column =
 headerContextMenuAttributeRow : DnDList.Model -> Int -> Column -> Html Msg
 headerContextMenuAttributeRow dnd index column =
     View.Table.headerContextMenuAttributeRow
-        (Model.FileTable.dndSystem DnDMsg)
+        (Model.FileTable.dndSystem ColumnReordered)
         dnd
         index
         ("dndlist-fileTable-" ++ Model.File.attributeToKey column.attribute)
@@ -106,7 +106,7 @@ headerContextMenuAttributeRowGhostLi : DnDList.Model -> List Column -> Html Msg
 headerContextMenuAttributeRowGhostLi dnd columns =
     let
         dndSystem =
-            Model.FileTable.dndSystem DnDMsg
+            Model.FileTable.dndSystem ColumnReordered
 
         maybeDragItem =
             dndSystem.info dnd

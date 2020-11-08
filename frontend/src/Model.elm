@@ -51,7 +51,7 @@ type Msg
     | WebsocketData (Result JD.Error Model.WebsocketData.Data)
     | WebsocketStatusUpdated (Result JD.Error Bool)
     | WindowResized (Result JD.Error Model.Window.ResizeDetails)
-    | DnDMsg Model.Table.Type DnDList.Msg
+    | ColumnReordered Model.Table.Type DnDList.Msg
 
 
 type alias Model =

@@ -6,8 +6,8 @@ import Model.Attribute
 import Model.MousePosition exposing (MousePosition)
 import Model.Window
 import Update.ClearContextMenu
+import Update.ColumnReordered
 import Update.ColumnWidthReceived
-import Update.DragAndDropReceived
 import Update.EndResizeOp
 import Update.FilterTorrents
 import Update.ProcessWebsocketData
@@ -134,7 +134,7 @@ update msg model =
             r |> andThen (call setSpeedChartHover data)
 
         Tick time ->
-            -- this only needs FilterTorrents because of relative time filtering
+            -- this needs FilterTorrents because of relative time filtering
             r
                 |> andThen (call setCurrentTime time)
                 |> andThen Update.FilterTorrents.update
@@ -148,8 +148,8 @@ update msg model =
         WindowResized result ->
             r |> andThen (Update.WindowResized.update result)
 
-        DnDMsg tableType dndmsg ->
-            r |> andThen (Update.DragAndDropReceived.update tableType dndmsg)
+        ColumnReordered tableType dndmsg ->
+            r |> andThen (Update.ColumnReordered.update tableType dndmsg)
 
 
 
