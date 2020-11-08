@@ -4,9 +4,9 @@ import Dict
 import Json.Decode as JD
 import Model exposing (Model, Msg(..))
 import Model.Config exposing (Config)
-import Model.GroupLists
 import Model.Message exposing (Message)
 import Model.TorrentFilter
+import Model.TorrentGroups
 import Model.TorrentTable
 import Ports
 import Task
@@ -35,8 +35,9 @@ init flags =
       , websocketConnected = False
       , contextMenu = Nothing
       , selectedTorrentHash = Nothing
-      , groupLists = Model.GroupLists.empty
+      , torrentGroups = Model.TorrentGroups.empty
       , sortedTorrents = []
+      , filteredTorrents = []
       , torrentsByHash = Dict.empty
       , torrentFilter = torrentFilter
       , sortedFiles = []

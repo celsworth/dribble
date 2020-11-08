@@ -11,6 +11,12 @@ view status =
         Model.Torrent.Seeding ->
             icon "seeding" "fa-arrow-up"
 
+        Model.Torrent.Active ->
+            icon "active" "fa-exchange-alt fa-rotate-90"
+
+        Model.Torrent.Inactive ->
+            icon "inactive" "fa-exchange-alt fa-rotate-90"
+
         Model.Torrent.Errored ->
             icon "errored" "fa-exclamation"
 

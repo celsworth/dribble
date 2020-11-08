@@ -32,7 +32,7 @@ $details-height: 200px;
 $summary-height: 20px;
 // 2.3 is magic, determined by seeing how high speed-chart was when left to auto
 $speed-chart-height: calc(#{$sidebar-width} / 2.3);
-$group-lists-height: calc(100vh - #{$summary-height} - #{$speed-chart-height} - #{$header-height});
+$torrent-groups-height: calc(100vh - #{$summary-height} - #{$speed-chart-height} - #{$header-height});
 $torrents-height: calc(100vh - #{$summary-height} - #{$details-height} - #{$header-height});
 
 $thead-z-index: 1; // stop progress-bars overlaying headers
@@ -407,12 +407,12 @@ ul {
   width: $main-width;
 }
 
-.group-lists {
+.torrent-groups {
   display: flex;
   flex-direction: column;
   background: $main-bg-color;
   cursor: default;
-  height: $group-lists-height;
+  height: $torrent-groups-height;
   overflow: auto;
   font-size: 12px;
 
@@ -425,8 +425,13 @@ ul {
     font-variant: small-caps;
   }
 
-  .group-list:first-child .header {
+  .torrent-group:first-child .header {
     border-top: 0;
+  }
+
+  hr {
+    border: 0;
+    border-top: 1px solid #ddd;
   }
 
   ul {
@@ -439,9 +444,15 @@ ul {
     justify-content: space-between;
     padding: 3px 0;
 
-    > span {
-      padding: 0 5px;
+    &.selected {
+      background: $selected-row-background-color;
+      color: $selected-row-color;
     }
+  }
+
+  .label,
+  .value {
+    padding: 0 5px;
   }
 
   .label {
@@ -451,8 +462,13 @@ ul {
   }
 
   i,
-  img {
+  .favicon {
     margin-right: 5px;
+  }
+
+  .favicon {
+    width: 16px;
+    height: 16px;
   }
 }
 
@@ -546,6 +562,14 @@ ul {
 
   &.seeding {
     color: #292;
+  }
+
+  &.active {
+    color: #292;
+  }
+
+  &.inactive {
+    color: #999;
   }
 
   &.errored {

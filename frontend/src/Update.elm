@@ -9,6 +9,7 @@ import Update.ClearContextMenu
 import Update.ColumnWidthReceived
 import Update.DragAndDropReceived
 import Update.EndResizeOp
+import Update.FilterTorrents
 import Update.ProcessWebsocketData
 import Update.ProcessWebsocketStatusUpdated
 import Update.ResetConfig
@@ -25,6 +26,7 @@ import Update.SubscribeToTorrent
 import Update.ToggleAttributeVisibility
 import Update.ToggleWindowVisible
 import Update.TorrentFilterChanged
+import Update.TorrentGroupSelected
 import Update.WindowResized
 
 
@@ -86,10 +88,14 @@ update msg model =
             r |> andThen Update.SaveConfig.update
 
         ResetFilterClicked ->
-            r |> andThen Update.ResetTorrentFilter.update
+            r
+                |> andThen Update.ResetTorrentFilter.update
+                |> andThen Update.FilterTorrents.update
 
         TorrentFilterChanged value ->
-            r |> andThen (Update.TorrentFilterChanged.update value)
+            r
+                |> andThen (Update.TorrentFilterChanged.update value)
+                |> andThen Update.FilterTorrents.update
 
         SetHamburgerMenuVisible bool ->
             r |> andThen (call setHamburgerMenuVisible bool)
@@ -103,6 +109,11 @@ update msg model =
             r
                 |> andThen (Update.ToggleWindowVisible.update Model.Window.Logs)
                 |> andThen Update.SaveConfig.update
+
+        TorrentGroupSelected groupType ->
+            r
+                |> andThen (Update.TorrentGroupSelected.update groupType)
+                |> andThen Update.FilterTorrents.update
 
         SetColumnAutoWidth attribute ->
             r
@@ -128,7 +139,10 @@ update msg model =
             r |> andThen (call setSpeedChartHover data)
 
         Tick time ->
-            r |> andThen (call setCurrentTime time)
+            -- this only needs FilterTorrents because of relative time filtering
+            r
+                |> andThen (call setCurrentTime time)
+                |> andThen Update.FilterTorrents.update
 
         WebsocketData result ->
             r |> andThen (Update.ProcessWebsocketData.update result)
