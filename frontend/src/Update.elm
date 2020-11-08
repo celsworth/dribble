@@ -126,7 +126,9 @@ update msg model =
                 |> andThen Update.SaveConfig.update
 
         SetSortBy attribute ->
-            r |> andThen (Update.SetSortBy.update attribute)
+            r
+                |> andThen (Update.SetSortBy.update attribute)
+                |> andThen Update.SaveConfig.update
 
         TorrentRowSelected hash ->
             r
