@@ -122,6 +122,21 @@ headerContextMenuAttributeRowLi itemId column attribute content dndEvents dndSty
 
 
 
+-- BODY HELPERS
+
+
+headerCellRightPadding : Int
+headerCellRightPadding =
+    -- extra space for sort icons
+    10
+
+
+cellLrPadding : Int
+cellLrPadding =
+    4
+
+
+
 -- CONTENT CELL HELPERS
 
 
@@ -148,36 +163,24 @@ donePercentCell donePercent =
 
 
 
-{-
-   WIDTH HELPERS
-
-   this complication is because the width stored in columnWidths
-   includes padding and borders. To set the proper size for the
-   internal div, we need to subtract some:
-
-   For th columns, that amounts to 16px:
-     1 + 1px borders
-     4px left padding
-     10px right padding
-
-   For td, there are no borders, so its just 2*4px padding to remove
--}
+{- WIDTH HELPERS -}
 
 
 thWidthAttribute : Column c -> Maybe (Attribute Msg)
 thWidthAttribute column =
-    widthAttribute column 16
+    -- 2px extra for left/right border
+    widthAttribute column (2 + cellLrPadding + headerCellRightPadding)
 
 
 tdWidthAttribute : Column c -> Maybe (Attribute Msg)
 tdWidthAttribute column =
-    widthAttribute column 8
+    widthAttribute column (cellLrPadding * 2)
 
 
-widthAttribute : Column c -> Float -> Maybe (Attribute Msg)
+widthAttribute : Column c -> Int -> Maybe (Attribute Msg)
 widthAttribute column subtract =
     if column.auto then
         Nothing
 
     else
-        Just <| style "width" (Round.round 1 (column.width - subtract) ++ "px")
+        Just <| style "width" (Round.round 1 (column.width - toFloat subtract) ++ "px")

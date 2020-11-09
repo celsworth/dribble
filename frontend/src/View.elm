@@ -16,15 +16,18 @@ import View.Messages
 import View.Preferences
 import View.SpeedChart
 import View.Summary
+import View.Table
 import View.TorrentGroups
 import View.TorrentTable
+import View.Utils.CssVariable
 import View.Utils.Events exposing (onEscape)
 
 
 view : Model -> Html Msg
 view model =
     div (viewAttributes model)
-        [ Html.Lazy.lazy View.DragBar.view model.resizeOp
+        [ cssVariablesStyleTag
+        , Html.Lazy.lazy View.DragBar.view model.resizeOp
         , contextMenuCloser model
         , View.Preferences.view model
         , View.Logs.view model
@@ -41,6 +44,18 @@ view model =
                 ]
             ]
         , View.Summary.view model
+        ]
+
+
+cssVariablesStyleTag : Html Msg
+cssVariablesStyleTag =
+    View.Utils.CssVariable.style
+        [ ( "--table-cell-lr-padding"
+          , String.fromInt View.Table.cellLrPadding ++ "px"
+          )
+        , ( "--table-header-cell-r-padding"
+          , String.fromInt View.Table.headerCellRightPadding ++ "px"
+          )
         ]
 
 
