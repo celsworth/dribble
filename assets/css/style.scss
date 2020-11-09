@@ -711,9 +711,7 @@ td {
   border-bottom: 1px solid $table-border-colour;
 
   padding: 2px var(--table-cell-lr-padding);
-  // changing this 21px requires a change in elm's lazy table rendering.
-  // see View.Table.rowHeight
-  height: 21px;
+  height: var(--table-cell-height);
 
   overflow: hidden;
   white-space: nowrap;
