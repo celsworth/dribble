@@ -232,7 +232,7 @@ body : Float -> Model.Config.Humanise -> Config -> TorrentsByHash -> List String
 body top humanise tableConfig torrentsByHash filteredTorrents selectedTorrentHash =
     let
         dropTop =
-            Basics.max ((Round.truncate top // View.Table.rowHeight) - 30) 0
+            Basics.max ((Round.truncate top // View.Table.cellHeight) - 30) 0
 
         take =
             -- FIXME should be tied to window heihgt
@@ -244,10 +244,10 @@ body top humanise tableConfig torrentsByHash filteredTorrents selectedTorrentHas
                 |> List.take take
 
         topSpacePx =
-            dropTop * View.Table.rowHeight
+            dropTop * View.Table.cellHeight
 
         bottomSpacePx =
-            View.Table.rowHeight * (List.length filteredTorrents - List.length visibleTorrents - dropTop)
+            View.Table.cellHeight * (List.length filteredTorrents - List.length visibleTorrents - dropTop)
     in
     Keyed.node "tbody" [] <|
         List.filterMap identity <|

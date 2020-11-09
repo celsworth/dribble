@@ -125,9 +125,9 @@ headerContextMenuAttributeRowLi itemId column attribute content dndEvents dndSty
 -- BODY HELPERS
 
 
-rowHeight : Int
-rowHeight =
     -- FIXME assumption
+cellHeight : Int
+cellHeight =
     21
 
 
