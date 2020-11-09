@@ -673,9 +673,7 @@ th {
   border-left: 1px solid $th-border-left;
   background: $table-header-background;
 
-  // changing this 4px l/r padding requires a change in elm.
-  // see TorrentTable widthAttribute methods
-  padding: 4px 10px 4px 4px;
+  padding: 4px var(--table-header-cell-r-padding) 4px var(--table-cell-lr-padding);
 
   text-align: left;
 
@@ -712,9 +710,7 @@ th {
 td {
   border-bottom: 1px solid $table-border-colour;
 
-  // changing this 4px l/r padding requires a change in elm.
-  // see TorrentTable widthAttribute methods
-  padding: 2px 4px;
+  padding: 2px var(--table-cell-lr-padding);
   // changing this 21px requires a change in elm's lazy table rendering.
   // see View.Table.rowHeight
   height: 21px;
