@@ -408,6 +408,8 @@ ul {
 }
 
 .torrent-groups {
+  @include unselectable;
+
   display: flex;
   flex-direction: column;
   background: $main-bg-color;
@@ -713,6 +715,9 @@ td {
   // changing this 4px l/r padding requires a change in elm.
   // see TorrentTable widthAttribute methods
   padding: 2px 4px;
+  // changing this 21px requires a change in elm's lazy table rendering.
+  // see View.Table.rowHeight
+  height: 21px;
 
   overflow: hidden;
   white-space: nowrap;

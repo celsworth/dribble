@@ -231,12 +231,8 @@ headerCellResizeHandleAttributes column =
 body : Float -> Model.Config.Humanise -> Config -> TorrentsByHash -> List String -> Maybe String -> Html Msg
 body top humanise tableConfig torrentsByHash filteredTorrents selectedTorrentHash =
     let
-        rowHeight =
-            -- FIXME assumption
-            21
-
         dropTop =
-            Basics.max (Round.truncate (top / rowHeight) - 30) 0
+            Basics.max ((Round.truncate top // View.Table.rowHeight) - 30) 0
 
         take =
             -- FIXME should be tied to window heihgt
@@ -248,14 +244,14 @@ body top humanise tableConfig torrentsByHash filteredTorrents selectedTorrentHas
                 |> List.take take
 
         topSpacePx =
-            dropTop * rowHeight
+            dropTop * View.Table.rowHeight
 
         bottomSpacePx =
-            rowHeight * (List.length filteredTorrents - List.length visibleTorrents - dropTop)
+            View.Table.rowHeight * (List.length filteredTorrents - List.length visibleTorrents - dropTop)
     in
     Keyed.node "tbody" [] <|
         List.filterMap identity <|
-            [ View.Table.heightRow "topSpace" topSpacePx ]
+            [ View.Table.spacerRow "topSpace" topSpacePx ]
                 ++ List.map
                     (keyedRow
                         humanise
@@ -264,7 +260,7 @@ body top humanise tableConfig torrentsByHash filteredTorrents selectedTorrentHas
                         selectedTorrentHash
                     )
                     visibleTorrents
-                ++ [ View.Table.heightRow "bottomSpace" bottomSpacePx ]
+                ++ [ View.Table.spacerRow "bottomSpace" bottomSpacePx ]
 
 
 keyedRow : Model.Config.Humanise -> Config -> TorrentsByHash -> Maybe String -> String -> Maybe ( String, Html Msg )

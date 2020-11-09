@@ -125,8 +125,14 @@ headerContextMenuAttributeRowLi itemId column attribute content dndEvents dndSty
 -- BODY HELPERS
 
 
-heightRow : String -> Int -> Maybe ( String, Html Msg )
-heightRow key px =
+rowHeight : Int
+rowHeight =
+    -- FIXME assumption
+    21
+
+
+spacerRow : String -> Int -> Maybe ( String, Html Msg )
+spacerRow key px =
     if px > 0 then
         Just ( key, tr [ style "height" (String.fromInt px ++ "px") ] [] )
 
