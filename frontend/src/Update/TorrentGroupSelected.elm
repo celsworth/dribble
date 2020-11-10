@@ -1,6 +1,5 @@
 module Update.TorrentGroupSelected exposing (update)
 
-import Dict
 import Model exposing (..)
 import Model.TorrentGroups exposing (..)
 
@@ -15,6 +14,8 @@ update groupType model =
             case groupType of
                 ByStatus statusGroupType ->
                     torrentGroups
+                        |> deselectAllStatusesExcept statusGroupType
+                        |> toggleStatusSelected statusGroupType
 
                 ByLabel label ->
                     model.torrentGroups
@@ -31,31 +32,51 @@ update groupType model =
         |> noCmd
 
 
-toggleLabelSelected : String -> TorrentGroups -> TorrentGroups
-toggleLabelSelected key torrentGroups =
-    { torrentGroups | byLabel = toggleSelected key torrentGroups.byLabel }
+deselectAllStatusesExcept : StatusGroupType -> TorrentGroups -> TorrentGroups
+deselectAllStatusesExcept key torrentGroups =
+    { torrentGroups
+        | byStatus =
+            Model.TorrentGroups.deselectAllStatusesExcept
+                key
+                torrentGroups.byStatus
+    }
+
+
+toggleStatusSelected : StatusGroupType -> TorrentGroups -> TorrentGroups
+toggleStatusSelected key torrentGroups =
+    { torrentGroups
+        | byStatus =
+            Model.TorrentGroups.toggleStatusSelected key torrentGroups.byStatus
+    }
 
 
 deselectAllLabelsExcept : String -> TorrentGroups -> TorrentGroups
 deselectAllLabelsExcept key torrentGroups =
-    { torrentGroups | byLabel = deselectAllExcept key torrentGroups.byLabel }
+    { torrentGroups
+        | byLabel =
+            Model.TorrentGroups.deselectAllExcept key torrentGroups.byLabel
+    }
 
 
-toggleTrackerSelected : String -> TorrentGroups -> TorrentGroups
-toggleTrackerSelected key torrentGroups =
-    { torrentGroups | byTracker = toggleSelected key torrentGroups.byTracker }
+toggleLabelSelected : String -> TorrentGroups -> TorrentGroups
+toggleLabelSelected key torrentGroups =
+    { torrentGroups
+        | byLabel =
+            Model.TorrentGroups.toggleSelected key torrentGroups.byLabel
+    }
 
 
 deselectAllTrackersExcept : String -> TorrentGroups -> TorrentGroups
 deselectAllTrackersExcept key torrentGroups =
-    { torrentGroups | byTracker = deselectAllExcept key torrentGroups.byTracker }
+    { torrentGroups
+        | byTracker =
+            Model.TorrentGroups.deselectAllExcept key torrentGroups.byTracker
+    }
 
 
-toggleSelected : String -> GenericGroup -> GenericGroup
-toggleSelected key group =
-    Model.TorrentGroups.toggleSelected key group
-
-
-deselectAllExcept : String -> GenericGroup -> GenericGroup
-deselectAllExcept key group =
-    Model.TorrentGroups.deselectAllExcept key group
+toggleTrackerSelected : String -> TorrentGroups -> TorrentGroups
+toggleTrackerSelected key torrentGroups =
+    { torrentGroups
+        | byTracker =
+            Model.TorrentGroups.toggleSelected key torrentGroups.byTracker
+    }

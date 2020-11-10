@@ -306,6 +306,58 @@ incrementKey expr key carry =
         carry
 
 
+deselectAllStatusesExcept : StatusGroupType -> StatusGroup -> StatusGroup
+deselectAllStatusesExcept statusType g =
+    let
+        deselectIf =
+            \condition details ->
+                if condition then
+                    { details | selected = False }
+
+                else
+                    details
+    in
+    { g
+        | all = deselectIf (statusType /= All) g.all
+        , seeding = deselectIf (statusType /= Seeding) g.seeding
+        , downloading = deselectIf (statusType /= Downloading) g.downloading
+        , hashing = deselectIf (statusType /= Hashing) g.hashing
+        , paused = deselectIf (statusType /= Paused) g.paused
+        , stopped = deselectIf (statusType /= Stopped) g.stopped
+        , errored = deselectIf (statusType /= Errored) g.errored
+        , active = deselectIf (statusType /= Active) g.active
+        , inactive = deselectIf (statusType /= Inactive) g.inactive
+    }
+
+
+toggleStatusSelected : StatusGroupType -> StatusGroup -> StatusGroup
+toggleStatusSelected statusType g =
+    let
+        toggleSelectedIf =
+            \condition details ->
+                if condition then
+                    { details | selected = not details.selected }
+
+                else
+                    details
+    in
+    { g
+        | all = toggleSelectedIf (statusType == All) g.all
+        , seeding = toggleSelectedIf (statusType == Seeding) g.seeding
+        , downloading = toggleSelectedIf (statusType == Downloading) g.downloading
+        , hashing = toggleSelectedIf (statusType == Hashing) g.hashing
+        , paused = toggleSelectedIf (statusType == Paused) g.paused
+        , stopped = toggleSelectedIf (statusType == Stopped) g.stopped
+        , errored = toggleSelectedIf (statusType == Errored) g.errored
+        , active = toggleSelectedIf (statusType == Active) g.active
+        , inactive = toggleSelectedIf (statusType == Inactive) g.inactive
+    }
+
+
+
+-- GENERIC GROUP SETTERS
+
+
 deselectAllExcept : String -> GenericGroup -> GenericGroup
 deselectAllExcept key group =
     let
@@ -329,6 +381,10 @@ toggleSelected key group =
     Dict.update key (Maybe.map fn) group
 
 
+
+-- DETAILS SETTERS
+
+
 increment : Details -> Details
 increment details =
     { details | count = details.count + 1 }
@@ -336,6 +392,30 @@ increment details =
 
 
 -- SELECTORS
+
+
+selectedExprsForStatus : StatusGroup -> List TF.Expr
+selectedExprsForStatus group =
+    let
+        exprIfSelected =
+            \details ->
+                if details.selected then
+                    Just details.expr
+
+                else
+                    Nothing
+    in
+    [ exprIfSelected group.all
+    , exprIfSelected group.seeding
+    , exprIfSelected group.downloading
+    , exprIfSelected group.hashing
+    , exprIfSelected group.paused
+    , exprIfSelected group.stopped
+    , exprIfSelected group.errored
+    , exprIfSelected group.active
+    , exprIfSelected group.inactive
+    ]
+        |> List.filterMap identity
 
 
 selectedExprs : GenericGroup -> List TF.Expr
