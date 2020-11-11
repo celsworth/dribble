@@ -5,8 +5,8 @@ import Model.ContextMenu
 import Utils.Mouse as Mouse
 
 
-update : Model.ContextMenu.For -> Mouse.Position -> Mouse.Button -> Mouse.Keys -> Model -> ( Model, Cmd Msg )
-update contextMenuFor pos _ _ model =
+update : Model.ContextMenu.For -> Mouse.Event -> Model -> ( Model, Cmd Msg )
+update contextMenuFor { clientPos } model =
     model
-        |> setContextMenu (Just { for = contextMenuFor, position = pos })
+        |> setContextMenu (Just { for = contextMenuFor, position = clientPos })
         |> noCmd

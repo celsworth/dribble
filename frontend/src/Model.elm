@@ -9,7 +9,6 @@ import Model.Config exposing (Config)
 import Model.ContextMenu exposing (ContextMenu)
 import Model.File exposing (FilesByKey)
 import Model.Message exposing (Message)
-import Utils.Mouse as Mouse
 import Model.Preferences
 import Model.Rtorrent
 import Model.SpeedChart
@@ -21,17 +20,18 @@ import Model.Traffic exposing (Traffic)
 import Model.WebsocketData
 import Model.Window
 import Time
+import Utils.Mouse as Mouse
 
 
 type Msg
     = NoOp
     | SetTimeZone Time.Zone
-    | MouseDown Attribute Mouse.Position Mouse.Button Mouse.Keys
+    | MouseDown Attribute Mouse.Event
     | AttributeResized Model.Table.ResizeOp Mouse.Position
     | AttributeResizeEnded Model.Table.ResizeOp Mouse.Position
     | GotColumnWidth Attribute (Result Browser.Dom.Error Browser.Dom.Element)
     | ColumnReordered Model.Table.Type DnDList.Msg
-    | DisplayContextMenu Model.ContextMenu.For Mouse.Position Mouse.Button Mouse.Keys
+    | DisplayContextMenu Model.ContextMenu.For Mouse.Event
     | ClearContextMenu
     | SetPreference Model.Preferences.PreferenceUpdate
     | ResetConfigClicked

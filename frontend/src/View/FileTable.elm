@@ -14,9 +14,9 @@ import Model.Config
 import Model.ContextMenu exposing (ContextMenu, For(..))
 import Model.File exposing (File, FilesByKey)
 import Model.FileTable exposing (Column, Config)
-import Utils.Mouse as Mouse
 import Model.Sort
 import Model.Table
+import Utils.Mouse as Mouse
 import View.File
 import View.Table
 import View.Utils.ContextMenu
@@ -205,7 +205,7 @@ headerCellContentDivAttributes tableConfig column =
 headerCellResizeHandleAttributes : Column -> List (Attribute Msg)
 headerCellResizeHandleAttributes column =
     [ class "resize-handle"
-    , Mouse.onDown (\e -> MouseDown (Model.Attribute.FileAttribute column.attribute) e.clientPos e.button e.keys)
+    , Mouse.onDown (\e -> MouseDown (Model.Attribute.FileAttribute column.attribute) e)
     ]
 
 

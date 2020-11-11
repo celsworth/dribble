@@ -2,7 +2,6 @@ module Update exposing (update)
 
 import Model exposing (..)
 import Model.Attribute
-import Utils.Mouse as Mouse
 import Model.Window
 import Update.ClearContextMenu
 import Update.ColumnReordered
@@ -27,6 +26,7 @@ import Update.ToggleWindowVisible
 import Update.TorrentFilterChanged
 import Update.TorrentGroupSelected
 import Update.WindowResized
+import Utils.Mouse as Mouse
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -50,8 +50,8 @@ update msg model =
         SetTimeZone zone ->
             r |> andThen (call setTimeZone zone)
 
-        MouseDown attribute pos button keys ->
-            r |> andThen (handleMouseDown attribute pos button keys)
+        MouseDown attribute mouseEvent ->
+            r |> andThen (handleMouseDown attribute mouseEvent)
 
         AttributeResized resizeOp pos ->
             r |> andThen (Update.ResizeOpMoved.update resizeOp pos)
@@ -69,8 +69,8 @@ update msg model =
         ColumnReordered tableType dndmsg ->
             r |> andThen (Update.ColumnReordered.update tableType dndmsg)
 
-        DisplayContextMenu contextMenuFor pos button keys ->
-            r |> andThen (Update.SetContextMenu.update contextMenuFor pos button keys)
+        DisplayContextMenu contextMenuFor mouseEvent ->
+            r |> andThen (Update.SetContextMenu.update contextMenuFor mouseEvent)
 
         ClearContextMenu ->
             r |> andThen Update.ClearContextMenu.update
@@ -157,16 +157,16 @@ update msg model =
 -- TODO: move to Update/
 
 
-handleMouseDown : Model.Attribute.Attribute -> Mouse.Position -> Mouse.Button -> Mouse.Keys -> Model -> ( Model, Cmd Msg )
-handleMouseDown attribute mousePosition mouseButton keys model =
-    case mouseButton of
+handleMouseDown : Model.Attribute.Attribute -> Mouse.Event -> Model -> ( Model, Cmd Msg )
+handleMouseDown attribute { button, keys, clientPos } model =
+    case button of
         Mouse.MainButton ->
             if keys.alt then
                 -- also in right click menu
                 Update.SetColumnAutoWidth.update attribute model
 
             else
-                Update.StartResizeOp.update attribute mousePosition model
+                Update.StartResizeOp.update attribute clientPos model
 
         _ ->
             ( model, Cmd.none )
