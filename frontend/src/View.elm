@@ -3,10 +3,9 @@ module View exposing (view)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onMouseLeave)
-import Html.Events.Extra.Mouse as Mouse
 import Html.Lazy
 import Model exposing (..)
-import Model.MousePosition
+import Utils.Mouse as Mouse
 import Model.Table
 import Model.TorrentFilter
 import View.Details
@@ -76,8 +75,8 @@ viewAttributesForResizeOp resizeOp =
     case resizeOp of
         Just r ->
             [ class "resizing-x"
-            , Mouse.onUp (\e -> AttributeResizeEnded r (Model.MousePosition.reconstructClientPos e))
-            , Mouse.onMove (\e -> AttributeResized r (Model.MousePosition.reconstructClientPos e))
+            , Mouse.onUp (\e -> AttributeResizeEnded r e.clientPos)
+            , Mouse.onMove (\e -> AttributeResized r e.clientPos)
             ]
 
         Nothing ->

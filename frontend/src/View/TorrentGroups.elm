@@ -3,9 +3,9 @@ module View.TorrentGroups exposing (view)
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
 import Html.Lazy
 import Model exposing (..)
+import Utils.Mouse as Mouse
 import Model.Torrent
 import Model.TorrentGroups exposing (..)
 import View.Utils.TorrentStatusIcon
@@ -30,7 +30,7 @@ torrentGroupForStatuses group =
     div [ class "torrent-group" ]
         [ p [ class "header" ] [ text "Status" ]
         , ul []
-            [ listItem (ByStatus All) [ text "All Torrents" ] group.all
+            [ listItem (ByStatus All) [ text "All" ] group.all
             , hr [] []
             , listItemForStatus "Active" Active group.active
             , listItemForStatus "Inactive" Inactive group.inactive
@@ -114,7 +114,9 @@ listItem groupType labelContent details =
                 ""
     in
     li
-        [ onClick <| TorrentGroupSelected <| groupType, class kls ]
+        [ Mouse.onClick (\e -> TorrentGroupSelected groupType e.keys)
+        , class kls
+        ]
         [ span [ class "label" ] labelContent
         , span [ class "value" ] [ text <| String.fromInt details.count ]
         ]

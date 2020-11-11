@@ -4,12 +4,11 @@ import DnDList
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
-import Html.Events.Extra.Mouse as Mouse
 import Model exposing (..)
 import Model.Attribute
 import Model.Config
 import Model.ContextMenu
-import Model.MousePosition
+import Utils.Mouse as Mouse
 import Model.Table exposing (Column)
 import Round
 import View.Utils.Events
@@ -37,7 +36,7 @@ maybeHeaderContextMenuHandler config for =
                 (\e ->
                     DisplayContextMenu
                         for
-                        (Model.MousePosition.reconstructClientPos e)
+                        e.clientPos
                         e.button
                         e.keys
                 )

@@ -4,15 +4,15 @@ import Json.Decode as D
 import Json.Encode as E
 import List.Extra
 import Model.Attribute exposing (Attribute)
-import Model.MousePosition exposing (MousePosition)
+import Utils.Mouse as Mouse
 
 
 type alias ResizeOp =
     { attribute : Attribute
     , startWidth : Float
-    , startPosition : MousePosition
+    , startPosition : Mouse.Position
     , currentWidth : Float
-    , currentPosition : MousePosition
+    , currentPosition : Mouse.Position
     }
 
 
@@ -100,7 +100,7 @@ calculateNewColumnWidth { startWidth, currentPosition, startPosition } =
             minimumColumnPx
 
 
-updateResizeOpIfValid : ResizeOp -> MousePosition -> Maybe ResizeOp
+updateResizeOpIfValid : ResizeOp -> Mouse.Position -> Maybe ResizeOp
 updateResizeOpIfValid resizeOp mousePosition =
     let
         newResizeOp =

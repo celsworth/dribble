@@ -43,7 +43,9 @@ torrentMatches model maybeTorrent =
 torrentMatchesSelectedGroups : Model -> Torrent -> Bool
 torrentMatchesSelectedGroups { currentTime, torrentGroups } torrent =
     let
-        -- TODO: statusExpr!
+        statusExpr =
+            TF.OrExpr <| Model.TorrentGroups.selectedExprsForStatus torrentGroups.byStatus
+
         labelExpr =
             TF.OrExpr <| Model.TorrentGroups.selectedExprs torrentGroups.byLabel
 
@@ -51,7 +53,7 @@ torrentMatchesSelectedGroups { currentTime, torrentGroups } torrent =
             TF.OrExpr <| Model.TorrentGroups.selectedExprs torrentGroups.byTracker
 
         expr =
-            TF.AndExpr [ labelExpr, trackerExpr ]
+            TF.AndExpr [ statusExpr, labelExpr, trackerExpr ]
     in
     TF.torrentMatchesExpr currentTime torrent expr
 
