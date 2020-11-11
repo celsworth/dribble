@@ -8,9 +8,9 @@ import Model exposing (..)
 import Model.Attribute
 import Model.Config
 import Model.ContextMenu
-import Utils.Mouse as Mouse
 import Model.Table exposing (Column)
 import Round
+import Utils.Mouse as Mouse
 import View.Utils.Events
 
 
@@ -31,15 +31,7 @@ layoutToClass layout =
 maybeHeaderContextMenuHandler : Model.Config.Config -> Model.ContextMenu.For -> Maybe (Attribute Msg)
 maybeHeaderContextMenuHandler config for =
     if config.enableContextMenus then
-        Just <|
-            Mouse.onContextMenu
-                (\e ->
-                    DisplayContextMenu
-                        for
-                        e.clientPos
-                        e.button
-                        e.keys
-                )
+        Just <| Mouse.onContextMenu (\e -> DisplayContextMenu for e)
 
     else
         Nothing

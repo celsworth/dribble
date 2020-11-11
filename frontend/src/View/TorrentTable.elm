@@ -13,12 +13,12 @@ import Model exposing (..)
 import Model.Attribute
 import Model.Config
 import Model.ContextMenu exposing (ContextMenu, For(..))
-import Utils.Mouse as Mouse
 import Model.Sort
 import Model.Table
 import Model.Torrent exposing (Torrent, TorrentsByHash)
 import Model.TorrentTable exposing (Column, Config)
 import Round
+import Utils.Mouse as Mouse
 import View.Table
 import View.Torrent
 import View.Utils.ContextMenu
@@ -219,7 +219,7 @@ headerCellContentDivAttributes tableConfig column =
 headerCellResizeHandleAttributes : Column -> List (Attribute Msg)
 headerCellResizeHandleAttributes column =
     [ class "resize-handle"
-    , Mouse.onDown (\e -> MouseDown (Model.Attribute.TorrentAttribute column.attribute) e.clientPos e.button e.keys)
+    , Mouse.onDown (\e -> MouseDown (Model.Attribute.TorrentAttribute column.attribute) e)
     ]
 
 

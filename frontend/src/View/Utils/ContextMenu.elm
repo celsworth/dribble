@@ -3,7 +3,8 @@ module View.Utils.ContextMenu exposing (view)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Model exposing (..)
-import Model.ContextMenu exposing (ContextMenu, Position)
+import Model.ContextMenu exposing (ContextMenu)
+import Utils.Mouse as Mouse
 
 
 view : ContextMenu -> List (Html Msg) -> Html Msg
@@ -17,7 +18,7 @@ attributes contextMenu =
         :: positionAttributes contextMenu.position
 
 
-positionAttributes : Position -> List (Attribute Msg)
+positionAttributes : Mouse.Position -> List (Attribute Msg)
 positionAttributes position =
     [ style "top" <| String.fromFloat position.y ++ "px"
     , style "left" <| String.fromFloat position.x ++ "px"
