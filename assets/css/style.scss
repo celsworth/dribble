@@ -408,6 +408,8 @@ ul {
 }
 
 .torrent-groups {
+  @include unselectable;
+
   display: flex;
   flex-direction: column;
   background: $main-bg-color;
