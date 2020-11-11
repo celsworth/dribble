@@ -3,14 +3,13 @@ module Model exposing (..)
 import Browser.Dom
 import Dict
 import DnDList
-import Html.Events.Extra.Mouse as Mouse
 import Json.Decode as JD
 import Model.Attribute exposing (Attribute)
 import Model.Config exposing (Config)
 import Model.ContextMenu exposing (ContextMenu)
 import Model.File exposing (FilesByKey)
 import Model.Message exposing (Message)
-import Model.MousePosition exposing (MousePosition)
+import Utils.Mouse as Mouse
 import Model.Preferences
 import Model.Rtorrent
 import Model.SpeedChart
@@ -27,12 +26,12 @@ import Time
 type Msg
     = NoOp
     | SetTimeZone Time.Zone
-    | MouseDown Attribute MousePosition Mouse.Button Mouse.Keys
-    | AttributeResized Model.Table.ResizeOp MousePosition
-    | AttributeResizeEnded Model.Table.ResizeOp MousePosition
+    | MouseDown Attribute Mouse.Position Mouse.Button Mouse.Keys
+    | AttributeResized Model.Table.ResizeOp Mouse.Position
+    | AttributeResizeEnded Model.Table.ResizeOp Mouse.Position
     | GotColumnWidth Attribute (Result Browser.Dom.Error Browser.Dom.Element)
     | ColumnReordered Model.Table.Type DnDList.Msg
-    | DisplayContextMenu Model.ContextMenu.For MousePosition Mouse.Button Mouse.Keys
+    | DisplayContextMenu Model.ContextMenu.For Mouse.Position Mouse.Button Mouse.Keys
     | ClearContextMenu
     | SetPreference Model.Preferences.PreferenceUpdate
     | ResetConfigClicked
@@ -42,7 +41,7 @@ type Msg
     | SetHamburgerMenuVisible Bool
     | TogglePreferencesVisible
     | ToggleLogsVisible
-    | TorrentGroupSelected Model.TorrentGroups.GroupType
+    | TorrentGroupSelected Model.TorrentGroups.GroupType Mouse.Keys
     | SetColumnAutoWidth Attribute
     | ToggleAttributeVisibility Model.Attribute.Attribute
     | SetSortBy Model.Attribute.Attribute

@@ -5,7 +5,6 @@ import DnDList
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
-import Html.Events.Extra.Mouse as Mouse
 import Html.Keyed as Keyed
 import Html.Lazy
 import List
@@ -15,7 +14,7 @@ import Model.Config
 import Model.ContextMenu exposing (ContextMenu, For(..))
 import Model.File exposing (File, FilesByKey)
 import Model.FileTable exposing (Column, Config)
-import Model.MousePosition
+import Utils.Mouse as Mouse
 import Model.Sort
 import Model.Table
 import View.File
@@ -206,7 +205,7 @@ headerCellContentDivAttributes tableConfig column =
 headerCellResizeHandleAttributes : Column -> List (Attribute Msg)
 headerCellResizeHandleAttributes column =
     [ class "resize-handle"
-    , Mouse.onDown (\e -> MouseDown (Model.Attribute.FileAttribute column.attribute) (Model.MousePosition.reconstructClientPos e) e.button e.keys)
+    , Mouse.onDown (\e -> MouseDown (Model.Attribute.FileAttribute column.attribute) e.clientPos e.button e.keys)
     ]
 
 

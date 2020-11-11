@@ -1,11 +1,11 @@
 module Update.ResizeOpMoved exposing (update)
 
 import Model exposing (..)
-import Model.MousePosition exposing (MousePosition)
+import Utils.Mouse as Mouse
 import Model.Table
 
 
-update : Model.Table.ResizeOp -> MousePosition -> Model -> ( Model, Cmd Msg )
+update : Model.Table.ResizeOp -> Mouse.Position -> Model -> ( Model, Cmd Msg )
 update resizeOp mousePosition model =
     let
         {- sometimes we get another AttributeResized just after AttributeResizeEnded.

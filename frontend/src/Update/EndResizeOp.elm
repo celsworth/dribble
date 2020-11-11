@@ -5,13 +5,13 @@ import Model.Attribute
 import Model.Config exposing (Config)
 import Model.File
 import Model.FileTable
-import Model.MousePosition exposing (MousePosition)
+import Utils.Mouse as Mouse
 import Model.Table
 import Model.Torrent
 import Model.TorrentTable
 
 
-update : Model.Table.ResizeOp -> MousePosition -> Model -> ( Model, Cmd Msg )
+update : Model.Table.ResizeOp -> Mouse.Position -> Model -> ( Model, Cmd Msg )
 update resizeOp mousePosition model =
     let
         {- use the updated mouse coords if valid, otherwise use

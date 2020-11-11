@@ -1,9 +1,8 @@
 module Update exposing (update)
 
-import Html.Events.Extra.Mouse as Mouse
 import Model exposing (..)
 import Model.Attribute
-import Model.MousePosition exposing (MousePosition)
+import Utils.Mouse as Mouse
 import Model.Window
 import Update.ClearContextMenu
 import Update.ColumnReordered
@@ -110,9 +109,9 @@ update msg model =
                 |> andThen (Update.ToggleWindowVisible.update Model.Window.Logs)
                 |> andThen Update.SaveConfig.update
 
-        TorrentGroupSelected groupType ->
+        TorrentGroupSelected groupType keys ->
             r
-                |> andThen (Update.TorrentGroupSelected.update groupType)
+                |> andThen (Update.TorrentGroupSelected.update groupType keys)
                 |> andThen Update.FilterTorrents.update
 
         SetColumnAutoWidth attribute ->
@@ -158,11 +157,11 @@ update msg model =
 -- TODO: move to Update/
 
 
-handleMouseDown : Model.Attribute.Attribute -> MousePosition -> Mouse.Button -> Mouse.Keys -> Model -> ( Model, Cmd Msg )
-handleMouseDown attribute mousePosition mouseButton mouseKeys model =
+handleMouseDown : Model.Attribute.Attribute -> Mouse.Position -> Mouse.Button -> Mouse.Keys -> Model -> ( Model, Cmd Msg )
+handleMouseDown attribute mousePosition mouseButton keys model =
     case mouseButton of
         Mouse.MainButton ->
-            if mouseKeys.alt then
+            if keys.alt then
                 -- also in right click menu
                 Update.SetColumnAutoWidth.update attribute model
 
