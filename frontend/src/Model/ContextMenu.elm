@@ -2,6 +2,7 @@ module Model.ContextMenu exposing (..)
 
 import Model.FileTable
 import Model.TorrentTable
+import Utils.Mouse as Mouse
 
 
 type For
@@ -9,13 +10,7 @@ type For
     | FileTableColumn Model.FileTable.Column
 
 
-type alias Position =
-    { x : Float
-    , y : Float
-    }
-
-
 type alias ContextMenu =
     { for : For
-    , position : Position
+    , position : Mouse.Position
     }
