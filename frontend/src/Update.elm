@@ -12,6 +12,7 @@ import Update.ProcessWebsocketData
 import Update.ProcessWebsocketStatusUpdated
 import Update.ResetConfig
 import Update.ResetTorrentFilter
+import Update.ResetTorrentGroupSelection
 import Update.ResizeOpMoved
 import Update.SaveConfig
 import Update.SetColumnAutoWidth
@@ -111,6 +112,11 @@ update msg model =
             r
                 |> andThen (Update.ToggleWindowVisible.update Model.Window.Logs)
                 |> andThen Update.SaveConfig.update
+
+        ResetTorrentGroupSelection ->
+            r
+                |> andThen Update.ResetTorrentGroupSelection.update
+                |> andThen Update.FilterTorrents.update
 
         TorrentGroupSelected groupType keys ->
             r

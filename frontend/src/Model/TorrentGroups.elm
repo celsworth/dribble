@@ -306,6 +306,30 @@ incrementKey expr key carry =
         carry
 
 
+
+-- STATUS GROUP SETTERS
+
+
+deselectAllInStatusGroup : StatusGroup -> StatusGroup
+deselectAllInStatusGroup g =
+    let
+        deselect =
+            \details ->
+                { details | selected = False }
+    in
+    { g
+        | all = deselect g.all
+        , seeding = deselect g.seeding
+        , downloading = deselect g.downloading
+        , hashing = deselect g.hashing
+        , paused = deselect g.paused
+        , stopped = deselect g.stopped
+        , errored = deselect g.errored
+        , active = deselect g.active
+        , inactive = deselect g.inactive
+    }
+
+
 deselectAllStatusesExcept : StatusGroupType -> StatusGroup -> StatusGroup
 deselectAllStatusesExcept statusType g =
     let
@@ -358,8 +382,17 @@ toggleStatusSelected statusType g =
 -- GENERIC GROUP SETTERS
 
 
-deselectAllExcept : String -> GenericGroup -> GenericGroup
-deselectAllExcept key group =
+deselectAllInGroup : GenericGroup -> GenericGroup
+deselectAllInGroup group =
+    let
+        fn =
+            \_ v -> { v | selected = False }
+    in
+    Dict.map fn group
+
+
+deselectAllInGroupExcept : String -> GenericGroup -> GenericGroup
+deselectAllInGroupExcept key group =
     let
         fn =
             \k v ->

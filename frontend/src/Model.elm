@@ -50,10 +50,11 @@ type Msg
     | SetHamburgerMenuVisible Bool
     | TogglePreferencesVisible
     | ToggleLogsVisible
+    | ResetTorrentGroupSelection
     | TorrentGroupSelected Model.TorrentGroups.GroupType Mouse.Keys
     | SetColumnAutoWidth Attribute
-    | ToggleAttributeVisibility Model.Attribute.Attribute
-    | SetSortBy Model.Attribute.Attribute
+    | ToggleAttributeVisibility Attribute
+    | SetSortBy Attribute
     | TorrentRowSelected String
     | SpeedChartHover (List Model.SpeedChart.DataSeries)
     | Tick Time.Posix

@@ -17,8 +17,8 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch <|
         List.filterMap identity <|
-            -- time updated once a minute so torrent table cache is useful
-            [ Just <| Time.every 60000 Tick
+            -- time updated every 5 seconds so torrent table cache is useful
+            [ Just <| Time.every 5000 Tick
             , Just <| Ports.messageReceiver (WebsocketData << decodeMessage)
             , Just <| Ports.windowResizeObserved (WindowResized << decodeWindowResizeDetails)
             , Just <| Ports.websocketStatusUpdated (WebsocketStatusUpdated << decodeStatus)
