@@ -45,6 +45,11 @@ $hamburger-menu-z-index: 40;
 $context-menu-closer-z-index: 50;
 $context-menu-z-index: 51;
 
+@mixin obsfucate {
+  color: transparent;
+  text-shadow: 0 0 7px rgba(0, 0, 0, .7);
+}
+
 @mixin unselectable {
   -webkit-user-select: none;
   -ms-user-select: none;
@@ -243,14 +248,13 @@ ul {
 
 .filter {
   display: flex;
-  margin-right: 10px;
-  width: 250px;
+  margin-right: 5px;
+  width: 300px;
 
   input {
     border: 1px solid #aaa;
     border-left: 0;
     padding: 5px;
-
   }
 
   &.error {
@@ -444,7 +448,11 @@ ul {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 3px 5px;
+    padding: 3px;
+
+    &:hover {
+      background: $selectable-hover-background-color;
+    }
 
     &.selected {
       background: $selected-row-background-color;
