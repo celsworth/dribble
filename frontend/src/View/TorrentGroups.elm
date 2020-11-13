@@ -3,11 +3,12 @@ module View.TorrentGroups exposing (view)
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onClick)
 import Html.Lazy
 import Model exposing (..)
-import Utils.Mouse as Mouse
 import Model.Torrent
 import Model.TorrentGroups exposing (..)
+import Utils.Mouse as Mouse
 import View.Utils.TorrentStatusIcon
 
 
@@ -19,9 +20,18 @@ view model =
 torrentGroupsView : TorrentGroups -> Html Msg
 torrentGroupsView torrentGroups =
     div [ class "torrent-groups" ]
-        [ torrentGroupForStatuses torrentGroups.byStatus
+        [ torrentGroupReset torrentGroups.byStatus.all
+        , torrentGroupForStatuses torrentGroups.byStatus
         , torrentGroupForLabels torrentGroups.byLabel
         , torrentGroupForTrackers torrentGroups.byTracker
+        ]
+
+
+torrentGroupReset : Details -> Html Msg
+torrentGroupReset all =
+    div [ class "torrent-group" ]
+        [ ul []
+            [ resetListItem all ]
         ]
 
 
@@ -30,17 +40,15 @@ torrentGroupForStatuses group =
     div [ class "torrent-group" ]
         [ p [ class "header" ] [ text "Status" ]
         , ul []
-            [ listItem (ByStatus All) [ text "All" ] group.all
-            , hr [] []
-            , listItemForStatus "Active" Active group.active
-            , listItemForStatus "Inactive" Inactive group.inactive
-            , hr [] []
-            , listItemForStatus "Seeding" Seeding group.seeding
+            [ listItemForStatus "Seeding" Seeding group.seeding
             , listItemForStatus "Downloading" Downloading group.downloading
             , listItemForStatus "Hashing" Hashing group.hashing
             , listItemForStatus "Paused" Paused group.paused
             , listItemForStatus "Stopped" Stopped group.stopped
             , listItemForStatus "Errored" Errored group.errored
+            , hr [] []
+            , listItemForStatus "Active" Active group.active
+            , listItemForStatus "Inactive" Inactive group.inactive
             ]
         ]
 
@@ -101,6 +109,14 @@ listItemForTracker ( label, details ) =
 trackerFavicon : String -> Html Msg
 trackerFavicon domain =
     img [ class "favicon", src <| "/proxy/" ++ domain ++ "/favicon.ico" ] []
+
+
+resetListItem : Details -> Html Msg
+resetListItem details =
+    li []
+        [ button [ onClick ResetTorrentGroupSelection ] [ text "Reset / All" ]
+        , span [ class "value" ] [ text <| String.fromInt details.count ]
+        ]
 
 
 listItem : GroupType -> List (Html Msg) -> Details -> Html Msg

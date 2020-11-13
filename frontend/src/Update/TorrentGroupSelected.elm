@@ -84,7 +84,7 @@ deselectAllLabelsExcept : String -> TorrentGroups -> TorrentGroups
 deselectAllLabelsExcept key torrentGroups =
     { torrentGroups
         | byLabel =
-            Model.TorrentGroups.deselectAllExcept key torrentGroups.byLabel
+            Model.TorrentGroups.deselectAllInGroupExcept key torrentGroups.byLabel
     }
 
 
@@ -104,7 +104,7 @@ deselectAllTrackersExcept : String -> TorrentGroups -> TorrentGroups
 deselectAllTrackersExcept key torrentGroups =
     { torrentGroups
         | byTracker =
-            Model.TorrentGroups.deselectAllExcept key torrentGroups.byTracker
+            Model.TorrentGroups.deselectAllInGroupExcept key torrentGroups.byTracker
     }
 
 

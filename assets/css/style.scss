@@ -21,8 +21,8 @@ $progress-border-color: #bbb;
 $progress-fill-color: #8d8;
 
 $selected-row-color: #fff;
-//$selected-row-background-color: rgb(60, 130, 246);
-$selected-row-background-color: #0568d8;
+$selected-row-background-color: #3c82f6;
+$selectable-hover-background-color: lighten($selected-row-background-color, 30%);
 
 $sidebar-width: 170px;
 $main-width: calc(100vw - #{$sidebar-width});
@@ -118,7 +118,7 @@ ul {
   z-index: $context-menu-z-index;
 
   li {
-    padding: 2px 10px;
+    padding: 4px 10px;
   }
 }
 
@@ -148,6 +148,9 @@ ul {
   li {
     display: flex;
     align-items: center;
+    margin: 0 5px;
+    border-radius: 5px;
+
     &:hover {
       background: $selected-row-background-color;
       color: $selected-row-color;
@@ -427,8 +430,9 @@ ul {
     font-variant: small-caps;
   }
 
-  .torrent-group:first-child .header {
-    border-top: 0;
+  button {
+    align-self: stretch;
+    padding: 5px;
   }
 
   hr {
@@ -436,25 +440,16 @@ ul {
     border-top: 1px solid #ddd;
   }
 
-  ul {
-    padding: 0 0 5px;
-  }
-
   li {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 3px 0;
+    padding: 3px 5px;
 
     &.selected {
       background: $selected-row-background-color;
       color: $selected-row-color;
     }
-  }
-
-  .label,
-  .value {
-    padding: 0 5px;
   }
 
   .label {
@@ -656,7 +651,7 @@ thead {
 
 tr {
   &:hover {
-    background: lighten($selected-row-background-color, 50%);
+    background: $selectable-hover-background-color;
   }
 
   &.selected {
