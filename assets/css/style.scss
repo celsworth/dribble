@@ -450,7 +450,7 @@ ul {
     justify-content: space-between;
     padding: 3px;
 
-    &:hover {
+    &:hover.selectable {
       background: $selectable-hover-background-color;
     }
 

@@ -131,7 +131,7 @@ listItem groupType labelContent details =
     in
     li
         [ Mouse.onClick (\e -> TorrentGroupSelected groupType e.keys)
-        , class kls
+        , class <| "selectable " ++ kls
         ]
         [ span [ class "label" ] labelContent
         , span [ class "value" ] [ text <| String.fromInt details.count ]
