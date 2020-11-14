@@ -114,8 +114,12 @@ trackerFavicon domain =
 resetListItem : Details -> Html Msg
 resetListItem details =
     li []
-        [ button [ onClick ResetTorrentGroupSelection ] [ text "Reset / All" ]
-        , span [ class "value" ] [ text <| String.fromInt details.count ]
+        [ div
+            [ class "button", onClick ResetTorrentGroupSelection ]
+            [ text "Reset / All" ]
+        , span
+            [ class "value" ]
+            [ text <| String.fromInt details.count ]
         ]
 
 

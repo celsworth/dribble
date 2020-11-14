@@ -3,6 +3,7 @@ module View.SpeedChart exposing (view)
 import DateFormat
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onClick)
 import Html.Lazy
 import LineChart
 import LineChart.Area
@@ -35,24 +36,49 @@ view : Model -> Html Msg
 view model =
     aside
         [ class "speed-chart" ]
-        [ lazyChart
+        [ div [ class "speed-chart-options" ]
+            [ div [ class "flex button-group" ]
+                [ timeRangeButton 600 "10m" model.speedChartTimeRange
+                , timeRangeButton 1200 "20m" model.speedChartTimeRange
+                , timeRangeButton 3600 "1h" model.speedChartTimeRange
+                ]
+            ]
+        , lazyChart
             model.traffic
+            model.speedChartTimeRange
             model.speedChartHover
             model.timezone
             model.config.humanise.speed
         ]
 
 
-lazyChart : List Traffic -> List DataSeries -> Time.Zone -> Utils.Filesize.Settings -> Html Msg
-lazyChart traffic hover timezone hSpeedSettings =
-    Html.Lazy.lazy4 chart traffic hover timezone hSpeedSettings
+timeRangeButton : Int -> String -> Int -> Html Msg
+timeRangeButton range label selectedRange =
+    let
+        kls =
+            if selectedRange == range then
+                "selected"
+
+            else
+                ""
+    in
+    div
+        [ class <| "button " ++ kls
+        , onClick <| SetSpeedChartTimeRange range
+        ]
+        [ text label ]
 
 
-chart : List Traffic -> List DataSeries -> Time.Zone -> Utils.Filesize.Settings -> Html Msg
-chart traffic hover timezone hSpeedSettings =
+lazyChart : List Traffic -> Int -> List DataSeries -> Time.Zone -> Utils.Filesize.Settings -> Html Msg
+lazyChart traffic timeRange hover timezone hSpeedSettings =
+    Html.Lazy.lazy5 chart traffic timeRange hover timezone hSpeedSettings
+
+
+chart : List Traffic -> Int -> List DataSeries -> Time.Zone -> Utils.Filesize.Settings -> Html Msg
+chart traffic timeRange hover timezone hSpeedSettings =
     let
         filteredTraffic =
-            filterTraffic traffic
+            filterTraffic traffic timeRange
 
         upload =
             List.map (toSpeedChartDataSeries .upDiff) filteredTraffic
@@ -66,8 +92,8 @@ chart traffic hover timezone hSpeedSettings =
         ]
 
 
-filterTraffic : List Traffic -> List Traffic
-filterTraffic traffic =
+filterTraffic : List Traffic -> Int -> List Traffic
+filterTraffic traffic timeRange =
     let
         {- bodge: use last traffic time as current time.
            ideally we'd get Time.now from elm
@@ -78,8 +104,7 @@ filterTraffic traffic =
                 |> Maybe.withDefault 0
 
         limit =
-            {- keep 30 minutes for now -}
-            now - 1800
+            now - timeRange
     in
     List.filterMap (newerThan limit) traffic
 

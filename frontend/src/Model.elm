@@ -47,6 +47,7 @@ type Msg
     | ToggleAttributeVisibility Attribute
     | SetSortBy Attribute
     | TorrentRowSelected String
+    | SetSpeedChartTimeRange Int
     | SpeedChartHover (List Model.SpeedChart.DataSeries)
     | Tick Time.Posix
     | WebsocketData (Result JD.Error Model.WebsocketData.Data)
@@ -70,6 +71,7 @@ type alias Model =
     , keyedFiles : FilesByKey
     , traffic : List Traffic
     , prevTraffic : Maybe Traffic
+    , speedChartTimeRange : Int -- config?
     , speedChartHover : List Model.SpeedChart.DataSeries
     , messages : List Message
     , hamburgerMenuVisible : Bool
@@ -173,6 +175,11 @@ addMessage new model =
 addMessages : List Message -> Model -> Model
 addMessages new model =
     { model | messages = Model.Message.addMessages new model.messages }
+
+
+setSpeedChartTimeRange : Int -> Model -> Model
+setSpeedChartTimeRange new model =
+    { model | speedChartTimeRange = new }
 
 
 setSpeedChartHover : List Model.SpeedChart.DataSeries -> Model -> Model

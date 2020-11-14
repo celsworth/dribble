@@ -140,6 +140,9 @@ update msg model =
                 |> andThen (Update.SetSelectedTorrent.update hash)
                 |> andThen Update.SubscribeToTorrent.update
 
+        SetSpeedChartTimeRange new ->
+            r |> andThen (call setSpeedChartTimeRange new)
+
         SpeedChartHover data ->
             r |> andThen (call setSpeedChartHover data)
 
