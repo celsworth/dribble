@@ -2,6 +2,7 @@
 
 source 'https://rubygems.org'
 
+gem 'dotenv'
 gem 'excon'
 gem 'iodine'
 gem 'rake'

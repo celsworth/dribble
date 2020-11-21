@@ -2,7 +2,10 @@
 
 require 'sinatra/reloader'
 require 'sassc'
+require 'dotenv'
 require 'excon'
+
+Dotenv.load
 
 Excon.defaults[:middlewares] << Excon::Middleware::RedirectFollower
 
