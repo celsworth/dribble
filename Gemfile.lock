@@ -8,7 +8,7 @@ GEM
     ffi (1.13.1)
     filewatcher (1.1.1)
       optimist (~> 3.0)
-    iodine (0.7.43)
+    iodine (0.7.44)
     method_source (1.0.0)
     multi_json (1.15.0)
     mustermann (1.1.1)
