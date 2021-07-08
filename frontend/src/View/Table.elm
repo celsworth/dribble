@@ -116,6 +116,20 @@ headerContextMenuAttributeRowLi itemId column attribute content dndEvents dndSty
 -- BODY HELPERS
 
 
+cellHeight : Int
+cellHeight =
+    21
+
+
+spacerRow : String -> Int -> Maybe ( String, Html Msg )
+spacerRow key px =
+    if px > 0 then
+        Just ( key, tr [ style "height" (String.fromInt px ++ "px") ] [] )
+
+    else
+        Nothing
+
+
 headerCellRightPadding : Int
 headerCellRightPadding =
     -- extra space for sort icons

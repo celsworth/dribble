@@ -7,6 +7,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Html.Keyed as Keyed
 import Html.Lazy
+import Json.Decode as JD
 import List
 import Model exposing (..)
 import Model.Attribute
@@ -16,6 +17,7 @@ import Model.Sort
 import Model.Table
 import Model.Torrent exposing (Torrent, TorrentsByHash)
 import Model.TorrentTable exposing (Column, Config)
+import Round
 import Utils.Mouse as Mouse
 import View.Table
 import View.Torrent
@@ -30,10 +32,14 @@ view model =
             [ i [ class "fas fa-spinner fa-pulse" ] [] ]
 
     else
-        section [ class "torrent-table" ]
+        section
+            [ Html.Events.on "scroll" scrollDecoder
+            , class "torrent-table"
+            ]
             [ table [ class <| View.Table.layoutToClass model.config.torrentTable.layout ]
                 [ Html.Lazy.lazy2 header model.config model.config.torrentTable
-                , Html.Lazy.lazy5 body
+                , Html.Lazy.lazy6 body
+                    model.top
                     model.config.humanise
                     model.config.torrentTable
                     model.torrentsByHash
@@ -45,6 +51,16 @@ view model =
                 model.config.torrentTable
                 model.contextMenu
             ]
+
+
+scrollDecoder : JD.Decoder Msg
+scrollDecoder =
+    JD.succeed ScrollEvent
+        |> JD.map2 (|>) (JD.at [ "target", "scrollTop" ] JD.float)
+        |> JD.map2 (|>) (JD.at [ "target", "scrollHeight" ] JD.float)
+        |> JD.map2 (|>) (JD.at [ "target", "scrollLeft" ] JD.float)
+        |> JD.map2 (|>) (JD.at [ "target", "scrollWidth" ] JD.float)
+        |> JD.map Scroll
 
 
 header : Model.Config.Config -> Config -> Html Msg
@@ -211,19 +227,39 @@ headerCellResizeHandleAttributes column =
 -- BODY
 
 
-body : Model.Config.Humanise -> Config -> TorrentsByHash -> List String -> Maybe String -> Html Msg
-body humanise tableConfig torrentsByHash filteredTorrents selectedTorrentHash =
+body : Float -> Model.Config.Humanise -> Config -> TorrentsByHash -> List String -> Maybe String -> Html Msg
+body top humanise tableConfig torrentsByHash filteredTorrents selectedTorrentHash =
+    let
+        dropTop =
+            Basics.max ((Round.truncate top // View.Table.cellHeight) - 30) 0
+
+        take =
+            -- FIXME should be tied to window heihgt
+            80
+
+        visibleTorrents =
+            filteredTorrents
+                |> List.drop dropTop
+                |> List.take take
+
+        topSpacePx =
+            dropTop * View.Table.cellHeight
+
+        bottomSpacePx =
+            View.Table.cellHeight * (List.length filteredTorrents - List.length visibleTorrents - dropTop)
+    in
     Keyed.node "tbody" [] <|
-        List.filterMap identity
-            (List.map
-                (keyedRow
-                    humanise
-                    tableConfig
-                    torrentsByHash
-                    selectedTorrentHash
-                )
-                filteredTorrents
-            )
+        List.filterMap identity <|
+            [ View.Table.spacerRow "topSpace" topSpacePx ]
+                ++ List.map
+                    (keyedRow
+                        humanise
+                        tableConfig
+                        torrentsByHash
+                        selectedTorrentHash
+                    )
+                    visibleTorrents
+                ++ [ View.Table.spacerRow "bottomSpace" bottomSpacePx ]
 
 
 keyedRow : Model.Config.Humanise -> Config -> TorrentsByHash -> Maybe String -> String -> Maybe ( String, Html Msg )
