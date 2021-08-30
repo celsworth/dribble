@@ -126,6 +126,7 @@ getTorrentFields =
         , "d.size_bytes="
         , "d.size_files="
         , "d.creation_date="
+        , "d.custom=addtime"
         , "d.timestamp.started="
         , "d.timestamp.finished="
         , "d.completed_bytes="

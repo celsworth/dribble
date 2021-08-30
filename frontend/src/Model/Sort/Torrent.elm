@@ -62,6 +62,9 @@ comparator direction attribute =
         CreationTime ->
             \a b -> maybeReverse direction <| cmp a b .creationTime
 
+        AddedTime ->
+            \a b -> maybeReverse direction <| cmp a b .addedTime
+
         StartedTime ->
             \a b -> maybeReverse direction <| cmp a b .startedTime
 

@@ -71,10 +71,15 @@ defaultColumns =
       , auto = False
       , visible = False
       }
-    , { attribute = StartedTime
+    , { attribute = AddedTime
       , width = 150
       , auto = False
       , visible = True
+      }
+    , { attribute = StartedTime
+      , width = 150
+      , auto = False
+      , visible = False
       }
     , { attribute = FinishedTime
       , width = 150

@@ -40,6 +40,9 @@ attributeAccessor humanise torrent attribute =
         Model.Torrent.CreationTime ->
             View.Utils.LocalTimeNode.nonZeroView torrent.creationTime
 
+        Model.Torrent.AddedTime ->
+            View.Utils.LocalTimeNode.nonZeroView torrent.addedTime
+
         Model.Torrent.StartedTime ->
             View.Utils.LocalTimeNode.nonZeroView torrent.startedTime
 
@@ -137,6 +140,9 @@ attributeTextAlignment attribute =
             Just "text-right"
 
         Model.Torrent.CreationTime ->
+            Just "text-right"
+
+        Model.Torrent.AddedTime ->
             Just "text-right"
 
         Model.Torrent.StartedTime ->

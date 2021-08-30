@@ -44,6 +44,7 @@ type Attribute
     | Size
     | FileCount
     | CreationTime
+    | AddedTime
     | StartedTime
     | FinishedTime
     | DownloadedBytes
@@ -70,6 +71,7 @@ type alias Torrent =
     , size : Int
     , fileCount : Int
     , creationTime : Int
+    , addedTime : Int
     , startedTime : Int
     , finishedTime : Int
     , downloadedBytes : Int
@@ -145,47 +147,49 @@ decoder =
         |> custom (D.index 3 D.int)
         -- creationTime
         |> custom (D.index 4 D.int)
+        -- addedTime
+        |> custom (D.index 5 D.string)
         -- startedTime
-        |> custom (D.index 5 D.int)
-        -- finishedTime
         |> custom (D.index 6 D.int)
-        -- downloadedBytes
+        -- finishedTime
         |> custom (D.index 7 D.int)
-        -- downloadRate
+        -- downloadedBytes
         |> custom (D.index 8 D.int)
-        -- uploadedBytes
+        -- downloadRate
         |> custom (D.index 9 D.int)
-        -- uploadRate
+        -- uploadedBytes
         |> custom (D.index 10 D.int)
-        -- skippedBytes
+        -- uploadRate
         |> custom (D.index 11 D.int)
+        -- skippedBytes
+        |> custom (D.index 12 D.int)
         -- open
-        |> custom (D.index 12 intToBoolDecoder)
-        -- active
         |> custom (D.index 13 intToBoolDecoder)
+        -- active
+        |> custom (D.index 14 intToBoolDecoder)
         -- hashing
-        |> custom (D.index 14 intToHashingStatusDecoder)
+        |> custom (D.index 15 intToHashingStatusDecoder)
         -- message
-        |> custom (D.index 15 D.string)
+        |> custom (D.index 16 D.string)
         -- priority
-        |> custom (D.index 16 intToPriorityDecoder)
+        |> custom (D.index 17 intToPriorityDecoder)
         -- seedersConnected
-        |> custom (D.index 17 D.int)
+        |> custom (D.index 18 D.int)
         -- seedersTotal
-        |> custom (D.index 18 <| D.list intArrayDecoder)
+        |> custom (D.index 19 <| D.list intArrayDecoder)
         -- peersConnected
-        |> custom (D.index 19 D.int)
+        |> custom (D.index 20 D.int)
         -- peersTotal
-        |> custom (D.index 20 <| D.list intArrayDecoder)
+        |> custom (D.index 21 <| D.list intArrayDecoder)
         -- label
-        |> custom (D.index 21 D.string)
+        |> custom (D.index 22 D.string)
         -- tracker urls -> hosts
-        |> custom (D.index 22 <| D.list trackerHostArrayDecoder)
+        |> custom (D.index 23 <| D.list trackerHostArrayDecoder)
         |> Pipeline.resolve
 
 
-internalDecoder : String -> String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Bool -> Bool -> HashingStatus -> String -> Priority -> Int -> List Int -> Int -> List Int -> String -> List String -> D.Decoder Torrent
-internalDecoder hash name size fileCount creationTime startedTime finishedTime downloadedBytes downloadRate uploadedBytes uploadRate skippedBytes isOpen isActive hashing message priority seedersConnected seedersTotal peersConnected peersTotal label trackerHosts =
+internalDecoder : String -> String -> Int -> Int -> Int -> String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Bool -> Bool -> HashingStatus -> String -> Priority -> Int -> List Int -> Int -> List Int -> String -> List String -> D.Decoder Torrent
+internalDecoder hash name size fileCount creationTime addedTime startedTime finishedTime downloadedBytes downloadRate uploadedBytes uploadRate skippedBytes isOpen isActive hashing message priority seedersConnected seedersTotal peersConnected peersTotal label trackerHosts =
     -- further postprocessing of JSON decoding, adding internal fields etc.
     let
         done =
@@ -202,6 +206,7 @@ internalDecoder hash name size fileCount creationTime startedTime finishedTime d
             size
             fileCount
             (creationTime * 1000)
+            ((addedTime |> String.trim |> String.toInt |> Maybe.withDefault 0) * 1000)
             (startedTime * 1000)
             (finishedTime * 1000)
             downloadedBytes
@@ -443,6 +448,9 @@ attributeToKey attribute =
         CreationTime ->
             "creationTime"
 
+        AddedTime ->
+            "addedTime"
+
         StartedTime ->
             "startedTime"
 
@@ -512,6 +520,9 @@ keyToAttribute str =
 
         "creationTime" ->
             Just CreationTime
+
+        "addedTime" ->
+            Just AddedTime
 
         "startedTime" ->
             Just StartedTime
@@ -585,6 +596,9 @@ attributeToTableHeaderString attribute =
         CreationTime ->
             "Created"
 
+        AddedTime ->
+            "Added"
+
         StartedTime ->
             "Started"
 
@@ -618,6 +632,9 @@ attributeToString attribute =
 
         CreationTime ->
             "Creation Time"
+
+        AddedTime ->
+            "Added Time"
 
         StartedTime ->
             "Started Time"
