@@ -5,9 +5,9 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onMouseLeave)
 import Html.Lazy
 import Model exposing (..)
-import Utils.Mouse as Mouse
 import Model.Table
 import Model.TorrentFilter
+import Utils.Mouse as Mouse
 import View.Details
 import View.DragBar
 import View.Logs
