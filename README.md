@@ -90,6 +90,8 @@ Torrents that are deleted in the client elsewhere will continue to be rendered a
 
 The speed chart in the bottom left doesn't render binary unit (KiB/s) ticks on the y-axis very well. They work but you can get some odd looking divisions at times. Fortunately I prefer network speeds measured in metric (kB/s) so this is a minor problem (for me).
 
+Dribble is very front-end focused and most of the logic is in Elm, which is only running when your browser is looking at the app. Therefore this project cannot replicate certain things ruTorrent does, like daily/weekly/monthly traffic stats, because it cannot count transferred data in the background. See Hints above for a workaround on maintaining the "AddedTime" column though.
+
 
 ### Known Bugs
 
