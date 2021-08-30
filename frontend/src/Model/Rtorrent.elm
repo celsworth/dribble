@@ -143,14 +143,14 @@ getTorrentFields =
         -- seeders (connected)
         , "d.peers_complete="
 
-        -- seeders (total) -- array of ints -- could use math.sum in 0.9.7
-        , "t.multicall=d.hash=,t.scrape_complete="
+        -- seeders (total)
+        , "math.add=(t.multicall,d.hash=,t.scrape_complete=)"
 
         -- peers (connected)
         , "d.peers_accounted="
 
-        -- peers (total) -- array of ints -- could use math.sum in 0.9.7
-        , "t.multicall=d.hash=,t.scrape_incomplete="
+        -- peers (total)
+        , "math.add=(t.multicall,d.hash=,t.scrape_incomplete=)"
 
         -- label
         , "d.custom1="

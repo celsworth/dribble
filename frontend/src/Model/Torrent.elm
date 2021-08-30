@@ -176,11 +176,11 @@ decoder =
         -- seedersConnected
         |> custom (D.index 18 D.int)
         -- seedersTotal
-        |> custom (D.index 19 <| D.list intArrayDecoder)
+        |> custom (D.index 19 D.int)
         -- peersConnected
         |> custom (D.index 20 D.int)
         -- peersTotal
-        |> custom (D.index 21 <| D.list intArrayDecoder)
+        |> custom (D.index 21 D.int)
         -- label
         |> custom (D.index 22 D.string)
         -- tracker urls -> hosts
@@ -188,7 +188,7 @@ decoder =
         |> Pipeline.resolve
 
 
-internalDecoder : String -> String -> Int -> Int -> Int -> String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Bool -> Bool -> HashingStatus -> String -> Priority -> Int -> List Int -> Int -> List Int -> String -> List String -> D.Decoder Torrent
+internalDecoder : String -> String -> Int -> Int -> Int -> String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Bool -> Bool -> HashingStatus -> String -> Priority -> Int -> Int -> Int -> Int -> String -> List String -> D.Decoder Torrent
 internalDecoder hash name size fileCount creationTime addedTime startedTime finishedTime downloadedBytes downloadRate uploadedBytes uploadRate skippedBytes isOpen isActive hashing message priority seedersConnected seedersTotal peersConnected peersTotal label trackerHosts =
     -- further postprocessing of JSON decoding, adding internal fields etc.
     let
@@ -221,9 +221,9 @@ internalDecoder hash name size fileCount creationTime addedTime startedTime fini
             message
             priority
             seedersConnected
-            (List.sum seedersTotal)
+            seedersTotal
             peersConnected
-            (List.sum peersTotal)
+            peersTotal
             (Url.percentDecode label |> Maybe.withDefault label)
             trackerHosts
             {- donePercent -} ((toFloat downloadedBytes / toFloat size) * 100.0)
@@ -340,11 +340,6 @@ intToPriorityDecoder =
 trackerHostArrayDecoder : D.Decoder String
 trackerHostArrayDecoder =
     D.map Model.Tracker.domainFromURL <| D.index 0 D.string
-
-
-intArrayDecoder : D.Decoder Int
-intArrayDecoder =
-    D.index 0 D.int
 
 
 
