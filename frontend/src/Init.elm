@@ -44,6 +44,7 @@ init flags =
       , keyedFiles = Dict.empty
       , traffic = []
       , prevTraffic = Nothing
+      , speedChartTimeRange = 600
       , speedChartHover = []
       , messages = messages
       , hamburgerMenuVisible = False

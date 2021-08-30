@@ -69,6 +69,16 @@ Start the webserver on localhost port 3000:
 bundle exec iodine -b 127.0.0.1 -p 3000 -www public -v
 ```
 
+### Hints
+
+Populating the "AddedTime" column needs an .rtorrent.rc adjustment. Add this:
+
+```
+method.set_key = event.download.inserted_new, loaded_time, "d.custom.set=addtime,$cat=$system.time=;d.save_full_session="
+```
+
+This uses the same custom key as rutorrent so your added times should work in both frontends.
+
 
 ### Limitations
 

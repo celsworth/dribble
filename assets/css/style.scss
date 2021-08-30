@@ -23,6 +23,7 @@ $progress-fill-color: #8d8;
 $selected-row-color: #fff;
 $selected-row-background-color: #3c82f6;
 $selectable-hover-background-color: lighten($selected-row-background-color, 30%);
+$selected-background-color: $selected-row-background-color;
 
 $sidebar-width: 170px;
 $main-width: calc(100vw - #{$sidebar-width});
@@ -89,6 +90,42 @@ ul {
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.button {
+  border: 1px solid #3a4;
+  border-radius: 5px;
+  padding: 5px 10px;
+  color: #3a4;
+
+  &:hover {
+    background: #7c8;
+    color: #fff;
+  }
+
+  &:active {
+    background: #4a5;
+  }
+
+  &.selected {
+    background: #3a4;
+    color: #fff;
+  }
+}
+
+.button-group {
+  :not(:first-child) {
+    border-left: 0;
+    border-radius: 0 5px 5px 0;
+  }
+
+  :not(:last-child) {
+    border-radius: 5px 0 0 5px;
+  }
+
+  :not(:first-child):not(:last-child) {
+    border-radius: 0;
+  }
 }
 
 .text-right {
@@ -434,11 +471,6 @@ ul {
     font-variant: small-caps;
   }
 
-  button {
-    align-self: stretch;
-    padding: 5px;
-  }
-
   hr {
     border: 0;
     border-top: 1px solid #ddd;
@@ -450,11 +482,11 @@ ul {
     justify-content: space-between;
     padding: 3px;
 
-    &:hover {
+    &:hover.selectable {
       background: $selectable-hover-background-color;
     }
 
-    &.selected {
+    &.selected.selectable {
       background: $selected-row-background-color;
       color: $selected-row-color;
     }
@@ -513,7 +545,16 @@ ul {
     border: 1px solid #888;
     width: 90%;
     height: auto;
+
+    .speed-chart-options {
+      display: flex;
+    }
   }
+}
+
+.speed-chart-options {
+  display: none;
+  padding: 10px;
 }
 
 .summary {
