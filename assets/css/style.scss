@@ -755,6 +755,7 @@ td {
   border-bottom: 1px solid $table-border-colour;
 
   padding: 2px var(--table-cell-lr-padding);
+  height: var(--table-cell-height);
 
   overflow: hidden;
   white-space: nowrap;

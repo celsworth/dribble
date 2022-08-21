@@ -49,7 +49,10 @@ view model =
 cssVariablesStyleTag : Html Msg
 cssVariablesStyleTag =
     View.Utils.CssVariable.style
-        [ ( "--table-cell-lr-padding"
+        [ ( "--table-cell-height"
+          , String.fromInt View.Table.cellHeight ++ "px"
+          )
+        , ( "--table-cell-lr-padding"
           , String.fromInt View.Table.cellLrPadding ++ "px"
           )
         , ( "--table-header-cell-r-padding"

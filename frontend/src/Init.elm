@@ -30,6 +30,7 @@ init flags =
     in
     ( { config = config
       , rtorrentSystemInfo = Nothing
+      , top = 0
       , dnd = (Model.TorrentTable.dndSystem <| ColumnReordered).model
       , websocketConnected = False
       , contextMenu = Nothing
